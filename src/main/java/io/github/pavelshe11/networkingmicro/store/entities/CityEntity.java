@@ -1,0 +1,34 @@
+package io.github.pavelshe11.networkingmicro.store.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "city")
+public class CityEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(updatable = false, nullable = false)
+    private UUID id;
+
+    @Column(nullable = false)
+    private String name;
+
+    @OneToMany(mappedBy = "city")
+    private List<AccountEntity> accounts;
+
+    @Builder.Default
+    @Column(name = "created_at")
+    private Instant createdAt = Instant.now();
+
+}
