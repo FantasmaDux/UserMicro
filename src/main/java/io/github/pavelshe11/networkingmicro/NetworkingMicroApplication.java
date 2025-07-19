@@ -1,13 +1,13 @@
-package io.github.pavelshe11.messengermicro;
+package io.github.pavelshe11.networkingmicro;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class MessengerMicroApplication {
+public class NetworkingMicroApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(MessengerMicroApplication.class, args);
+        SpringApplication.run(NetworkingMicroApplication.class, args);
     }
 
 }
