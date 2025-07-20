@@ -24,11 +24,11 @@ public class RecordProfileViewEntity {
 
     @ManyToOne
     @JoinColumn(name = "account_viewer_id", referencedColumnName = "id", nullable = false)
-    private AccountEntity account_viewer;
+    private AccountEntity accountViewer;
 
     @ManyToOne
     @JoinColumn(name = "account_owner_id", referencedColumnName = "id", nullable = false)
-    private AccountEntity account_owner;
+    private AccountEntity accountOwner;
 
     @Column(name = "datetime_check", nullable = false)
     private ZonedDateTime datetimeCheck;

@@ -20,8 +20,12 @@ public class PortfolioItemEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
+    @ManyToOne()
+    @JoinColumn(name = "description_skill_area_id", referencedColumnName = "id", nullable = false)
+    private DescriptionSkillAreaEntity descriptionSkillArea;
+
     @Column(nullable = false)
-    private String name;
+    private String text;
 
     @Builder.Default
     @Column(name = "created_at")

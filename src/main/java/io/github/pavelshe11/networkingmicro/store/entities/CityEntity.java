@@ -24,11 +24,14 @@ public class CityEntity {
     @Column(nullable = false)
     private String name;
 
-    @OneToMany(mappedBy = "city")
-    private List<AccountEntity> accounts;
-
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "city")
+    private List<AccountEntity> accounts;
+
+    @OneToMany(mappedBy = "city")
+    private List<InitiativeEntity> initiatives;
 }

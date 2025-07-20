@@ -34,8 +34,8 @@ public class AccountEntity {
     @JoinColumn(name = "specialization_id", referencedColumnName = "id")
     private SpecializationEntity specialization;
 
-    @ManyToOne
-    @JoinColumn(name = "set_skills_id", referencedColumnName = "id")
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
     SetSkillsEntity setSkills;
 
     @Lob // in DB it will be BLOB
@@ -74,15 +74,28 @@ public class AccountEntity {
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
 
+    @Column(name = "course_number")
+    private short courseNumber;
+
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
-    @Column(name = "course_number")
-    private short courseNumber;
-
     // For two-way communication with FK
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<AccountContactInfoEntity> accountContactInfos;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InitiativeEntity> initiatives;
+
+    @OneToMany(mappedBy = "account1", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MatchWithSpecialistEntity> matchesAsAccount1;
+
+    @OneToMany(mappedBy = "account2", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MatchWithSpecialistEntity> matchesAsAccount2;
+
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MatchWithInitiativeEntity> initiativeMatches;
+
 
 }

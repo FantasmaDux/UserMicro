@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -28,4 +29,11 @@ public class EducationalInstitutionEntity {
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "educationalInstitution")
+    private List<AccountEntity> accounts;
+
+    @OneToMany(mappedBy = "educationalInstitution", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<InstitutionSpecialtiesEntity> institutionSpecialties;
 }

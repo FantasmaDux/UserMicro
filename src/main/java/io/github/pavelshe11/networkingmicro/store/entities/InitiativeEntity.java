@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -21,7 +22,7 @@ public class InitiativeEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "set_tags_id", referencedColumnName = "id")
     private SetTagsEntity setTags;
 
@@ -33,9 +34,11 @@ public class InitiativeEntity {
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account;
 
-    // TODO: это как заткнуть, если оно из мессенджера
-//    @Column(name = "chats_folder", nullable = false)
-//    private ChatsFolder chatsFolder;
+    // TODO: заглушка, пока нет мессенджера. Потом заменить
+//    @OneToOne
+//    @JoinColumn(name = "chats_folder_id", referencedColumnName = "id", nullable = false)
+    @Column(name = "chats_folder_id", nullable = false)
+    private UUID chatsFolderId;
 
     @Column(name = "is_visible", nullable = false)
     private boolean visible;
@@ -68,5 +71,10 @@ public class InitiativeEntity {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<RoleInInitiativeEntity> roles;
 
+    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<MatchWithInitiativeEntity> matches;
 }

@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Setter
@@ -28,9 +30,16 @@ public class SkillNodeEntity {
     private String name;
 
     @Column(name = "is_ok", nullable = false)
-    private String ok;
+    private boolean ok;
 
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    @OneToMany(mappedBy = "skillNodeParent", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<SkillNodeEntity> skillNodeChildren;
+
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "skillNode")
+    private List<SkillSetSkillsEntity> skillSetSkills;
 }

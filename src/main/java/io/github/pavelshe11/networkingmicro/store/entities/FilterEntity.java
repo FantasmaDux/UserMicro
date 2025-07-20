@@ -44,6 +44,5 @@ public class FilterEntity {
 
     // For two-way communication with FK
     @OneToMany(mappedBy = "filter")
-    // TODO: Надо подумать над orphan и cascade
     private Set<FilterGroupsFiltersEntity> filterGroupsFilters;
 }

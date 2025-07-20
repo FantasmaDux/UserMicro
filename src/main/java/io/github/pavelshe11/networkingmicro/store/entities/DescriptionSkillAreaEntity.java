@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Setter
@@ -32,4 +33,9 @@ public class DescriptionSkillAreaEntity {
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "descriptionSkillArea")
+    private List<PortfolioItemEntity> portfolioItems;
+
 }

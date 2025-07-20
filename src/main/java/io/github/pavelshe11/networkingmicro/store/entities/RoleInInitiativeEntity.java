@@ -20,7 +20,7 @@ public class RoleInInitiativeEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @OneToOne
     @JoinColumn(name = "set_skills_id", referencedColumnName = "id")
     private SetSkillsEntity setSkills;
 
@@ -29,7 +29,7 @@ public class RoleInInitiativeEntity {
     private InitiativeEntity initiative;
 
     @Column (nullable = false)
-    private String name;
+    private String role;
 
     private String description;
 

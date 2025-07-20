@@ -28,9 +28,13 @@ public class MatchWithSpecialistEntity {
     @JoinColumn(name = "account2_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account2;
 
-//    @ManyToOne
+//    @OneToOne
 //    @JoinColumn(name = "chat_id", referencedColumnName = "id", nullable = false)
 //    private Chat chat;
+
+    // TODO: заглушка для чата. Потом заменить
+    @Column(name = "chat_id")
+    private UUID chatId;
 
     @Builder.Default
     @Column(name = "created_at")
