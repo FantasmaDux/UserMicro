@@ -35,6 +35,6 @@ public class SpecializationEntity {
     @OneToMany(mappedBy = "specialization")
     private List<AccountEntity> accounts;
 
-    @OneToMany(mappedBy = "educationalInstitution", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InstitutionSpecialtiesEntity> institutionSpecialties;
 }
