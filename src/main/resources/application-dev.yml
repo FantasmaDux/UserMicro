@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/networking-micro-db
+    url: jdbc:postgresql://networking-db-postgres:5432/networking-micro-db
     username: postgres
-    password: 267115
+    password: postgres
   jpa:
     hibernate:
       ddl-auto: update
