@@ -1,0 +1,43 @@
+services:
+  networking-service:
+    container_name: networking-service
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "8083:8083"
+    env_file:
+      - ./.env
+    depends_on:
+      networking-db-postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - networking-network
+
+  networking-db-postgres:
+    container_name: networking-db-postgres
+    image: postgres:16-alpine
+    ports:
+      - "${POSTGRES_DB_EXTERNAL_PORT}:${POSTGRES_DB_INTERNAL_PORT}"
+    env_file:
+      - ./.env
+    volumes:
+      - networking-db-postgres:/var/lib/postgresql/data
+      - ./component/NetworkingMicro/init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB'" ]
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      retries: ${HEALTHCHECK_RETRIES}
+    networks:
+      - networking-network
+
+
+volumes:
+  networking-db-postgres:
+
+
+networks:
+  networking-network:
+    driver: bridge
