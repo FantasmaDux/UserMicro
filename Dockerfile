@@ -1,25 +1,26 @@
-# Сборка jar происходит внутри контейнера
-
-# Стадия сборки
 FROM gradle:8.7-jdk21 AS build
 
 WORKDIR /home/gradle/project
 
-# Копируем весь проект внутрь контейнера
-COPY --chown=gradle:gradle . .
+# 1. Копируем файлы конфигурации Gradle
+COPY --chown=gradle:gradle settings.gradle.kts build.gradle.kts ./
+COPY --chown=gradle:gradle gradle ./gradle
 
-# Сборка Spring Boot JAR
+# 2. Кэшируем зависимости
+RUN gradle --no-daemon dependencies || true
+
+# 3. Копируем исходники
+COPY --chown=gradle:gradle src ./src
+
+# 4. Собираем JAR
 RUN gradle bootJar --no-daemon
 
-# Финальный контейнер
 FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-# Копируем собранный .jar из стадии build
 COPY --from=build /home/gradle/project/build/libs/*.jar networking-micro.jar
 
-# Запуск Spring Boot-приложения
 ENTRYPOINT ["java", "-jar", "networking-micro.jar"]
 
 EXPOSE 8080
