@@ -1,14 +1,8 @@
 spring:
-  config:
-    import: "optional:file:../../.env[.properties]"
-
-  profiles:
-    active: separate
-
   datasource:
-    url: jdbc:postgresql://${NETWORKING_POSTGRES_DB_HOST}:${NETWORKING_POSTGRES_DB_INTERNAL_PORT}/${NETWORKING_POSTGRES_DB_NAME}
-    username: ${NETWORKING_POSTGRES_DB_USER}
-    password: ${NETWORKING_POSTGRES_DB_PASSWORD}
+    url: jdbc:postgresql://${POSTGRES_DB_HOST}:${POSTGRES_DB_INTERNAL_PORT}/${POSTGRES_DB}
+    username: ${POSTGRES_USER}
+    password: ${POSTGRES_PASSWORD}
 
   sql:
     init:
@@ -34,3 +28,4 @@ management:
           - health
           - info
           - debug
+          - env
