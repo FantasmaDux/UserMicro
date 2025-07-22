@@ -24,3 +24,4 @@ COPY --from=build /home/gradle/project/build/libs/*.jar networking-micro.jar
 ENTRYPOINT ["java", "-jar", "networking-micro.jar"]
 
 EXPOSE 8080
+EXPOSE 9090
