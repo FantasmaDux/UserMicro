@@ -37,8 +37,12 @@ dependencies {
     implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
     implementation("org.springframework.session:spring-session-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation ("io.grpc:grpc-protobuf:1.73.0")
+    implementation ("io.grpc:grpc-stub:1.73.0")
     compileOnly("org.projectlombok:lombok")
+    compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly ("io.grpc:grpc-netty-shaded:1.73.0")
     annotationProcessor("org.projectlombok:lombok")
 }
 
