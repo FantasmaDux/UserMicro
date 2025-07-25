@@ -1,8 +1,12 @@
 spring:
   datasource:
-    url: jdbc:postgresql://${POSTGRES_DB_HOST}:${POSTGRES_DB_INTERNAL_PORT}/${POSTGRES_DB}
-    username: ${POSTGRES_USER}
-    password: ${POSTGRES_PASSWORD}
+#    url: jdbc:postgresql://${POSTGRES_DB_HOST}:${POSTGRES_DB_INTERNAL_PORT}/${POSTGRES_DB}
+#    username: ${POSTGRES_USER}
+#    password: ${POSTGRES_PASSWORD}
+
+    url: jdbc:postgresql://localhost:5432/my-app-db
+    username: postgres
+    password: 267115
 
   sql:
     init:
@@ -19,6 +23,7 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        default_schema: networking
 
 management:
   endpoints:
@@ -29,6 +34,9 @@ management:
           - info
           - debug
           - env
+
+server:
+  port: 8081
 
 grpc:
   server:
