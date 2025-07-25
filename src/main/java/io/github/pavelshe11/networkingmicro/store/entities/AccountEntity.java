@@ -27,8 +27,8 @@ public class AccountEntity {
     private CityEntity city;
 
     @ManyToOne
-//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
-    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
+    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
+//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
     private EducationalInstitutionEntity educationalInstitution;
 
     @ManyToOne

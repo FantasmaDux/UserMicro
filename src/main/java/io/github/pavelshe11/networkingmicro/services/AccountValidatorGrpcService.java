@@ -9,20 +9,25 @@ import net.devh.boot.grpc.server.service.GrpcService;
 
 @GrpcService
 @RequiredArgsConstructor
-public class AccountValidatorService extends AccountValidatorServiceGrpc.AccountValidatorServiceImplBase {
+public class AccountValidatorGrpcService extends AccountValidatorServiceGrpc.AccountValidatorServiceImplBase {
 
     private final AccountRepository accountRepository;
 
     @Override
     public void checkEmail(AccountValidatorProto.CheckEmailRequest request,
                            StreamObserver<AccountValidatorProto.CheckEmailResponse> responseObserver) {
-        boolean email_exists = accountRepository.existsByEmail(request.getEmail());
 
-        AccountValidatorProto.CheckEmailResponse response = AccountValidatorProto.CheckEmailResponse.newBuilder()
-                .setExists(email_exists)
-                .build();
+        var account = accountRepository.findByEmail(request.getEmail());
+        boolean email_exists = account.isPresent();
 
-        responseObserver.onNext(response); // шлет сообщение
+        var response = AccountValidatorProto.CheckEmailResponse.newBuilder()
+                .setExists(email_exists);
+
+        if (email_exists && request.getReturnAccountId()) {
+            response.setAccountId(account.get().getId().toString());
+        }
+
+        responseObserver.onNext(response.build()); // шлет сообщение
         responseObserver.onCompleted(); // сообщает, что сервер ответил на реквест и больше ответов не будет
     }
 }

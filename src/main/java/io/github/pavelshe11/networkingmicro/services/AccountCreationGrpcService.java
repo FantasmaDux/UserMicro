@@ -12,7 +12,7 @@ import java.time.LocalDate;
 
 @GrpcService
 @RequiredArgsConstructor
-public class AccountCreationService extends AccountCreationServiceGrpc.AccountCreationServiceImplBase {
+public class AccountCreationGrpcService extends AccountCreationServiceGrpc.AccountCreationServiceImplBase {
 
     private final AccountRepository accountRepository;
 
