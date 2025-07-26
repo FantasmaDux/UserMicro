@@ -20,7 +20,8 @@ spring:
     properties:
       hibernate:
         format_sql: true
-        default_schema: networking
+
+    defer-datasource-initialization: true
 
 management:
   endpoints:

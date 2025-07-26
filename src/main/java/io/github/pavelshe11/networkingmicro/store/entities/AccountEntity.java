@@ -27,8 +27,8 @@ public class AccountEntity {
     private CityEntity city;
 
     @ManyToOne
-    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
-//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
+//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
     private EducationalInstitutionEntity educationalInstitution;
 
     @ManyToOne
@@ -36,13 +36,15 @@ public class AccountEntity {
     private SpecializationEntity specialization;
 
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
+//    @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
+    @JoinColumn(name = "set_skills_id", referencedColumnName = "id")
     SetSkillsEntity setSkills;
 
     @Lob // in DB it will be BLOB
     private byte[] avatar;
 
-    @Column(unique = true, nullable = false)
+//    @Column(unique = true, nullable = false)
+    @Column(nullable = false)
     private String nickname;
 
     @Column(name = "first_name", nullable = false)
