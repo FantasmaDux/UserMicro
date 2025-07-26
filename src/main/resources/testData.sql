@@ -1,14 +1,8 @@
--- Создание схем (в случае запуска с пустой БД)
-CREATE SCHEMA IF NOT EXISTS auth;
-CREATE SCHEMA IF NOT EXISTS networking;
-
--- Выбор схемы для всех дальнейших операций
-SET search_path TO networking;
-
 -- Вставка учебного заведения
 INSERT INTO educational_institution (id, name, domen_name, created_at)
 VALUES
     ('00000000-0000-0000-0000-000000000001', 'Test University', 'test.edu', NOW());
+ON CONFLICT (id) DO NOTHING;
 
 -- Вставка обычного пользователя
 INSERT INTO account (
@@ -20,6 +14,7 @@ INSERT INTO account (
              'test_user', 'Ivan', 'Ivanov', 'user@test.edu',
              false, false, true, false, 0.0, 0, NOW()
          );
+ON CONFLICT (id) DO NOTHING;
 
 -- Вставка администратора
 INSERT INTO account (
@@ -31,3 +26,4 @@ INSERT INTO account (
              'admin_user', 'Petr', 'Petrov', 'admin@test.edu',
              false, true, true, false, 0.0, 0,NOW()
          );
+ON CONFLICT (id) DO NOTHING;
