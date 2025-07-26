@@ -4,6 +4,7 @@ import io.github.pavelshe11.authmicro.grpc.AccountCreationProto;
 import io.github.pavelshe11.authmicro.grpc.AccountCreationServiceGrpc;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -15,17 +16,24 @@ import java.time.LocalDate;
 public class AccountCreationGrpcService extends AccountCreationServiceGrpc.AccountCreationServiceImplBase {
 
     private final AccountRepository accountRepository;
-
+    private final EducationalInstitutionRepository educationalInstitutionRepository;
 
 
     @Override
     public void createAccount(AccountCreationProto.CreateAccountRequest request, StreamObserver<AccountCreationProto.CreateAccountResponse> responseObserver) {
+
         try {
+            String email = request.getEmail();
+            String domenNameOfEmail = email.substring(email.indexOf("@") +1);
+
+            var educationalInstitution = educationalInstitutionRepository.findByDomenName(domenNameOfEmail)
+                    .orElseThrow(() -> new IllegalArgumentException("Домен не найден: " + domenNameOfEmail));
+
             AccountEntity account = new AccountEntity();
             account.setEmail(request.getEmail());
             account.setCity(null);
             account.setSpecialization(null);
-            account.setEducationalInstitution(null);
+            account.setEducationalInstitution(educationalInstitution);
             account.setSetSkills(null);
             account.setAvatar(null);
             account.setNickname("Test");
