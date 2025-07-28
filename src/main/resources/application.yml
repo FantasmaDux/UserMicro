@@ -34,7 +34,7 @@ management:
           - env
 
 server:
-  port: ${HTTP_PORT}
+  port: ${NETWORKING_HTTP}
 
 jwt:
   secret: ${JWT_SECRET}
