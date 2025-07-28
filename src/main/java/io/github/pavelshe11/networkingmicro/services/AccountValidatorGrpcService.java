@@ -1,7 +1,7 @@
 package io.github.pavelshe11.networkingmicro.services;
 
-import io.github.pavelshe11.authmicro.grpc.AccountValidatorProto;
-import io.github.pavelshe11.authmicro.grpc.AccountValidatorServiceGrpc;
+import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
+import io.github.pavelshe11.networking.grpc.AccountValidatorServiceGrpc;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;

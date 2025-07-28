@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package= "io.github.pavelshe11.networking.grpc";
+option java_outer_classname = "CheckIsDomainExistsProto";
+
+service CheckIsDomainExistsService {
+    rpc CheckIsDomainExists (CheckInstitutionDomainRequest) returns (CheckInstitutionDomainResponse);
+}
+
+message CheckInstitutionDomainRequest {
+    string domain = 1;
+}
+
+message CheckInstitutionDomainResponse {
+    bool exists = 1;
+}

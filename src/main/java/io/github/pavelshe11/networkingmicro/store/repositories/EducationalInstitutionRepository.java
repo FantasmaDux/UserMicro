@@ -8,5 +8,4 @@ import java.util.UUID;
 
 public interface EducationalInstitutionRepository extends JpaRepository<EducationalInstitutionEntity, UUID> {
     Optional<EducationalInstitutionEntity> findByDomenName(String domenName);
-
 }

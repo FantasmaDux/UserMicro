@@ -1,7 +1,7 @@
 package io.github.pavelshe11.networkingmicro.services;
 
-import io.github.pavelshe11.authmicro.grpc.AccountCreationProto;
-import io.github.pavelshe11.authmicro.grpc.AccountCreationServiceGrpc;
+import io.github.pavelshe11.networking.grpc.AccountCreationProto;
+import io.github.pavelshe11.networking.grpc.AccountCreationServiceGrpc;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;

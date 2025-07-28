@@ -1,8 +1,7 @@
 package io.github.pavelshe11.networkingmicro.services;
 
-import io.github.pavelshe11.authmicro.grpc.AccountValidatorProto;
-import io.github.pavelshe11.authmicro.grpc.CheckIsAdminProto;
-import io.github.pavelshe11.authmicro.grpc.CheckIsAdminServiceGrpc;
+import io.github.pavelshe11.networking.grpc.CheckIsAdminProto;
+import io.github.pavelshe11.networking.grpc.CheckIsAdminServiceGrpc;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.grpc.stub.StreamObserver;
