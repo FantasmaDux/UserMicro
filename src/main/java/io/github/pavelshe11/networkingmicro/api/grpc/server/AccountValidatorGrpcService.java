@@ -28,7 +28,7 @@ public class AccountValidatorGrpcService extends AccountValidatorServiceGrpc.Acc
         errors.addAll(accountDataValidator.validateEmail(userData));
         errors.addAll(accountDataValidator.validatePolitics(userData));
         errors.addAll(accountDataValidator.validateDomenName(userData));
-        errors.addAll(accountDataValidator.validateAccountExisting(userData));
+//        errors.addAll(accountDataValidator.validateAccountExisting(userData));
 
         boolean isAccountValid = errors.isEmpty();
         if (isAccountValid) {

@@ -38,3 +38,7 @@ server:
 
 jwt:
   secret: ${JWT_SECRET}
+
+grpc:
+  server:
+    port: 9092
