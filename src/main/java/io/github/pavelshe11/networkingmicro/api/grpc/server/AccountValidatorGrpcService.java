@@ -1,4 +1,4 @@
-package io.github.pavelshe11.networkingmicro.services;
+package io.github.pavelshe11.networkingmicro.api.grpc.server;
 
 import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
 import io.github.pavelshe11.networking.grpc.AccountValidatorServiceGrpc;

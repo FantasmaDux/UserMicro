@@ -80,6 +80,12 @@ public class AccountEntity {
     @Column(name = "course_number")
     private short courseNumber;
 
+    @Column(name = "is_accepted_privacy_policy")
+    private boolean acceptedPrivacyPolicy;
+
+    @Column(name = "is_accepted_personal_data_processing")
+    private boolean acceptedPersonalDataProcessing;
+
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
