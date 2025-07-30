@@ -25,10 +25,19 @@ public class AccountValidatorGrpcService extends AccountValidatorServiceGrpc.Acc
 
         List<ErrorProto.FieldError> errors = new ArrayList<>();
 
+        String typeOfActivity = userData.getOrDefault("typeOfActivity",
+                Value.newBuilder().setStringValue("").build()).getStringValue();
+
         errors.addAll(accountDataValidator.validateEmail(userData));
+
+        if (typeOfActivity.equals("registration")) {
         errors.addAll(accountDataValidator.validatePolitics(userData));
         errors.addAll(accountDataValidator.validateDomenName(userData));
-//        errors.addAll(accountDataValidator.validateAccountExisting(userData));
+        }
+
+        if (typeOfActivity.equals("login")) {
+        errors.addAll(accountDataValidator.validateAccountExisting(userData));
+        }
 
         boolean isAccountValid = errors.isEmpty();
         if (isAccountValid) {

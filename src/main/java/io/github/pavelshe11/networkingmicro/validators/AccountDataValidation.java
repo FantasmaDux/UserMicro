@@ -64,23 +64,23 @@ public class AccountDataValidation {
         return errors;
     }
 
-//    public Collection<ErrorProto.FieldError> validateAccountExisting(Map<String, Value> userData) {
-//        if (!userData.containsKey("email")) return List.of();
-//
-//        List<ErrorProto.FieldError> errors = new ArrayList<>();
-//
-//        String email = userData.get("email").getStringValue();
-//        UUID accountId = accountRepository.findByEmail(email)
-//                .map(account -> account.getId())
-//                .orElse(null);
-//
-//        if (accountId == null) {
-//            errors.add(ErrorProto.FieldError.newBuilder()
-//                    .setMessage("Сервер не отвечает.")
-//                    .build());
-//        }
-//        return errors;
-//    }
+    public Collection<ErrorProto.FieldError> validateAccountExisting(Map<String, Value> userData) {
+        if (!userData.containsKey("email")) return List.of();
+
+        List<ErrorProto.FieldError> errors = new ArrayList<>();
+
+        String email = userData.get("email").getStringValue();
+        UUID accountId = accountRepository.findByEmail(email)
+                .map(account -> account.getId())
+                .orElse(null);
+
+        if (accountId == null) {
+            errors.add(ErrorProto.FieldError.newBuilder()
+                    .setMessage("Сервер не отвечает.")
+                    .build());
+        }
+        return errors;
+    }
 //
 //    public Optional<UUID> getAccountIdIfExists(Map<String, Value> userData) {
 //        if (!userData.containsKey("email")) return Optional.empty();
