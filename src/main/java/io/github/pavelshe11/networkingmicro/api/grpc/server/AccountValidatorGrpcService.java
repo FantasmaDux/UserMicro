@@ -35,27 +35,18 @@ public class AccountValidatorGrpcService extends AccountValidatorServiceGrpc.Acc
         errors.addAll(accountDataValidator.validateDomenName(userData));
         }
 
-        if (typeOfActivity.equals("login")) {
-        errors.addAll(accountDataValidator.validateAccountExisting(userData));
-        }
-
         boolean isAccountValid = errors.isEmpty();
-        if (isAccountValid) {
-            Optional<UUID> accountId = accountDataValidator.getAccountIdIfExists(userData);
-        }
+        Optional<UUID> accountId = accountDataValidator.getAccountIdIfExists(userData);
+        String accountIdOutput = accountId.map(UUID::toString).orElse("");
 
         AccountValidatorProto.ValidateUserDataResponse.Builder response =
                 AccountValidatorProto.ValidateUserDataResponse.newBuilder()
                         .setAccept(isAccountValid)
+                        .setAccountId(accountIdOutput)
                         .setError(isAccountValid ? ""
                                 : "Валидация пользовательских данных не пройдена.")
                         .addAllDetailedErrors(errors);
 
-        if (isAccountValid) {
-            accountDataValidator.getAccountIdIfExists(userData)
-                    .map(accountId -> accountId.toString())
-                    .ifPresent(accountId -> response.setAccountId(accountId));
-        }
 
         responseObserver.onNext(response.build());
         responseObserver.onCompleted();
