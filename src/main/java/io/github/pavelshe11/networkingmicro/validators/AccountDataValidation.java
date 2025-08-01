@@ -15,6 +15,14 @@ public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountRepository accountRepository;
 
+    public List<ErrorProto.FieldError> validateAll(Map<String, Value> userData) {
+        List<ErrorProto.FieldError> errors = new ArrayList<>();
+        errors.addAll(validateEmail(userData));
+        errors.addAll(validatePolitics(userData));
+        errors.addAll(validateDomenName(userData));
+        return errors;
+    }
+
     public List<ErrorProto.FieldError> validateEmail(Map<String, Value> userData) {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
         if (!userData.containsKey("email") || userData.get("email").getStringValue().isBlank()) {

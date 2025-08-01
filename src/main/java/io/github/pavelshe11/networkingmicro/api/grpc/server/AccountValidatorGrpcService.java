@@ -4,7 +4,6 @@ import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
 import io.github.pavelshe11.networking.grpc.AccountValidatorServiceGrpc;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
-import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -23,26 +22,13 @@ public class AccountValidatorGrpcService extends AccountValidatorServiceGrpc.Acc
 
         Map<String, Value> userData = request.getUserDataMap();
 
-        List<ErrorProto.FieldError> errors = new ArrayList<>();
-
-        String typeOfActivity = userData.getOrDefault("typeOfActivity",
-                Value.newBuilder().setStringValue("").build()).getStringValue();
-
-        errors.addAll(accountDataValidator.validateEmail(userData));
-
-        if (typeOfActivity.equals("registration")) {
-        errors.addAll(accountDataValidator.validatePolitics(userData));
-        errors.addAll(accountDataValidator.validateDomenName(userData));
-        }
+        List<ErrorProto.FieldError> errors = accountDataValidator.validateAll(userData);
 
         boolean isAccountValid = errors.isEmpty();
-        Optional<UUID> accountId = accountDataValidator.getAccountIdIfExists(userData);
-        String accountIdOutput = accountId.map(UUID::toString).orElse("");
 
         AccountValidatorProto.ValidateUserDataResponse.Builder response =
                 AccountValidatorProto.ValidateUserDataResponse.newBuilder()
                         .setAccept(isAccountValid)
-                        .setAccountId(accountIdOutput)
                         .setError(isAccountValid ? ""
                                 : "Валидация пользовательских данных не пройдена.")
                         .addAllDetailedErrors(errors);

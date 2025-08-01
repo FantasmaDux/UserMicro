@@ -86,6 +86,9 @@ public class AccountEntity {
     @Column(name = "is_accepted_personal_data_processing")
     private boolean acceptedPersonalDataProcessing;
 
+    @Column(nullable = false)
+    private String ip;
+
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
