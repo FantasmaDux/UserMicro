@@ -24,6 +24,9 @@ spring:
     defer-datasource-initialization: true
 
 management:
+  endpoint:
+    health:
+      show-details: always
   endpoints:
     web:
       exposure:
