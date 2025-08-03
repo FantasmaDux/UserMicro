@@ -6,14 +6,14 @@ import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
+import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.util.Optional;
 
-@Service
+@GrpcService
 @RequiredArgsConstructor
 public class AccountInfoGrpcService extends GetAccountInfoServiceGrpc.GetAccountInfoServiceImplBase {
-    AccountRepository accountRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public void getAccountInfo(getAccountInfoProto.GetAccountInfoRequest request, StreamObserver<getAccountInfoProto.GetAccountInfoResponse> responseObserver) {
