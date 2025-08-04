@@ -2,7 +2,6 @@ package io.github.pavelshe11.networkingmicro.validators;
 
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
-import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -13,24 +12,11 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
-    private final AccountRepository accountRepository;
 
     public List<ErrorProto.FieldError> validateAll(Map<String, Value> userData) {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
-        errors.addAll(validateEmail(userData));
         errors.addAll(validatePolitics(userData));
         errors.addAll(validateDomenName(userData));
-        return errors;
-    }
-
-    public List<ErrorProto.FieldError> validateEmail(Map<String, Value> userData) {
-        List<ErrorProto.FieldError> errors = new ArrayList<>();
-        if (!userData.containsKey("email") || userData.get("email").getStringValue().isBlank()) {
-            errors.add(ErrorProto.FieldError.newBuilder()
-                    .setField("email")
-                    .setMessage("Поле пустое")
-                    .build());
-        }
         return errors;
     }
 
@@ -59,7 +45,7 @@ public class AccountDataValidation {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
 
         String email = userData.get("email").getStringValue();
-        String domain = email.substring(email.indexOf("@")+1);
+        String domain = email.substring(email.indexOf("@") + 1);
         boolean isDomainExists = educationalInstitutionRepository.findByDomenName(domain).isPresent();
 
         if (!isDomainExists) {
@@ -72,36 +58,4 @@ public class AccountDataValidation {
         return errors;
     }
 
-//    public Collection<ErrorProto.FieldError> validateAccountExisting(Map<String, Value> userData) {
-//        if (!userData.containsKey("email")) return List.of();
-//
-//        List<ErrorProto.FieldError> errors = new ArrayList<>();
-//
-//        String email = userData.get("email").getStringValue();
-//        UUID accountId = accountRepository.findByEmail(email)
-//                .map(account -> account.getId())
-//                .orElse(null);
-//
-//        if (accountId == null) {
-//            errors.add(ErrorProto.FieldError.newBuilder()
-//                    .setMessage("Сервер не отвечает.")
-//                    .build());
-//        }
-//        return errors;
-//    }
-//
-//    public Optional<UUID> getAccountIdIfExists(Map<String, Value> userData) {
-//        if (!userData.containsKey("email")) return Optional.empty();
-//        String email = userData.get("email").getStringValue();
-//    }
-
-    public Optional<UUID> getAccountIdIfExists(Map<String, Value> userData) {
-        if (!userData.containsKey("email")) {
-            return Optional.empty();
-        }
-
-        String email = userData.get("email").getStringValue();
-        return accountRepository.findByEmail(email).map(account -> account.getId());
-
-    }
 }

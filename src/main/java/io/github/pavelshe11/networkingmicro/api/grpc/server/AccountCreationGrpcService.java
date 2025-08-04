@@ -49,10 +49,10 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
         try {
             String ip = userData.getOrDefault("ip", Value.newBuilder().setStringValue("").build()).getStringValue();
             String email = userData.getOrDefault("email", Value.newBuilder().setStringValue("").build()).getStringValue();
-            boolean acceptedPrivacyPolicy = userData.getOrDefault("acceptedPrivacyPolicy",  Value.newBuilder().setBoolValue(false).build()).getBoolValue();
-            boolean acceptedPersonalDataProcessing = userData.getOrDefault("acceptedPersonalDataProcessing",  Value.newBuilder().setBoolValue(false).build()).getBoolValue();
+            boolean acceptedPrivacyPolicy = userData.getOrDefault("acceptedPrivacyPolicy", Value.newBuilder().setBoolValue(false).build()).getBoolValue();
+            boolean acceptedPersonalDataProcessing = userData.getOrDefault("acceptedPersonalDataProcessing", Value.newBuilder().setBoolValue(false).build()).getBoolValue();
 
-            String domenNameOfEmail = email.substring(email.indexOf("@") +1);
+            String domenNameOfEmail = email.substring(email.indexOf("@") + 1);
 
             var educationalInstitution = educationalInstitutionRepository.findByDomenName(domenNameOfEmail)
                     .orElseThrow(() -> new IllegalArgumentException("Домен не найден: " + domenNameOfEmail));
@@ -81,7 +81,7 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
             accountRepository.save(account);
 
             AccountCreationProto.SuccessResponse success
-                     = AccountCreationProto.SuccessResponse.newBuilder()
+                    = AccountCreationProto.SuccessResponse.newBuilder()
                     .setMessage("200")
                     .build();
 
