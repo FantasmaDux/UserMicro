@@ -59,24 +59,9 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
 
             AccountEntity account = new AccountEntity();
             account.setEmail(email);
-            account.setCity(null);
-            account.setSpecialization(null);
-            account.setEducationalInstitution(educationalInstitution);
-            account.setSetSkills(null);
-            account.setAvatar(null);
-            account.setNickname("Test");
-            account.setFirstName("Test");
-            account.setLastName("Test");
-            account.setMiddleName("Test");
-            account.setProfessor(false);
-            account.setAdmin(false);
-            account.setVisible(false);
-            account.setConsulting(false);
             account.setIp(ip);
             account.setAcceptedPrivacyPolicy(acceptedPrivacyPolicy);
             account.setAcceptedPersonalDataProcessing(acceptedPersonalDataProcessing);
-            account.setDateOfBirth(LocalDate.now());
-            account.setCourseNumber((short) 0);
 
             accountRepository.save(account);
 
