@@ -29,8 +29,8 @@ public class SetSkillsEntity {
     @OneToMany(mappedBy = "setSkills")
     private List<SkillSetSkillsEntity> skillSetSkills;
 
-    @OneToOne(mappedBy = "setSkills")
-    private AccountEntity account;
+//    @OneToOne(mappedBy = "setSkills")
+//    private AccountEntity account;
 
     @OneToOne(mappedBy = "setSkills")
     private RoleInInitiativeEntity roleInInitiative;

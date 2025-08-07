@@ -22,6 +22,7 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
 
         Map<String, Value> userData = request.getUserDataMap();
         List<ErrorProto.FieldError> errors = accountCreationService.validate(userData);
+        AccountCreationProto.CreateAccountResponse accountResponse;
 
         if (!errors.isEmpty()) {
             AccountCreationProto.ErrorResponse error = AccountCreationProto.ErrorResponse.newBuilder()
@@ -29,16 +30,15 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
                     .addAllDetailedErrors(errors)
                     .build();
 
-            AccountCreationProto.CreateAccountResponse response = AccountCreationProto.CreateAccountResponse.newBuilder()
+            accountResponse = AccountCreationProto.CreateAccountResponse.newBuilder()
                     .setError(error)
                     .build();
-
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
+        } else {
+            accountResponse = accountCreationService.createAccount(userData);
         }
 
-        AccountCreationProto.CreateAccountResponse response = accountCreationService.createAccount(userData);
-        responseObserver.onNext(response);
+        responseObserver.onNext(accountResponse);
         responseObserver.onCompleted();
+
     }
 }

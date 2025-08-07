@@ -31,8 +31,8 @@ public class EducationalInstitutionEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "educationalInstitution")
-    private List<AccountEntity> accounts;
+//    @OneToMany(mappedBy = "educationalInstitution")
+//    private List<AccountEntity> accounts;
 
     @OneToMany(mappedBy = "educationalInstitution", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<InstitutionSpecialtiesEntity> institutionSpecialties;
