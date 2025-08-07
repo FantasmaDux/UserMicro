@@ -26,20 +26,20 @@ public class AccountEntity {
     @JoinColumn(name = "city_id", referencedColumnName = "id")
     private CityEntity city;
 
-//    @ManyToOne
-//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
-//    private EducationalInstitutionEntity educationalInstitution;
+    @ManyToOne
+    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
+    private EducationalInstitutionEntity educationalInstitution;
 
     @ManyToOne
     @JoinColumn(name = "specialization_id", referencedColumnName = "id")
     private SpecializationEntity specialization;
 
-//    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-//    @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
-//    SetSkillsEntity setSkills;
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
+    SetSkillsEntity setSkills;
 
-//    @Lob // in DB it will be BLOB
-//    private byte[] avatar;
+    @Lob // in DB it will be BLOB
+    private byte[] avatar;
 
 //    @Column(nullable = false)
 //    private String nickname;
@@ -75,8 +75,8 @@ public class AccountEntity {
     @Builder.Default
     private boolean consulting = false;
 
-    @Builder.Default
-    private float rating = 0.f;
+//    @Builder.Default
+//    private float rating = 0.f;
 
     @Column(name = "date_of_birth")
     @Builder.Default

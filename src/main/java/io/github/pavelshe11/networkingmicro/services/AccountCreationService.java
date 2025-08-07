@@ -4,7 +4,9 @@ import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Map;
 public class AccountCreationService {
     private final AccountRepository accountRepository;
     private final AccountDataValidation accountDataValidator;
+    private final EducationalInstitutionRepository educationalInstitutionRepository;
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
@@ -38,13 +41,19 @@ public class AccountCreationService {
             String email = userData.getOrDefault("email", Value.newBuilder().setStringValue("").build()).getStringValue();
             boolean acceptedPrivacyPolicy = userData.getOrDefault("acceptedPrivacyPolicy", Value.newBuilder().setBoolValue(false).build()).getBoolValue();
             boolean acceptedPersonalDataProcessing = userData.getOrDefault("acceptedPersonalDataProcessing", Value.newBuilder().setBoolValue(false).build()).getBoolValue();
+            String firstName = userData.getOrDefault("firstName", Value.newBuilder().setStringValue("").build()).getStringValue();
+            String lastName = userData.getOrDefault("lastName", Value.newBuilder().setStringValue("").build()).getStringValue();
+            String domain = email.substring(email.indexOf("@") + 1);
+            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository.findByEmailDomain(domain);
 
             AccountEntity account = new AccountEntity();
             account.setEmail(email);
+            account.setFirstName(firstName);
+            account.setFirstName(lastName);
             account.setIp(ip);
             account.setAcceptedPrivacyPolicy(acceptedPrivacyPolicy);
             account.setAcceptedPersonalDataProcessing(acceptedPersonalDataProcessing);
-            // account.setEducationalInstitution(educationalInstitution);
+            account.setEducationalInstitution(educationalInstitution);
 
             accountRepository.save(account);
 
