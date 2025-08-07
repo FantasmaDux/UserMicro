@@ -24,6 +24,19 @@ public class AccountCreationService {
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
+        List<ErrorProto.FieldError> errors = accountDataValidator.validateAll(userData);
+
+        if (!errors.isEmpty()) {
+            AccountCreationProto.ErrorResponse error = AccountCreationProto.ErrorResponse.newBuilder()
+                    .setError("Ошибка валидации данных")
+                    .addAllDetailedErrors(errors)
+                    .build();
+
+            return AccountCreationProto.CreateAccountResponse.newBuilder()
+                    .setError(error)
+                    .build();
+        }
+
         try {
             String ip = userData.getOrDefault("ip", Value.newBuilder().setStringValue("").build()).getStringValue();
             String email = userData.getOrDefault("email", Value.newBuilder().setStringValue("").build()).getStringValue();
@@ -49,7 +62,7 @@ public class AccountCreationService {
 
         } catch (Exception e) {
             AccountCreationProto.ErrorResponse error = AccountCreationProto.ErrorResponse.newBuilder()
-                    .setError("Сервер не отвечает")
+                    .setError("Внутренняя ошибка сервера.")
                     .build();
 
             return AccountCreationProto.CreateAccountResponse.newBuilder()

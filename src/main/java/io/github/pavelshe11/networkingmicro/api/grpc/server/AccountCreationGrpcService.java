@@ -20,22 +20,8 @@ public class AccountCreationGrpcService extends AccountCreationServiceGrpc.Accou
     @Override
     public void createAccount(AccountCreationProto.CreateAccountRequest request, StreamObserver<AccountCreationProto.CreateAccountResponse> responseObserver) {
 
-        Map<String, Value> userData = request.getUserDataMap();
-        List<ErrorProto.FieldError> errors = accountCreationService.validate(userData);
-        AccountCreationProto.CreateAccountResponse accountResponse;
-
-        if (!errors.isEmpty()) {
-            AccountCreationProto.ErrorResponse error = AccountCreationProto.ErrorResponse.newBuilder()
-                    .setError("Ошибка валидации данных")
-                    .addAllDetailedErrors(errors)
-                    .build();
-
-            accountResponse = AccountCreationProto.CreateAccountResponse.newBuilder()
-                    .setError(error)
-                    .build();
-        } else {
-            accountResponse = accountCreationService.createAccount(userData);
-        }
+        AccountCreationProto.CreateAccountResponse accountResponse =
+                accountCreationService.createAccount(request.getUserDataMap());
 
         responseObserver.onNext(accountResponse);
         responseObserver.onCompleted();
