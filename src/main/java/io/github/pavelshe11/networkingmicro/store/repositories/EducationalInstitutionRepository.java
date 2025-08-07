@@ -10,4 +10,5 @@ public interface EducationalInstitutionRepository extends JpaRepository<Educatio
     List<EducationalInstitutionEntity> findAllByDomenName(String domenName);
     EducationalInstitutionEntity findByDomenName(String domenName);
 
+    boolean existsByDomenName(String domenName);
 }

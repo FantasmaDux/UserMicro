@@ -49,7 +49,7 @@ public class AccountCreationService {
             AccountEntity account = new AccountEntity();
             account.setEmail(email);
             account.setFirstName(firstName);
-            account.setFirstName(lastName);
+            account.setLastName(lastName);
             account.setIp(ip);
             account.setAcceptedPrivacyPolicy(acceptedPrivacyPolicy);
             account.setAcceptedPersonalDataProcessing(acceptedPersonalDataProcessing);

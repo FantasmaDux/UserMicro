@@ -15,11 +15,16 @@ public class EducationalInstitutionDataInitializer implements ApplicationRunner 
 
     @Override
     public void run(ApplicationArguments args) {
-        EducationalInstitutionEntity educationalInstitution = EducationalInstitutionEntity.builder()
-                .name("Коммуникатор")
-                .domenName("communicator.ru")
-                .build();
+        String domen = "communicator.ru";
+        boolean exists = educationalInstitutionRepository.existsByDomenName(domen);
 
-        educationalInstitutionRepository.save(educationalInstitution);
+        if (!exists) {
+            EducationalInstitutionEntity educationalInstitution = EducationalInstitutionEntity.builder()
+                    .name("Коммуникатор")
+                    .domenName("communicator.ru")
+                    .build();
+            educationalInstitutionRepository.save(educationalInstitution);
+
+        }
     }
 }
