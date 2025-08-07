@@ -18,10 +18,6 @@ public class AccountCreationService {
     private final AccountRepository accountRepository;
     private final AccountDataValidation accountDataValidator;
 
-    public List<ErrorProto.FieldError> validate(Map<String, Value> userData) {
-        return accountDataValidator.validateAll(userData);
-    }
-
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
         List<ErrorProto.FieldError> errors = accountDataValidator.validateAll(userData);
