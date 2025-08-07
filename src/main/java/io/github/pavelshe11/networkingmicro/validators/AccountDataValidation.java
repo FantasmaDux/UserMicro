@@ -17,6 +17,9 @@ public class AccountDataValidation {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
         errors.addAll(validatePolitics(userData));
         errors.addAll(validateDomenName(userData));
+        errors.addAll(validateFirstName(userData));
+        errors.addAll(validateMiddleName(userData));
+        errors.addAll(validateLastName(userData));
         return errors;
     }
 
@@ -37,6 +40,38 @@ public class AccountDataValidation {
         }
 
         return errors;
+    }
+
+    public List<ErrorProto.FieldError> validateFirstName(Map<String, Value> userData) {
+        List<ErrorProto.FieldError> errors = new ArrayList<>();
+        validateEmptyField("firstName", userData, errors);
+        return errors;
+    }
+
+    public List<ErrorProto.FieldError> validateMiddleName(Map<String, Value> userData) {
+        List<ErrorProto.FieldError> errors = new ArrayList<>();
+        validateEmptyField("middleName", userData, errors);
+        return errors;
+    }
+
+    public List<ErrorProto.FieldError> validateLastName(Map<String, Value> userData) {
+        List<ErrorProto.FieldError> errors = new ArrayList<>();
+        validateEmptyField("lastName", userData, errors);
+        return errors;
+    }
+
+    private void validateEmptyField(String fieldName,
+                                    Map<String, Value> userData, List<ErrorProto.FieldError> errors) {
+        if (userData.containsKey(fieldName)) {
+            String field = userData.get(fieldName).getStringValue().trim();
+            if (field.isEmpty()) {
+                errors.add(ErrorProto.FieldError.newBuilder()
+                        .setField(fieldName)
+                        .setMessage("Поле пустое.")
+                        .build()
+                );
+            }
+        }
     }
 
     public Collection<ErrorProto.FieldError> validateDomenName(Map<String, Value> userData) {
