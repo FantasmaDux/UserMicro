@@ -15,16 +15,18 @@ public class AccountDataInitializer implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        AccountEntity account = AccountEntity.builder()
-                .email("admin@communicator.ru")
-                .admin(true)
-                .visible(true)
-                .ip("1.1.1.1")
-                .acceptedPrivacyPolicy(true)
-                .acceptedPersonalDataProcessing(true)
-                .build();
-
-        accountRepository.save(account);
+        String adminEmail = "admin@communicator.ru";
+        boolean adminExists = accountRepository.existsByEmail(adminEmail);
+        if (!adminExists) {
+            AccountEntity account = AccountEntity.builder()
+                    .email("admin@communicator.ru")
+                    .admin(true)
+                    .visible(true)
+                    .ip("1.1.1.1")
+                    .acceptedPrivacyPolicy(true)
+                    .acceptedPersonalDataProcessing(true)
+                    .build();
+            accountRepository.save(account);
+        }
     }
-
 }
