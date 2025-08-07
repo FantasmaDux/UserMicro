@@ -46,7 +46,7 @@ public class AccountDataValidation {
 
         String email = userData.get("email").getStringValue();
         String domain = email.substring(email.indexOf("@") + 1);
-        boolean isDomainExists = educationalInstitutionRepository.findByDomenName(domain).isPresent();
+        boolean isDomainExists = !educationalInstitutionRepository.findAllByDomenName(domain).isEmpty();
 
         if (!isDomainExists) {
             errors.add(ErrorProto.FieldError.newBuilder()
