@@ -13,7 +13,7 @@ RUN gradle --no-daemon dependencies || true
 COPY --chown=gradle:gradle src ./src
 
 # 4. Собираем JAR
-RUN gradle bootJar --no-daemon
+RUN gradle clean build --no-daemon
 
 FROM eclipse-temurin:21-jdk-alpine
 

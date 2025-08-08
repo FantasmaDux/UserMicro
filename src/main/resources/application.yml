@@ -24,7 +24,7 @@ spring:
 
   messages:
     basename: messages
-    fallback-to-system-locale: false
+    fallback-to-system-locale: true
 
 management:
   endpoint:

@@ -69,7 +69,8 @@ public class AccountDataValidation {
                 userData.get(fieldName).getStringValue().trim().isEmpty()) {
             errors.add(ErrorProto.FieldError.newBuilder()
                     .setField(fieldName)
-                    .setMessage(messageSource.getMessage("field.empty", null, LocaleContextHolder.getLocale()))
+                    .setMessage(messageSource.getMessage("field.empty", null, LocaleContextHolder.getLocale())
+                    )
                     .build()
             );
         }
