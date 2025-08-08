@@ -4,6 +4,8 @@ import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -12,6 +14,7 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final MessageSource messageSource;
 
     public List<ErrorProto.FieldError> validateAll(Map<String, Value> userData) {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
@@ -28,14 +31,14 @@ public class AccountDataValidation {
         if (!userData.containsKey("acceptedPrivacyPolicy") || !userData.get("acceptedPrivacyPolicy").getBoolValue()) {
             errors.add(ErrorProto.FieldError.newBuilder()
                     .setField("acceptedPrivacyPolicy")
-                    .setMessage("Не принято пользовательское соглашение.")
+                    .setMessage(messageSource.getMessage("not.accepted.privacy.policy", null, LocaleContextHolder.getLocale()))
                     .build());
         }
 
         if (!userData.containsKey("acceptedPersonalDataProcessing") || !userData.get("acceptedPersonalDataProcessing").getBoolValue()) {
             errors.add(ErrorProto.FieldError.newBuilder()
                     .setField("acceptedPrivacyPolicy")
-                    .setMessage("Не принято соглашение на обработку персональных данных.")
+                    .setMessage(messageSource.getMessage("not.accepted.personal.data.processing", null, LocaleContextHolder.getLocale()))
                     .build());
         }
 
@@ -62,15 +65,13 @@ public class AccountDataValidation {
 
     private void validateEmptyField(String fieldName,
                                     Map<String, Value> userData, List<ErrorProto.FieldError> errors) {
-        if (userData.containsKey(fieldName)) {
-            String field = userData.get(fieldName).getStringValue().trim();
-            if (field.isEmpty()) {
-                errors.add(ErrorProto.FieldError.newBuilder()
-                        .setField(fieldName)
-                        .setMessage("Поле пустое.")
-                        .build()
-                );
-            }
+        if (!userData.containsKey(fieldName) ||
+                userData.get(fieldName).getStringValue().trim().isEmpty()) {
+            errors.add(ErrorProto.FieldError.newBuilder()
+                    .setField(fieldName)
+                    .setMessage(messageSource.getMessage("field.empty", null, LocaleContextHolder.getLocale()))
+                    .build()
+            );
         }
     }
 
@@ -86,8 +87,12 @@ public class AccountDataValidation {
         if (!isDomainExists) {
             errors.add(ErrorProto.FieldError.newBuilder()
                     .setField("error")
-                    .setMessage("Учебное заведение с доменом "
-                            + domain + " не зарегистрировано в Communicator")
+                    .setMessage(
+                            messageSource.getMessage(
+                                    "institution.domain.not.registered", new Object[]{domain},
+                                    LocaleContextHolder.getLocale()
+                            )
+                    )
                     .build());
         }
         return errors;
