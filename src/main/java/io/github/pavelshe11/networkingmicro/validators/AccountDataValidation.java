@@ -21,7 +21,6 @@ public class AccountDataValidation {
         errors.addAll(validatePolitics(userData));
         errors.addAll(validateDomenName(userData));
         errors.addAll(validateFirstName(userData));
-        errors.addAll(validateMiddleName(userData));
         errors.addAll(validateLastName(userData));
         return errors;
     }
@@ -48,12 +47,6 @@ public class AccountDataValidation {
     public List<ErrorProto.FieldError> validateFirstName(Map<String, Value> userData) {
         List<ErrorProto.FieldError> errors = new ArrayList<>();
         validateEmptyField("firstName", userData, errors);
-        return errors;
-    }
-
-    public List<ErrorProto.FieldError> validateMiddleName(Map<String, Value> userData) {
-        List<ErrorProto.FieldError> errors = new ArrayList<>();
-        validateEmptyField("middleName", userData, errors);
         return errors;
     }
 
