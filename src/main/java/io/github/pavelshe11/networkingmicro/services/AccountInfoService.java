@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +34,20 @@ public class AccountInfoService {
                 responseBuild.setRole("user");
             }
         }
-    return responseBuild;
+        return responseBuild;
     }
+
+    public getAccountInfoProto.CheckAccountByIdResponse.Builder checkAccountById(String accountId) {
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(UUID.fromString(accountId));
+
+        getAccountInfoProto.CheckAccountByIdResponse.Builder responseBuild
+                = getAccountInfoProto.CheckAccountByIdResponse.newBuilder();
+
+        if (accountOpt.isPresent()) {
+            responseBuild.setAccept(true);
+        }
+        return responseBuild;
+    }
+
 }

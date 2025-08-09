@@ -23,4 +23,14 @@ public class AccountInfoGrpcService extends GetAccountInfoServiceGrpc.GetAccount
         responseObserver.onNext(responseBuild.build());
         responseObserver.onCompleted();
     }
+
+    @Override
+    public void getAccountById(getAccountInfoProto.CheckAccountByIdRequest request, StreamObserver<getAccountInfoProto.CheckAccountByIdResponse> responseObserver) {
+
+        getAccountInfoProto.CheckAccountByIdResponse.Builder responseBuild =
+                accountInfoService.checkAccountById(request.getAccountId());
+
+        responseObserver.onNext(responseBuild.build());
+        responseObserver.onCompleted();
+    }
 }
