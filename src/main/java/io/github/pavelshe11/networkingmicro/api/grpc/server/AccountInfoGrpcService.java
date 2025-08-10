@@ -14,10 +14,10 @@ public class AccountInfoGrpcService extends GetAccountInfoServiceGrpc.GetAccount
     private final AccountInfoService accountInfoService;
 
     @Override
-    public void getAccountInfo(getAccountInfoProto.GetAccountInfoRequest request, StreamObserver<getAccountInfoProto.GetAccountInfoResponse> responseObserver) {
+    public void getAccountInfoByEmail(getAccountInfoProto.GetAccountInfoByEmailRequest request, StreamObserver<getAccountInfoProto.GetAccountInfoResponse> responseObserver) {
 
         getAccountInfoProto.GetAccountInfoResponse.Builder responseBuild =
-                accountInfoService.getAccountInfo(request.getEmail());
+                accountInfoService.getAccountInfoByEmail(request.getEmail());
 
 
         responseObserver.onNext(responseBuild.build());
@@ -25,10 +25,10 @@ public class AccountInfoGrpcService extends GetAccountInfoServiceGrpc.GetAccount
     }
 
     @Override
-    public void getAccountById(getAccountInfoProto.CheckAccountByIdRequest request, StreamObserver<getAccountInfoProto.CheckAccountByIdResponse> responseObserver) {
+    public void getAccountById(getAccountInfoProto.GetAccountByIdRequest request, StreamObserver<getAccountInfoProto.GetAccountInfoResponse> responseObserver) {
 
-        getAccountInfoProto.CheckAccountByIdResponse.Builder responseBuild =
-                accountInfoService.checkAccountById(request.getAccountId());
+        getAccountInfoProto.GetAccountInfoResponse.Builder responseBuild =
+                accountInfoService.getAccountById(request.getAccountId());
 
         responseObserver.onNext(responseBuild.build());
         responseObserver.onCompleted();
