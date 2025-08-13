@@ -27,7 +27,8 @@ public class AccountEntity {
     private CityEntity city;
 
     @ManyToOne
-    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
+//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
+    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
     private EducationalInstitutionEntity educationalInstitution;
 
     @ManyToOne
@@ -41,41 +42,61 @@ public class AccountEntity {
     @Lob // in DB it will be BLOB
     private byte[] avatar;
 
-    @Column(unique = true, nullable = false)
-    private String nickname;
+//    @Column(nullable = false)
+//    private String nickname;
 
     @Column(name = "first_name", nullable = false)
-    private String firstName;
+    @Builder.Default
+    private String firstName = "";
 
     @Column(name = "last_name")
-    private String lastName;
+    @Builder.Default
+    private String lastName = "";
 
     @Column(name = "middle_name")
-    private String middleName;
+    @Builder.Default
+    private String middleName = "";
 
     @Column(unique = true, nullable = false)
     private String email;
 
     @Column(name = "is_professor", nullable = false)
-    private boolean professor;
+    @Builder.Default
+    private boolean professor = false;
 
     @Column(name = "is_admin", nullable = false)
-    private boolean admin;
+    @Builder.Default
+    private boolean admin = false;
 
     @Column(name = "is_visible", nullable = false)
-    private boolean visible;
+    @Builder.Default
+    private boolean visible = false;
 
     @Column(name = "is_consulting", nullable = false)
-    private boolean consulting;
-
     @Builder.Default
-    private float rating = 0.f;
+    private boolean consulting = false;
+
+//    @Builder.Default
+//    private float rating = 0.f;
 
     @Column(name = "date_of_birth")
-    private LocalDate dateOfBirth;
+    @Builder.Default
+    private LocalDate dateOfBirth = LocalDate.now();
 
     @Column(name = "course_number")
-    private short courseNumber;
+    @Builder.Default
+    private short courseNumber = 0;
+
+    @Column(name = "is_accepted_privacy_policy")
+    @Builder.Default
+    private boolean acceptedPrivacyPolicy = false;
+
+    @Column(name = "is_accepted_personal_data_processing")
+    @Builder.Default
+    private boolean acceptedPersonalDataProcessing = false;
+
+    @Column(nullable = false)
+    private String ip;
 
     @Builder.Default
     @Column(name = "created_at")

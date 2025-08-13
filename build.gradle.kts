@@ -34,11 +34,16 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-websocket")
     implementation("io.grpc:grpc-services")
-    implementation("org.springframework.grpc:spring-grpc-server-web-spring-boot-starter")
+    implementation("net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE")
+    implementation("net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE")
     implementation("org.springframework.session:spring-session-jdbc")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation ("io.grpc:grpc-protobuf:1.73.0")
+    implementation ("io.grpc:grpc-stub:1.73.0")
     compileOnly("org.projectlombok:lombok")
+    compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")
+    runtimeOnly ("io.grpc:grpc-netty-shaded:1.73.0")
     annotationProcessor("org.projectlombok:lombok")
 }
 

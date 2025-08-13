@@ -7,7 +7,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class NetworkingMicroApplication {
 
     public static void main(String[] args) {
-        SpringApplication.run(NetworkingMicroApplication.class, args);
+        SpringApplication.run(NetworkingMicroApplication.class,
+                args);
     }
 
 }
