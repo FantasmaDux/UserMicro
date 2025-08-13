@@ -1,4 +1,4 @@
-package io.github.pavelshe11.networkingmicro.api.grpc.server;
+package io.github.pavelshe11.networkingmicro.api.server.grpc;
 
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
