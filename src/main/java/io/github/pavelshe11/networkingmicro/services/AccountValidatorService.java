@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,7 +24,7 @@ public class AccountValidatorService {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        List<ErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<ErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
                 .map((errorDto) -> this.mapToProto(errorDto))
                 .collect(Collectors.toList());

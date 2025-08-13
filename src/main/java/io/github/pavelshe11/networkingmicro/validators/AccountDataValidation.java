@@ -14,203 +14,152 @@ import java.util.*;
 public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final MessageSource messageSource;
-    static int fieldMaxLength = 32;
+    private static final int FIELD_MAX_LENGTH = 32;
+    private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
+    private static final String EMAIL_PATTERN = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
 
-    public List<ErrorDto> validateRegistrationData(Map<String, Object> userData) {
-        List<ErrorDto> errors = new ArrayList<>();
-        errors.addAll(validatePolitics(userData));
-        errors.addAll(validateDomainName(userData));
-        errors.addAll(validateFirstName(userData));
-        errors.addAll(validateLastName(userData));
+    public Set<ErrorDto> validateRegistrationData(Map<String, Object> userData) {
+        Set<ErrorDto> errors = new LinkedHashSet<>();
+
+        validatePolitics(userData, errors);
+        validateDomainName(userData, errors);
+        validateFirstName(userData, errors);
+        validateLastName(userData, errors);
+
         return errors;
     }
 
-    public List<ErrorDto> validatePolitics(Map<String, Object> userData) {
-        List<ErrorDto> errors = new ArrayList<>();
+    public Set<ErrorDto> validateUpdateData(Map<String, Object> updatedData) {
+        Set<ErrorDto> errors = new LinkedHashSet<>();
+
+        validateTextField("firstName", updatedData, errors);
+        validateTextField("middleName", updatedData, errors);
+        validateTextField("lastName", updatedData, errors);
+        validateEmailField("email", updatedData, errors);
+        validateNumberField("courseNumber", updatedData, errors);
+        validateNumberField("dateOfBirth", updatedData, errors);
+//        validateBooleanField("professor", updatedData, errors);
+//        validateBooleanField("consulting", updatedData, errors);
+
+        return errors;
+    }
+
+    public void validatePolitics(Map<String, Object> userData, Set<ErrorDto> errors) {
         if (!Boolean.TRUE.equals(userData.get("acceptedPrivacyPolicy"))) {
-            errors.add(new ErrorDto("acceptedPrivacyPolicy",
-                    messageSource
-                            .getMessage("not.accepted.privacy.policy",
-                                    null,
-                                    LocaleContextHolder.getLocale()))
-            );
+            errors.add(createErrorDto("acceptedPrivacyPolicy", null,
+                    "not.accepted.privacy.policy"));
         }
 
         if (!Boolean.TRUE.equals(userData.get("acceptedPersonalDataProcessing"))) {
-            errors.add(new ErrorDto("acceptedPersonalDataProcessing",
-                    messageSource
-                            .getMessage("not.accepted.personal.data.processing",
-                                    null,
-                                    LocaleContextHolder.getLocale()))
-            );
+            errors.add(createErrorDto("acceptedPersonalDataProcessing", null,
+                    "not.accepted.personal.data.processing"));
         }
-
-        return errors;
     }
 
-    public List<ErrorDto> validateFirstName(Map<String, Object> userData) {
-        List<ErrorDto> errors = new ArrayList<>();
+    public void validateFirstName(Map<String, Object> userData, Set<ErrorDto> errors) {
         validateTextField("firstName", userData, errors);
-        return errors;
     }
 
-    public List<ErrorDto> validateLastName(Map<String, Object> userData) {
-        List<ErrorDto> errors = new ArrayList<>();
+    public void validateLastName(Map<String, Object> userData, Set<ErrorDto> errors) {
         validateTextField("lastName", userData, errors);
-        return errors;
     }
 
-    private List<ErrorDto> validateEmptyField(String fieldName,
-                                              String value, List<ErrorDto> errors) {
+    private void validateEmptyField(String fieldName,
+                                    String value, Set<ErrorDto> errors) {
 
         if (value == null || value.isBlank()) {
-            errors.add(new ErrorDto(
-                            fieldName,
-                            messageSource.getMessage("field.empty", null, LocaleContextHolder.getLocale())
-                    )
-            );
+            errors.add(createErrorDto(fieldName, null,
+                    "field.empty"));
         }
-        return errors;
     }
 
-    private List<ErrorDto> validateTooLongField(String fieldName,
-                                                String value, List<ErrorDto> errors) {
+    private void validateTooLongField(String fieldName,
+                                      String value, Set<ErrorDto> errors) {
 
-        if (value != null && value.length() > fieldMaxLength) {
-            errors.add(new ErrorDto(
-                            fieldName,
-                            messageSource.getMessage("field.too.long", null, LocaleContextHolder.getLocale())
-                    )
-            );
+        if (value != null && value.length() > FIELD_MAX_LENGTH) {
+            errors.add(createErrorDto(fieldName, null,
+                    "field.too.long"));
         }
-        return errors;
     }
 
-    private List<ErrorDto> validateForbiddenSymbols(String fieldName,
-                                                    String value, List<ErrorDto> errors) {
+    private void validateForbiddenSymbols(String fieldName,
+                                          String value, Set<ErrorDto> errors) {
 
-        if (value != null && !value.matches("^[a-zA-Zа-яА-ЯёЁ]+$")) {
-            errors.add(new ErrorDto(
-                            fieldName,
-                            messageSource.getMessage("field.has.forbidden.symbols", null, LocaleContextHolder.getLocale())
-                    )
-            );
+        if (value != null && !value.matches(ACCEPTABLE_SYMBOLS_PATTERN)) {
+            errors.add(createErrorDto(fieldName, null,
+                    "field.has.forbidden.symbols"));
         }
-        return errors;
     }
 
-    private List<ErrorDto> validateTextField(String fieldName,
-                                             Map<String, Object> userData, List<ErrorDto> errors) {
+    private void validateTextField(String fieldName,
+                                   Map<String, Object> userData, Set<ErrorDto> errors) {
         Object value = userData.get(fieldName);
-        List<ErrorDto> localErrors = new ArrayList<>();
 
         if (!(value instanceof String strValue)) {
-            localErrors.add(new ErrorDto(
-                    fieldName,
-                    messageSource.getMessage("field.invalid.type", null, LocaleContextHolder.getLocale())
-            ));
-        } else {
-            localErrors.addAll(validateEmptyField(fieldName, strValue, new ArrayList<>()));
-            localErrors.addAll(validateTooLongField(fieldName, strValue, new ArrayList<>()));
-            localErrors.addAll(validateForbiddenSymbols(fieldName, strValue, new ArrayList<>()));
+            errors.add(createErrorDto(fieldName, null, "field.invalid.type"));
+            return;
         }
 
-        errors.addAll(localErrors);
-        return errors;
+        validateEmptyField(fieldName, strValue, errors);
+        validateTooLongField(fieldName, strValue, errors);
+        validateForbiddenSymbols(fieldName, strValue, errors);
     }
 
-    public Collection<ErrorDto> validateDomainName(Map<String, Object> userData) {
-        if (!userData.containsKey("email")) return List.of();
-
-        List<ErrorDto> errors = new ArrayList<>();
+    public void validateDomainName(Map<String, Object> userData, Set<ErrorDto> errors) {
 
         Object emailObj = userData.get("email");
         if (!(emailObj instanceof String email) || !email.contains("@")) {
-            return List.of();
+            return;
         }
 
         String domain = email.substring(email.indexOf("@") + 1);
         boolean isDomainExists = !educationalInstitutionRepository.findAllByDomenName(domain).isEmpty();
 
         if (!isDomainExists) {
-            errors.add(new ErrorDto(
-                    "error",
-                    messageSource.getMessage(
-                            "institution.domain.not.registered", new Object[]{domain},
-                            LocaleContextHolder.getLocale()
-                    ))
-            );
+            errors.add(createErrorDto(
+                    "error", new Object[]{domain}, "institution.domain.not.registered"
+                    ));
         }
-        return errors;
     }
 
-    public List<ErrorDto> validateUpdateData(Map<String, Object> updatedData) {
-        List<ErrorDto> errors = new ArrayList<>();
+    private void validateBooleanField(String fieldName,
+                                      Map<String, Object> userData, Set<ErrorDto> errors) {
 
-        errors.addAll(validateTextField("firstName", updatedData, errors));
-        errors.addAll(validateTextField("middleName", updatedData, errors));
-        errors.addAll(validateTextField("lastName", updatedData, errors));
-        errors.addAll(validateEmailField("email", updatedData, errors));
-        errors.addAll(validateNumberField("courseNumber", updatedData, errors));
-        errors.addAll(validateNumberField("dateOfBirth", updatedData, errors));
-//        errors.addAll(validateBooleanField("professor", updatedData, errors));
-//        errors.addAll(validateBooleanField("consulting", updatedData, errors));
-
-        return errors;
     }
 
-    private List<ErrorDto> validateBooleanField(String fieldName,
-                                                Map<String, Object> userData,
-                                                List<ErrorDto> errors) {
-
-        return errors;
-    }
-
-    private List<ErrorDto> validateNumberField(String fieldName,
-                                               Map<String, Object> userData,
-                                               List<ErrorDto> errors) {
+    private void validateNumberField(String fieldName,
+                                     Map<String, Object> userData, Set<ErrorDto> errors) {
 
         Object value = userData.get(fieldName);
 
-        if (!(value instanceof Integer intValue)) {
-            errors.add(new ErrorDto(
-                    fieldName,
-                    messageSource.getMessage("field.invalid.type", null, LocaleContextHolder.getLocale())
-            ));
-            return errors;
+        if (!(value instanceof Integer intValue) || intValue <= 0) {
+            errors.add(createErrorDto(
+                    fieldName, null, "field.invalid.type"));
         }
-        if (intValue <= 0)
-            errors.add(new ErrorDto(
-                    fieldName,
-                    messageSource.getMessage("field.invalid.type", null, LocaleContextHolder.getLocale())
-            ));
-        return errors;
     }
 
-    private List<ErrorDto> validateEmailField(String fieldName,
-                                              Map<String, Object> userData,
-                                              List<ErrorDto> errors) {
+    private void validateEmailField(String fieldName,
+                                    Map<String, Object> userData, Set<ErrorDto> errors) {
         Object value = userData.get(fieldName);
 
-        if (!(value instanceof String strValue)) {
-            errors.add(new ErrorDto(
-                    fieldName,
-                    messageSource.getMessage("field.invalid.type", null, LocaleContextHolder.getLocale())
-            ));
-            return errors;
+        if (!(value instanceof String strValue) || !strValue.contains("@")) {
+            errors.add(createErrorDto(
+                    fieldName, null,
+                    "field.invalid.type"));
+            return;
         }
-        String emailPattern = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
 
-        if (strValue == null || !strValue.matches(emailPattern)) {
-            errors.add(
-                    new ErrorDto(
-                            fieldName,
-                            messageSource.getMessage(
-                                    "email.format.incorrect", null,
-                                    LocaleContextHolder.getLocale()
-                            ))
-            );
+        if (!strValue.matches(EMAIL_PATTERN)) {
+            errors.add(createErrorDto(
+                    fieldName, null,
+                    "email.format.incorrect"));
         }
-        return errors;
+    }
+
+    private ErrorDto createErrorDto(String field, Object[] obj, String message) {
+        return new ErrorDto(
+                field,
+                messageSource.getMessage(message, obj, LocaleContextHolder.getLocale())
+        );
     }
 }

@@ -11,16 +11,14 @@ import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository
 import io.github.pavelshe11.networkingmicro.store.repositories.CityRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
+import jakarta.persistence.SecondaryTable;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -28,11 +26,10 @@ public class AccountUpdateService {
     private final AccountRepository accountRepository;
     private final AccountDataValidation accountDataValidator;
     private final CityRepository cityRepository;
-    private final SpecializationRepository specializationRepository;
 
 
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
-        List<ErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
+        Set<ErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
         if (!validationErrors.isEmpty()) {
             throw new ServerAnswerException();
         }
