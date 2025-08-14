@@ -3,6 +3,7 @@ package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import lombok.AllArgsConstructor;
@@ -31,11 +32,11 @@ public class AccountController {
     }
 
     @PutMapping(value = "/{accountId}/email")
-    public ResponseEntity<Void> updateEmail(
+    public EmailUpdateResponseDto updateEmail(
             @PathVariable UUID accountId,
             @RequestBody EmailUpdateRequestDto request) {
-        accountUpdateService.updateEmail(request, accountId);
-        return ResponseEntity.ok().build();
+
+        return accountUpdateService.updateEmail(request, accountId);
     }
 
     @PutMapping("/{accountId}/confirmEmail")

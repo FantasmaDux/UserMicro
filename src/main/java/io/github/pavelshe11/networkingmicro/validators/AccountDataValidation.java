@@ -23,6 +23,12 @@ public class AccountDataValidation {
 
         validatePolitics(userData, errors);
         validateDomainName(userData, errors);
+        String emailToValidate = null;
+        Object emailObj = userData.get("email");
+        if (emailObj instanceof String emailStr) {
+            emailToValidate = emailStr;
+        }
+        validateEmailField(emailToValidate, errors);
         validateFirstName(userData, errors);
         validateLastName(userData, errors);
 
@@ -35,7 +41,6 @@ public class AccountDataValidation {
         validateTextField("firstName", updatedData, errors);
         validateTextField("middleName", updatedData, errors);
         validateTextField("lastName", updatedData, errors);
-        validateEmailField("email", updatedData, errors);
         validateNumberField("courseNumber", updatedData, errors);
         validateNumberField("dateOfBirth", updatedData, errors);
 //        validateBooleanField("professor", updatedData, errors);
@@ -138,20 +143,18 @@ public class AccountDataValidation {
         }
     }
 
-    private void validateEmailField(String fieldName,
-                                    Map<String, Object> userData, Set<ErrorDto> errors) {
-        Object value = userData.get(fieldName);
+    public void validateEmailField(String email, Set<ErrorDto> errors) {
 
-        if (!(value instanceof String strValue) || !strValue.contains("@")) {
+        if (email == null || email.isBlank()) {
             errors.add(createErrorDto(
-                    fieldName, null,
-                    "field.invalid.type"));
+                    email, null,
+                    "field.empty"));
             return;
         }
 
-        if (!strValue.matches(EMAIL_PATTERN)) {
+        if (!email.matches(EMAIL_PATTERN)) {
             errors.add(createErrorDto(
-                    fieldName, null,
+                    email, null,
                     "email.format.incorrect"));
         }
     }
