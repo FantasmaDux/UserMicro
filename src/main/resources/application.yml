@@ -42,9 +42,28 @@ management:
 server:
   port: ${NETWORKING_HTTP}
 
-jwt:
-  secret: ${JWT_SECRET}
-
 grpc:
   server:
     port: 9092
+
+jwt:
+  access-token:
+    lifetime: ${ACCESS_TOKEN_LIFETIME}
+  refresh-token:
+    lifetime: ${REFRESH_TOKEN_LIFETIME}
+  secret: ${JWT_SECRET}
+
+code:
+  lifetime:
+    minutes: ${CODE_LIFETIME_MINUTES}
+
+CODE_PATTERN: ${ACTUAL_CODE_PATTERN}
+
+GRPC_CONFIG_JSON: ${ENV_GRPC_CONFIG_JSON}
+GRPC_SERVICE_ADDRESS: ${ENV_GRPC_SERVICE_ADDRESS}
+
+logging:
+  level:
+    org:
+      springframework:
+        security=DEBUG:

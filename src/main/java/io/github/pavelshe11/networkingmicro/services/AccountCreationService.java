@@ -4,6 +4,7 @@ import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
+import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
@@ -29,9 +30,9 @@ public class AccountCreationService {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        Set<ErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<FieldErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
-                .map((errorDto) -> this.mapToProto(errorDto))
+                .map((FieldErrorDto) -> this.mapToProto(FieldErrorDto))
                 .collect(Collectors.toList());
 
         if (!errors.isEmpty()) {
@@ -85,7 +86,7 @@ public class AccountCreationService {
         }
     }
 
-    private ErrorProto.FieldError mapToProto(ErrorDto dto) {
+    private ErrorProto.FieldError mapToProto(FieldErrorDto dto) {
         return ErrorProto.FieldError.newBuilder()
                 .setField(dto.getField())
                 .setMessage(dto.getMessage())

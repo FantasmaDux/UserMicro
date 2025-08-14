@@ -21,6 +21,7 @@ public class SpecializationDataInitializer implements ApplicationRunner {
                     .name(specializationName)
                     .countOfCourses(3)
                     .build();
+            specializationRepository.save(specialization);
         }
     }
 }

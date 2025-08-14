@@ -24,9 +24,9 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/networking/v1/**").authenticated()
+                                .requestMatchers("/networking/v1/**").permitAll()
                                 .requestMatchers("/actuator/**").permitAll()
-                                .anyRequest().authenticated()
+                                .anyRequest().denyAll()
                 ).sessionManagement(
                         session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 ).oauth2ResourceServer(

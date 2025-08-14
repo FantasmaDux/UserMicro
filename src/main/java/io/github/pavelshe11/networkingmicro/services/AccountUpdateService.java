@@ -1,19 +1,19 @@
 package io.github.pavelshe11.networkingmicro.services;
 
-import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
+import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
-import io.github.pavelshe11.networkingmicro.api.exceptions.AccountDeleteException;
-import io.github.pavelshe11.networkingmicro.api.exceptions.EmailEqualsException;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.CityEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.CityRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EmailUpdateSessionRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
 import lombok.AllArgsConstructor;
@@ -38,12 +38,16 @@ public class AccountUpdateService {
     private final CodeGenerator codeGenerator;
     private final SecurityValidation securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
+    private final SpecializationRepository specializationRepository;
 
     @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
-        Set<ErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
+        log.info("Начало обновления аккаунта: {}, данные: {}", accountId, updatedData);
+
+        Set<FieldErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
         if (!validationErrors.isEmpty()) {
-            throw new ServerAnswerException();
+            log.error("Ошибка валидации данных: {}", validationErrors);
+            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
         }
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
@@ -67,7 +71,9 @@ public class AccountUpdateService {
         }
 
         if (updatedData.containsKey("dateOfBirth")) {
-            long dateOfBirthTimestamp = Long.parseLong((String) updatedData.get("dateOfBirth"));
+            log.info("Обновление dateOfBirth");
+
+            long dateOfBirthTimestamp = Long.parseLong((String) updatedData.get("dateOfBirth")) * 1000;
             LocalDate dateOfBirth = Instant.ofEpochMilli(dateOfBirthTimestamp)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
@@ -76,14 +82,24 @@ public class AccountUpdateService {
 
         if (updatedData.containsKey("idCity")) {
             UUID cityId = UUID.fromString(updatedData.get("idCity").toString());
-            CityEntity city = cityRepository.findById(cityId).orElseThrow(() -> new ServerAnswerException());
+            Optional<CityEntity> cityOpt = cityRepository.findById(cityId);
+            if (cityOpt.isEmpty()) {
+                log.error("Нет города с таким id");
+                throw new ServerAnswerException();
+            }
+            CityEntity city = cityOpt.get();
             account.setCity(city);
         }
 
-        if (updatedData.containsKey("idSpecialisation")) {
-            UUID cityId = UUID.fromString(updatedData.get("idCity").toString());
-            CityEntity city = cityRepository.findById(cityId).orElseThrow(() -> new ServerAnswerException());
-            account.setCity(city);
+        if (updatedData.containsKey("idSpecialization")) {
+            UUID cityId = UUID.fromString(updatedData.get("idSpecialization").toString());
+            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(cityId);
+            if (specializationOpt.isEmpty()) {
+                log.error("Нет специализации с таким id");
+                throw new ServerAnswerException();
+            }
+            SpecializationEntity specialization = specializationOpt.get();
+            account.setSpecialization(specialization);
         }
 
         if (updatedData.containsKey("isProfessor")) {
@@ -95,15 +111,18 @@ public class AccountUpdateService {
         }
 
         if (updatedData.containsKey("courseNumber")) {
-            account.setCourseNumber((Short) updatedData.get("courseNumber"));
+            log.info("Обновление courseNumber");
+            Integer courseNum = (Integer) updatedData.get("courseNumber");
+            account.setCourseNumber(courseNum.shortValue());
         }
 
+        log.info("Сохранение аккаунта {}", accountId);
         accountRepository.save(account);
     }
 
     @Transactional
     public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
-        Set<ErrorDto> validationErrors = new HashSet<>();
+        Set<FieldErrorDto> validationErrors = new HashSet<>();
         accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
         accountDataValidator.checkIfEmailFreeOrThrow(request.getEmail());
 
@@ -112,13 +131,13 @@ public class AccountUpdateService {
             throw new ServerAnswerException();
         }
 
-        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findById(accountId);
+        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
         EmailUpdateResponseDto emailUpdateResponse;
 
-        if (sessionOpt.isEmpty()) {
+        if (sessionOpt.isPresent()) {
             emailUpdateResponse = handleExistingSession(sessionOpt.get(), request.getEmail(), accountId);
         } else {
-            emailUpdateResponse = handleNewSession(sessionOpt.get(), request.getEmail());
+            emailUpdateResponse = handleNewSession(request.getEmail(), accountId);
         }
 
         return emailUpdateResponse;
@@ -128,9 +147,9 @@ public class AccountUpdateService {
     public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
 
         String code = securityValidator.getTrimmedCodeOrThrow(request.getCode());
-        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findById(accountId);
+        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
         if (sessionOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
+            log.error("Нет такой сессии.");
             throw new ServerAnswerException();
         }
 
@@ -147,7 +166,7 @@ public class AccountUpdateService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new InvalidCodeException();
         }
 
         AccountEntity account = accountOpt.get();
@@ -180,20 +199,23 @@ public class AccountUpdateService {
         accountRepository.delete(accountOpt.get());
     }
 
-    private EmailUpdateResponseDto handleNewSession(EmailUpdateSessionEntity session, String email) {
+    private EmailUpdateResponseDto handleNewSession(String email, UUID accountId) {
 
         String rawCode = codeGenerator.codeGenerate();
-        log.info("UPDATE_EMAIL_CODE: " + rawCode + " FOR EMAIL: " + email);
+        log.info("UPDATE_EMAIL_CODE: " + rawCode + " NEW EMAIL: " + email + " OLD EMAIL" +
+                accountRepository.findById(accountId).get().getEmail());
         String hashCode = codeGenerator.codeHash(rawCode);
         long codeExpires = codeGenerator.codeExpiresGenerate();
 
+        EmailUpdateSessionEntity emailUpdateSession =
         EmailUpdateSessionEntity.builder()
                 .newEmail(email)
                 .code(hashCode)
+                .accountId(accountId)
                 .codeExpires(new Timestamp(codeExpires))
                 .build();
 
-        emailUpdateSessionRepository.save(session);
+        emailUpdateSessionRepository.save(emailUpdateSession);
 
         return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), codeExpires);
 
@@ -212,7 +234,8 @@ public class AccountUpdateService {
             session.setCode(hashedRefreshCode);
             session.setCodeExpires(new Timestamp(refreshCodeExpires));
 
-            log.info("UPDATE_EMAIL_CODE: " + rawRefreshCode + " FOR EMAIL: " + email);
+            log.info("UPDATE_EMAIL_CODE: " + rawRefreshCode + " NEW EMAIL: " + email + " OLD EMAIL" +
+                    accountRepository.findById(accountId).get().getEmail());
             emailUpdateSessionRepository.save(session);
 
             return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), refreshCodeExpires);

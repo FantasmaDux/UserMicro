@@ -4,6 +4,7 @@ import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
+import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
 import lombok.RequiredArgsConstructor;
@@ -24,9 +25,9 @@ public class AccountValidatorService {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        Set<ErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<FieldErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
-                .map((errorDto) -> this.mapToProto(errorDto))
+                .map((fieldErrorDto) -> this.mapToProto(fieldErrorDto))
                 .collect(Collectors.toList());
 
         boolean isAccountValid = errors.isEmpty();
@@ -38,7 +39,7 @@ public class AccountValidatorService {
                 .build();
     }
 
-    private ErrorProto.FieldError mapToProto(ErrorDto dto) {
+    private ErrorProto.FieldError mapToProto(FieldErrorDto dto) {
         return ErrorProto.FieldError.newBuilder()
                 .setField(dto.getField())
                 .setMessage(dto.getMessage())
