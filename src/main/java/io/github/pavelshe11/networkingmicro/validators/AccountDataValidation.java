@@ -1,8 +1,13 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
+import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
@@ -14,6 +19,9 @@ import java.util.*;
 public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final MessageSource messageSource;
+    private final AccountRepository accountRepository;
+    private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
+
     private static final int FIELD_MAX_LENGTH = 32;
     private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
     private static final String EMAIL_PATTERN = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
@@ -164,5 +172,12 @@ public class AccountDataValidation {
                 field,
                 messageSource.getMessage(message, obj, LocaleContextHolder.getLocale())
         );
+    }
+
+    public void checkIfEmailFreeOrThrow(String email) {
+        if (accountRepository.findByEmail(email).isPresent()) {
+            log.error("Аккаунт уже занят.");
+            throw new ServerAnswerException();
+        };
     }
 }

@@ -1,5 +1,7 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
+import io.github.pavelshe11.networkingmicro.api.exceptions.CodeExpiredException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.InvalidCodeException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEntity;
@@ -20,7 +22,7 @@ public class SecurityValidation {
     public String getTrimmedCodeOrThrow(String code) {
         if (code == null || code.trim().isEmpty()) {
             log.error("Код не задан.");
-            throw new ServerAnswerException();
+            throw new InvalidCodeException();
         }
         return code.trim();
     }
@@ -28,14 +30,14 @@ public class SecurityValidation {
     public void checkIfCodeIsValid(EmailUpdateSessionEntity session, String code) {
         if (code == null || code.isBlank() || !passwordEncoder.matches(code, session.getCode())) {
             log.error("Код невалидный.");
-            throw new ServerAnswerException();
+            throw new InvalidCodeException();
         }
     }
 
     public void ensureCodeIsNotExpired(EmailUpdateSessionEntity session) {
         if (session.getCodeExpires().before(new Timestamp(System.currentTimeMillis()))) {
             log.error("Срок действия кода истек");
-            throw new ServerAnswerException();
+            throw new CodeExpiredException();
         }
     }
 }

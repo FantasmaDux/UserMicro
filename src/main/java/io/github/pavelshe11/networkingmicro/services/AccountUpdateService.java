@@ -5,6 +5,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmR
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.AccountDeleteException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.EmailEqualsException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -13,14 +14,13 @@ import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEnt
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.CityRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EmailUpdateSessionRepository;
-import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
-import jakarta.persistence.SecondaryTable;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -39,14 +39,20 @@ public class AccountUpdateService {
     private final SecurityValidation securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
 
+    @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
         Set<ErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
         if (!validationErrors.isEmpty()) {
             throw new ServerAnswerException();
         }
 
-        AccountEntity account = accountRepository.findById(accountId)
-                .orElseThrow(() -> new ServerAnswerException());
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        AccountEntity account = accountOpt.get();
 
         if (updatedData.containsKey("firstName")) {
             account.setFirstName((String) updatedData.get("firstName"));
@@ -95,9 +101,11 @@ public class AccountUpdateService {
         accountRepository.save(account);
     }
 
+    @Transactional
     public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
         Set<ErrorDto> validationErrors = new HashSet<>();
         accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+        accountDataValidator.checkIfEmailFreeOrThrow(request.getEmail());
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
@@ -116,20 +124,21 @@ public class AccountUpdateService {
         return emailUpdateResponse;
     }
 
+    @Transactional
     public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
 
         String code = securityValidator.getTrimmedCodeOrThrow(request.getCode());
         Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findById(accountId);
         if (sessionOpt.isEmpty()) {
-            log.error("Невалидный код. 400");
+            log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
 
         EmailUpdateSessionEntity session = sessionOpt.get();
 
         if (!request.getEmail().equals(session.getNewEmail())) {
-            log.error("Почта для изменения не совпадает с текущей");
-            throw new ServerAnswerException();
+            log.error("Почта для изменения не совпадает с текущей.");
+            throw new EmailEqualsException();
         }
 
         securityValidator.checkIfCodeIsValid(session, code);
@@ -137,7 +146,7 @@ public class AccountUpdateService {
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
-            log.error("Нет такого аккаунта");
+            log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
 
@@ -148,10 +157,11 @@ public class AccountUpdateService {
         emailUpdateSessionRepository.deleteById(accountId);
     }
 
+    @Transactional
     public void updateAvatar(UUID accountId, byte[] avatarBytes) {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
-            log.error("Нет такого аккаунта");
+            log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
 
@@ -159,6 +169,7 @@ public class AccountUpdateService {
         account.setAvatar(avatarBytes);
     }
 
+    @Transactional
     public void deleteAccount(UUID accountId) {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
 
