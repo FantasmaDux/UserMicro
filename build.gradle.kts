@@ -42,6 +42,8 @@ dependencies {
     implementation ("io.grpc:grpc-stub:1.73.0")
     implementation("com.github.curious-odd-man:rgxgen:3.0")
     implementation ("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
     compileOnly("org.projectlombok:lombok")
     compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")
