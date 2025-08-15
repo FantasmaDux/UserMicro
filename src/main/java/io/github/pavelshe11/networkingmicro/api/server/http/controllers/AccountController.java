@@ -6,6 +6,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestD
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
+import io.github.pavelshe11.networkingmicro.util.JwtUtil;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,40 +21,47 @@ import java.util.UUID;
 @RequestMapping("/networking/v1/account")
 public class AccountController {
     private final AccountUpdateService accountUpdateService;
+    private final JwtUtil jwtUtil;
 
-    // Передается мапа, так как при put с dto надо все поля задавать. С мапой можно передать на
-    // обновление только часть полей
-    @PutMapping("/{accountId}")
+    // Аналог метода с jwt извлечением id
+    @PatchMapping("")
     public ResponseEntity<Void> updateAccountData(
-            @PathVariable UUID accountId,
             @RequestBody Map<String, Object> updatedData) {
+        UUID accountId = jwtUtil.claimAccountId();
         accountUpdateService.updateAccount(accountId, updatedData);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping(value = "/{accountId}/email")
+
+    // Аналог метода с jwt извлечением id
+    @PatchMapping(value = "/email")
     public EmailUpdateResponseDto updateEmail(
-            @PathVariable UUID accountId,
             @RequestBody EmailUpdateRequestDto request) {
+        UUID accountId = jwtUtil.claimAccountId();
 
         return accountUpdateService.updateEmail(request, accountId);
     }
 
-    @PutMapping("/{accountId}/confirmEmail")
+
+    // Аналог метода с jwt извлечением id
+    @PatchMapping("/confirmEmail")
     public ResponseEntity<Void> updateEmailConfirm(
-            @PathVariable UUID accountId,
             @RequestBody EmailUpdateConfirmRequestDto request) {
+        UUID accountId = jwtUtil.claimAccountId();
+
         accountUpdateService.confirmEmail(request, accountId);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping(path = "/{accountId}/avatar",
+    // Аналог метода с jwt извлечением id
+    @PatchMapping(path = "/avatar",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateAvatar(
-            @PathVariable UUID accountId,
             @ModelAttribute AvatarUpdateRequestDto request) {
         try {
             byte[] avatarBytes = request.getAvatar().getBytes();
+            UUID accountId = jwtUtil.claimAccountId();
+
             accountUpdateService.updateAvatar(accountId, avatarBytes);
             return ResponseEntity.ok().build();
         } catch (IOException e) {
@@ -61,10 +69,55 @@ public class AccountController {
         }
     }
 
-    @DeleteMapping("/{accountId}")
-    public ResponseEntity<Void> deleteAccount(
-            @PathVariable UUID accountId) {
+    // Аналог метода с jwt извлечением id
+    @DeleteMapping("")
+    public ResponseEntity<Void> deleteAccount() {
+        UUID accountId = jwtUtil.claimAccountId();
         accountUpdateService.deleteAccount(accountId);
         return ResponseEntity.ok().build();
     }
+
+
+    // Передается мапа, так как при put с dto надо все поля задавать. С мапой можно передать на
+    // обновление только часть полей
+//    @PatchMapping("/{accountId}")
+//    public ResponseEntity<Void> updateAccountData(
+//            @PathVariable UUID accountId,
+//            @RequestBody Map<String, Object> updatedData) {
+//        accountUpdateService.updateAccount(accountId, updatedData);
+//        return ResponseEntity.ok().build();
+//    }
+//    @PatchMapping(value = "/{accountId}/email")
+//    public EmailUpdateResponseDto updateEmail(
+//            @PathVariable UUID accountId,
+//            @RequestBody EmailUpdateRequestDto request) {
+//
+//        return accountUpdateService.updateEmail(request, accountId);
+//    }
+//    @PatchMapping("/{accountId}/confirmEmail")
+//    public ResponseEntity<Void> updateEmailConfirm(
+//            @PathVariable UUID accountId,
+//            @RequestBody EmailUpdateConfirmRequestDto request) {
+//        accountUpdateService.confirmEmail(request, accountId);
+//        return ResponseEntity.ok().build();
+//    }
+//    @PatchMapping(path = "/{accountId}/avatar",
+//            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//    public ResponseEntity<Void> updateAvatar(
+//            @PathVariable UUID accountId,
+//            @ModelAttribute AvatarUpdateRequestDto request) {
+//        try {
+//            byte[] avatarBytes = request.getAvatar().getBytes();
+//            accountUpdateService.updateAvatar(accountId, avatarBytes);
+//            return ResponseEntity.ok().build();
+//        } catch (IOException e) {
+//            throw new ServerAnswerException();
+//        }
+//    }
+    //    @DeleteMapping("/{accountId}")
+//    public ResponseEntity<Void> deleteAccount(
+//            @PathVariable UUID accountId) {
+//        accountUpdateService.deleteAccount(accountId);
+//        return ResponseEntity.ok().build();
+//    }
 }
