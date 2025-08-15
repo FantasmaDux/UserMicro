@@ -16,7 +16,7 @@ import java.sql.Timestamp;
 @Component
 @RequiredArgsConstructor
 public class SecurityValidation {
-    private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
+    private static final Logger log = LoggerFactory.getLogger(SecurityValidation.class);
     private final PasswordEncoder passwordEncoder;
 
     public String getTrimmedCodeOrThrow(String code) {

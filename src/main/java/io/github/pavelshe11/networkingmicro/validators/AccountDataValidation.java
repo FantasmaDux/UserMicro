@@ -12,6 +12,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 
 @Component
@@ -20,11 +23,19 @@ public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final MessageSource messageSource;
     private final AccountRepository accountRepository;
-    private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
+    private static final Logger log = LoggerFactory.getLogger(AccountDataValidation.class);
 
     private static final int FIELD_MAX_LENGTH = 32;
     private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
     private static final String EMAIL_PATTERN = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
+
+    private static final Set<String> REQUIRED_FIELDS = Set.of(
+            "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting"
+    );
+
+    private boolean isRequired(String fieldName) {
+        return REQUIRED_FIELDS.contains(fieldName);
+    }
 
     public Set<FieldErrorDto> validateRegistrationData(Map<String, Object> userData) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
@@ -46,15 +57,65 @@ public class AccountDataValidation {
     public Set<FieldErrorDto> validateUpdateData(Map<String, Object> updatedData) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
 
-        validateTextField("firstName", updatedData, errors);
-        validateTextField("middleName", updatedData, errors);
-        validateTextField("lastName", updatedData, errors);
-        validateNumberField("courseNumber", updatedData, errors);
-//        validateNumberField("dateOfBirth", updatedData, errors);
-//        validateBooleanField("professor", updatedData, errors);
-//        validateBooleanField("consulting", updatedData, errors);
+        if (updatedData.containsKey("firstName")) {
+            validateTextField("firstName", updatedData, errors);
+        }
+        if (updatedData.containsKey("middleName")) {
+            validateTextField("middleName", updatedData, errors);
+        }
+        if (updatedData.containsKey("lastName")) {
+            validateTextField("lastName", updatedData, errors);
+        }
+        if (updatedData.containsKey("courseNumber")) {
+            validateNumberField("courseNumber", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfBirth")) {
+            validateDateOfBirth("dateOfBirth", updatedData, errors);
+        }
+        if (updatedData.containsKey("professor")) {
+            validateBooleanField("professor", updatedData, errors);
+        }
+        if (updatedData.containsKey("consulting")) {
+            validateBooleanField("consulting", updatedData, errors);
+        }
 
         return errors;
+    }
+
+    private void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (!updatedData.containsKey(fieldName)) {
+            return;
+        }
+
+        Object value = updatedData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (!(value instanceof String)) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            return;
+        }
+        try {
+            long timestamp = Long.parseLong((String) value);
+
+            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            LocalDate today = LocalDate.now();
+            LocalDate minDate = today.minusYears(100);
+
+            if (date.isAfter(today)) {
+                errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            } else if (date.isBefore(minDate)) {
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.too.old"));
+            }
+
+        } catch (Exception e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        }
     }
 
     public void validatePolitics(Map<String, Object> userData, Set<FieldErrorDto> errors) {
@@ -80,10 +141,12 @@ public class AccountDataValidation {
     private void validateEmptyField(String fieldName,
                                     String value, Set<FieldErrorDto> errors) {
 
-        if (value == null || value.isBlank()) {
-            errors.add(createFieldErrorDto(fieldName, null,
-                    "field.empty"));
+        boolean isRequired = isRequired(fieldName);
+
+        if ((value == null || value.isBlank()) && isRequired) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.empty"));
         }
+
     }
 
     private void validateTooLongField(String fieldName,
@@ -106,7 +169,12 @@ public class AccountDataValidation {
 
     private void validateTextField(String fieldName,
                                    Map<String, Object> userData, Set<FieldErrorDto> errors) {
+
         Object value = userData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
 
         if (!(value instanceof String strValue)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
@@ -114,6 +182,11 @@ public class AccountDataValidation {
         }
 
         validateEmptyField(fieldName, strValue, errors);
+
+        if (strValue.isEmpty()) {
+            return;
+        }
+
         validateTooLongField(fieldName, strValue, errors);
         validateForbiddenSymbols(fieldName, strValue, errors);
     }
@@ -131,13 +204,29 @@ public class AccountDataValidation {
         if (!isDomainExists) {
             errors.add(createFieldErrorDto(
                     "error", new Object[]{domain}, "institution.domain.not.registered"
-                    ));
+            ));
         }
     }
 
     private void validateBooleanField(String fieldName,
                                       Map<String, Object> userData, Set<FieldErrorDto> errors) {
+        if (!userData.containsKey(fieldName)) {
+            return;
+        }
 
+        Object value = userData.get(fieldName);
+
+        if (value instanceof Boolean) {
+            return;
+        }
+        if (value instanceof String) {
+            String strValue = ((String) value).toLowerCase(Locale.ROOT);
+            if (strValue.equals("true") || strValue.equals("false")) {
+                return;
+            }
+        }
+
+        errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
     }
 
     private void validateNumberField(String fieldName,
@@ -145,9 +234,23 @@ public class AccountDataValidation {
 
         Object value = userData.get(fieldName);
 
-        if (!(value instanceof Integer intValue) || intValue <= 0) {
-            errors.add(createFieldErrorDto(
-                    fieldName, null, "field.invalid.type"));
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (value instanceof Integer intValue && intValue > 0) {
+            return;
+        }
+
+        if (value instanceof String strValue) {
+            try {
+                int parsed = Integer.parseInt(strValue);
+                if (parsed > 0) return;
+            } catch (NumberFormatException ignored) {
+            }
+
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+
         }
     }
 
@@ -155,14 +258,14 @@ public class AccountDataValidation {
 
         if (email == null || email.isBlank()) {
             errors.add(createFieldErrorDto(
-                    email, null,
+                    "email", null,
                     "field.empty"));
             return;
         }
 
         if (!email.matches(EMAIL_PATTERN)) {
             errors.add(createFieldErrorDto(
-                    email, null,
+                    "email", null,
                     "email.format.incorrect"));
         }
     }
@@ -178,6 +281,7 @@ public class AccountDataValidation {
         if (accountRepository.findByEmail(email).isPresent()) {
             log.error("Аккаунт уже занят.");
             throw new ServerAnswerException();
-        };
+        }
+        ;
     }
 }

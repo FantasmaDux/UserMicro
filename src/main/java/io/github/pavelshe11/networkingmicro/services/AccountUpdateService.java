@@ -6,6 +6,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestD
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
+import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.CityEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEntity;
@@ -44,7 +45,9 @@ public class AccountUpdateService {
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
         log.info("Начало обновления аккаунта: {}, данные: {}", accountId, updatedData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateUpdateData(updatedData);
+        Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
+
+        Set<FieldErrorDto> validationErrors = accountDataValidator.validateUpdateData(normalizedData);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
@@ -58,30 +61,30 @@ public class AccountUpdateService {
 
         AccountEntity account = accountOpt.get();
 
-        if (updatedData.containsKey("firstName")) {
-            account.setFirstName((String) updatedData.get("firstName"));
+        if (normalizedData.containsKey("firstName")) {
+            account.setFirstName((String) normalizedData.get("firstName"));
         }
 
-        if (updatedData.containsKey("middleName")) {
-            account.setMiddleName((String) updatedData.get("middleName"));
+        if (normalizedData.containsKey("middleName")) {
+            account.setMiddleName((String) (normalizedData.get("middleName")));
         }
 
-        if (updatedData.containsKey("lastName")) {
-            account.setLastName((String) updatedData.get("lastName"));
+        if (normalizedData.containsKey("lastName")) {
+            account.setLastName((String) (normalizedData.get("lastName")));
         }
 
-        if (updatedData.containsKey("dateOfBirth")) {
+        if (normalizedData.containsKey("dateOfBirth")) {
             log.info("Обновление dateOfBirth");
 
-            long dateOfBirthTimestamp = Long.parseLong((String) updatedData.get("dateOfBirth")) * 1000;
+            long dateOfBirthTimestamp = Long.parseLong((String) normalizedData.get("dateOfBirth")) * 1000;
             LocalDate dateOfBirth = Instant.ofEpochMilli(dateOfBirthTimestamp)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
             account.setDateOfBirth(dateOfBirth);
         }
 
-        if (updatedData.containsKey("idCity")) {
-            UUID cityId = UUID.fromString(updatedData.get("idCity").toString());
+        if (normalizedData.containsKey("idCity")) {
+            UUID cityId = UUID.fromString(normalizedData.get("idCity").toString());
             Optional<CityEntity> cityOpt = cityRepository.findById(cityId);
             if (cityOpt.isEmpty()) {
                 log.error("Нет города с таким id");
@@ -91,8 +94,8 @@ public class AccountUpdateService {
             account.setCity(city);
         }
 
-        if (updatedData.containsKey("idSpecialization")) {
-            UUID cityId = UUID.fromString(updatedData.get("idSpecialization").toString());
+        if (normalizedData.containsKey("idSpecialization")) {
+            UUID cityId = UUID.fromString(normalizedData.get("idSpecialization").toString());
             Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(cityId);
             if (specializationOpt.isEmpty()) {
                 log.error("Нет специализации с таким id");
@@ -102,18 +105,23 @@ public class AccountUpdateService {
             account.setSpecialization(specialization);
         }
 
-        if (updatedData.containsKey("isProfessor")) {
-            account.setProfessor((Boolean) updatedData.get("isProfessor"));
+        if (normalizedData.containsKey("isProfessor")) {
+            account.setProfessor((Boolean) normalizedData.get("isProfessor"));
         }
 
-        if (updatedData.containsKey("isConsulting")) {
-            account.setConsulting((Boolean) updatedData.get("isConsulting"));
+        if (normalizedData.containsKey("isConsulting")) {
+            account.setConsulting((Boolean) normalizedData.get("isConsulting"));
         }
 
-        if (updatedData.containsKey("courseNumber")) {
+        if (normalizedData.containsKey("courseNumber")) {
             log.info("Обновление courseNumber");
-            Integer courseNum = (Integer) updatedData.get("courseNumber");
-            account.setCourseNumber(courseNum.shortValue());
+            Object courseNumberObj = normalizedData.get("courseNumber");
+            if (courseNumberObj instanceof Integer courseNum) {
+                account.setCourseNumber(courseNum.shortValue());
+            } else if (courseNumberObj instanceof String courseNumStr) {
+                short parsedShort = Short.parseShort(courseNumStr);
+                account.setCourseNumber(parsedShort);
+            }
         }
 
         log.info("Сохранение аккаунта {}", accountId);
