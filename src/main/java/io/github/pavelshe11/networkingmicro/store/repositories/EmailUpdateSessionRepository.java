@@ -8,4 +8,8 @@ import java.util.UUID;
 
 public interface EmailUpdateSessionRepository extends JpaRepository<EmailUpdateSessionEntity, UUID> {
     Optional<EmailUpdateSessionEntity> findByAccountId(UUID accountId);
+
+    Optional<EmailUpdateSessionEntity> findByNewEmail(String email);
+
+    void deleteByAccountId(UUID accountId);
 }

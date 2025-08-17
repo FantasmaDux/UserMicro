@@ -67,7 +67,7 @@ public class AccountDataValidation {
             validateTextField("lastName", updatedData, errors);
         }
         if (updatedData.containsKey("courseNumber")) {
-            validateNumberField("courseNumber", updatedData, errors);
+            validateCourseNumberField("courseNumber", updatedData, errors);
         }
         if (updatedData.containsKey("dateOfBirth")) {
             validateDateOfBirth("dateOfBirth", updatedData, errors);
@@ -80,6 +80,22 @@ public class AccountDataValidation {
         }
 
         return errors;
+    }
+
+    private void validateCourseNumberField(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        validateNumberField(fieldName, updatedData, errors);
+        Object value = updatedData.get(fieldName);
+        int courseNumber;
+
+        if (value instanceof Integer intValue) {
+            courseNumber = intValue;
+        } else {
+            return;
+        }
+
+        if (courseNumber > 5) {
+            errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
+        }
     }
 
     private void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
@@ -108,7 +124,7 @@ public class AccountDataValidation {
             LocalDate minDate = today.minusYears(100);
 
             if (date.isAfter(today)) {
-                errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
             } else if (date.isBefore(minDate)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.too.old"));
             }
@@ -238,20 +254,13 @@ public class AccountDataValidation {
             return;
         }
 
-        if (value instanceof Integer intValue && intValue > 0) {
+        if (value instanceof Integer intValue) {
+            if (intValue < 0) {
+                errors.add(createFieldErrorDto(fieldName, null, "field.invalid.value"));
+            }
             return;
         }
-
-        if (value instanceof String strValue) {
-            try {
-                int parsed = Integer.parseInt(strValue);
-                if (parsed > 0) return;
-            } catch (NumberFormatException ignored) {
-            }
-
-            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
-
-        }
+        errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
     }
 
     public void validateEmailField(String email, Set<FieldErrorDto> errors) {
@@ -277,11 +286,7 @@ public class AccountDataValidation {
         );
     }
 
-    public void checkIfEmailFreeOrThrow(String email) {
-        if (accountRepository.findByEmail(email).isPresent()) {
-            log.error("Аккаунт уже занят.");
-            throw new ServerAnswerException();
-        }
-        ;
+    public boolean checkIfEmailFree(String email) {
+        return accountRepository.findByEmail(email).isEmpty();
     }
 }

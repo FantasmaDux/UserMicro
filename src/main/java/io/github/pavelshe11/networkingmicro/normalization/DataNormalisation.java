@@ -7,12 +7,28 @@ import java.util.Map;
 
 @Component
 public class DataNormalisation {
-    public static String normalizeTextData(Object value) {
+
+    private static String normalizeTextData(Object value) {
         if (value instanceof String str) {
             str = str.trim();
             return str.isEmpty() ? null : str;
         }
         return null;
+    }
+
+    private static Object normalizeNumberData(String value) {
+        try {
+            if (value.matches("-?\\d+")) {
+                return Integer.parseInt(value);
+            }
+
+            if (value.matches("-?\\d*\\.\\d+([eE][-+]?\\d+)?")) {
+                return Double.parseDouble(value);
+            }
+        } catch (NumberFormatException ignored) {
+        }
+
+        return value;
     }
 
     public static Map<String, Object> normalizeInput(Map<String, Object> input) {
@@ -23,7 +39,13 @@ public class DataNormalisation {
 
             if (value instanceof String str) {
                 String trimmed = str.trim();
-                result.put(key, trimmed.isEmpty() ? null : trimmed);
+                if (trimmed.isEmpty()) {
+                    result.put(key, null);
+                    continue;
+                }
+
+                Object normalized = normalizeNumberData(trimmed);
+                result.put(key, normalized);
             } else {
                 result.put(key, value);
             }

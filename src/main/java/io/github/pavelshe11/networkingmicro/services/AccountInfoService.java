@@ -1,10 +1,14 @@
 package io.github.pavelshe11.networkingmicro.services;
 
 import com.google.protobuf.Value;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -15,7 +19,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AccountInfoService {
-
+    private static final Logger log = LoggerFactory.getLogger(AccountInfoService.class);
     private final AccountRepository accountRepository;
 
     public getAccountInfoProto.GetAccountInfoResponse.Builder getAccountInfoByEmail(String email) {
@@ -51,4 +55,48 @@ public class AccountInfoService {
         return responseBuild;
     }
 
+    public AccountInfoDto getAccountFullInfo(UUID accountId) {
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        AccountEntity account = accountOpt.get();
+        String avatarUrl = "/api/accounts/" + account.getId() + "/avatar";
+
+        AccountInfoDto accountInfoDto = AccountInfoDto.builder()
+                .firstName(account.getFirstName())
+                .lastName(account.getLastName())
+                .email(account.getEmail())
+                .professor(account.isProfessor())
+                .visible(account.isVisible())
+                .consulting(account.isConsulting())
+                .courseNumber(account.getCourseNumber())
+                .dateOfBirth(account.getDateOfBirth())
+                .cityName(account.getCity() != null ? account.getCity().getName() : null)
+                .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
+                .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
+                .avatarUrl(avatarUrl)
+                .build();
+
+        return accountInfoDto;
+    }
+
+    public byte[] getAvatar(UUID accountId) {
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        byte[] avatar = accountOpt.get().getAvatar();
+        if (avatar == null) {
+            log.error("Аватара нет.");
+            throw new ServerAnswerException();
+        }
+        return avatar;
+    }
 }

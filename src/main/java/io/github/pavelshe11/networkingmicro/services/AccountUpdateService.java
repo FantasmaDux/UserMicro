@@ -40,6 +40,7 @@ public class AccountUpdateService {
     private final SecurityValidation securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
+    private static final int MAX_AVATAR_SIZE_BYTES = 1024 * 1024;
 
     @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
@@ -132,7 +133,19 @@ public class AccountUpdateService {
     public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
         Set<FieldErrorDto> validationErrors = new HashSet<>();
         accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
-        accountDataValidator.checkIfEmailFreeOrThrow(request.getEmail());
+
+        if (!validationErrors.isEmpty()) {
+            throw new FieldValidationException("email", validationErrors.stream().toList());
+        }
+
+        Optional<EmailUpdateSessionEntity> sessionOptByEmail
+                = emailUpdateSessionRepository.findByNewEmail(request.getEmail());
+
+        boolean isAccountFree = accountDataValidator.checkIfEmailFree(request.getEmail());
+        boolean isAccountUsedInAnotherSession = sessionOptByEmail
+                .map(session -> session.getAccountId().equals(accountId))
+                .orElse(false);
+        boolean isFake = !isAccountFree || isAccountUsedInAnotherSession;
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
@@ -143,9 +156,11 @@ public class AccountUpdateService {
         EmailUpdateResponseDto emailUpdateResponse;
 
         if (sessionOpt.isPresent()) {
-            emailUpdateResponse = handleExistingSession(sessionOpt.get(), request.getEmail(), accountId);
+            emailUpdateResponse = handleExistingSession(sessionOpt.get(), request.getEmail(), accountId, isFake);
+        } else if (isAccountFree) {
+            emailUpdateResponse = handleNewSession(request.getEmail(), accountId, isFake);
         } else {
-            emailUpdateResponse = handleNewSession(request.getEmail(), accountId);
+            emailUpdateResponse = handleNewSession(request.getEmail(), accountId, isFake);
         }
 
         return emailUpdateResponse;
@@ -153,6 +168,13 @@ public class AccountUpdateService {
 
     @Transactional
     public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
+
+        Set<FieldErrorDto> validationErrors = new HashSet<>();
+        accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+
+        if (!validationErrors.isEmpty()) {
+            throw new FieldValidationException("email", validationErrors.stream().toList());
+        }
 
         String code = securityValidator.getTrimmedCodeOrThrow(request.getCode());
         Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
@@ -163,6 +185,13 @@ public class AccountUpdateService {
 
         EmailUpdateSessionEntity session = sessionOpt.get();
 
+        boolean isSessionFake = session.getCode().isEmpty();
+
+        if (isSessionFake) {
+            log.warn("Фейковая сессия создана.");
+            throw new InvalidCodeException();
+        }
+
         if (!request.getEmail().equals(session.getNewEmail())) {
             log.error("Почта для изменения не совпадает с текущей.");
             throw new EmailEqualsException();
@@ -170,6 +199,12 @@ public class AccountUpdateService {
 
         securityValidator.checkIfCodeIsValid(session, code);
         securityValidator.ensureCodeIsNotExpired(session);
+
+        boolean isEmailStillFree = accountDataValidator.checkIfEmailFree(request.getEmail());
+        if (!isEmailStillFree) {
+            log.info("Почта уже занята.");
+            throw new InvalidCodeException();
+        }
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
@@ -192,6 +227,17 @@ public class AccountUpdateService {
             throw new ServerAnswerException();
         }
 
+        if (avatarBytes == null || avatarBytes.length == 0) {
+            log.error("Аватара нет.");
+            throw new ServerAnswerException();
+        }
+
+        if (avatarBytes.length > MAX_AVATAR_SIZE_BYTES) {
+            log.error("Аватар больше 1 Мб.");
+            throw new AvatarLargeSizeException();
+        }
+
+
         AccountEntity account = accountOpt.get();
         account.setAvatar(avatarBytes);
     }
@@ -207,12 +253,17 @@ public class AccountUpdateService {
         accountRepository.delete(accountOpt.get());
     }
 
-    private EmailUpdateResponseDto handleNewSession(String email, UUID accountId) {
+    private EmailUpdateResponseDto handleNewSession(String email, UUID accountId, boolean isFake) {
 
-        String rawCode = codeGenerator.codeGenerate();
-        log.info("UPDATE_EMAIL_CODE: " + rawCode + " NEW EMAIL: " + email + " OLD EMAIL" +
-                accountRepository.findById(accountId).get().getEmail());
-        String hashCode = codeGenerator.codeHash(rawCode);
+        emailUpdateSessionRepository.deleteByAccountId(accountId);
+
+        String rawCode = isFake ? "" : codeGenerator.codeGenerate();
+
+        log.info((isFake ? "FAKE" : "REAL") + "_UPDATE_EMAIL_CODE: " + rawCode +
+                " NEW EMAIL: " + email +
+                " OLD EMAIL: " + accountRepository.findById(accountId).get().getEmail());
+
+        String hashCode = isFake ? "" : codeGenerator.codeHash(rawCode);
         long codeExpires = codeGenerator.codeExpiresGenerate();
 
         EmailUpdateSessionEntity emailUpdateSession =
@@ -229,24 +280,17 @@ public class AccountUpdateService {
 
     }
 
-    private EmailUpdateResponseDto handleExistingSession(EmailUpdateSessionEntity session, String email, UUID accountId) {
+    private EmailUpdateResponseDto handleExistingSession(EmailUpdateSessionEntity session,
+                                                         String email,
+                                                         UUID accountId,
+                                                         boolean isFake) {
         boolean isExpired = session.getCodeExpires().before(Timestamp.from(Instant.now()));
+        boolean isSameAccount = accountId.equals(session.getAccountId());
+        boolean isSameEmail = email.equals(session.getNewEmail());
+        boolean wasSessionFake = session.getCode().isEmpty();
 
-        if (isExpired || session.getAccountId() == null
-                || !session.getAccountId().equals(accountId)) {
-            String rawRefreshCode = codeGenerator.codeGenerate();
-            String hashedRefreshCode = codeGenerator.codeHash(rawRefreshCode);
-            long refreshCodeExpires = codeGenerator.codeExpiresGenerate();
-
-            session.setAccountId(accountId);
-            session.setCode(hashedRefreshCode);
-            session.setCodeExpires(new Timestamp(refreshCodeExpires));
-
-            log.info("UPDATE_EMAIL_CODE: " + rawRefreshCode + " NEW EMAIL: " + email + " OLD EMAIL" +
-                    accountRepository.findById(accountId).get().getEmail());
-            emailUpdateSessionRepository.save(session);
-
-            return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), refreshCodeExpires);
+        if (isExpired || !isSameAccount || !isSameEmail || (wasSessionFake && !isFake)) {
+            return handleNewSession(email, accountId, isFake);
         }
 
         return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), session.getCodeExpires().getTime());
