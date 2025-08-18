@@ -5,6 +5,7 @@ plugins {
     id("org.springframework.boot") version "3.5.3"
     id("io.spring.dependency-management") version "1.1.7"
     id("com.google.protobuf") version "0.9.4"
+    id("org.openapi.generator") version "7.3.0"
 }
 
 group = "io.github.pavelshe11"
@@ -44,6 +45,7 @@ dependencies {
     implementation ("org.springframework.boot:spring-boot-starter-security")
     implementation("io.jsonwebtoken:jjwt-api:0.11.5")
     implementation("org.springframework.boot:spring-boot-starter-oauth2-resource-server")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
     compileOnly("org.projectlombok:lombok")
     compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")

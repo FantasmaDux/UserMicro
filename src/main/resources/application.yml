@@ -67,3 +67,9 @@ logging:
     org:
       springframework:
         security=DEBUG:
+
+springdoc:
+  swagger-ui:
+    path: /networking/swagger-ui.html
+  api-docs:
+    path: /networking/v3/api-docs

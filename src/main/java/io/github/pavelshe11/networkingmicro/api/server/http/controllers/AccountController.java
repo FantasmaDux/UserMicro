@@ -9,6 +9,8 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException
 import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,6 +22,7 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
+@Tag(name = "Account", description = "API аккаунта, networking")
 @RequestMapping("/networking/v1/account")
 public class AccountController {
     private final AccountUpdateService accountUpdateService;
@@ -27,6 +30,7 @@ public class AccountController {
     private final JwtUtil jwtUtil;
 
     // Аналог метода с jwt извлечением id
+    @Operation(summary = "Метод обновления данных аккаунта пользователя по id")
     @PatchMapping("")
     public ResponseEntity<Void> updateAccountData(
             @RequestBody Map<String, Object> updatedData) {
@@ -35,7 +39,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-
+    @Operation(summary = "Метод обновления почты пользователя по id")
     @PatchMapping(value = "/email")
     public EmailUpdateResponseDto updateEmail(
             @RequestBody EmailUpdateRequestDto request) {
@@ -44,7 +48,7 @@ public class AccountController {
         return accountUpdateService.updateEmail(request, accountId);
     }
 
-
+    @Operation(summary = "Метод подтверждения обновления почты пользователя по id")
     @PatchMapping("/confirmEmail")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
@@ -54,6 +58,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Метод добавления/обновления аватара пользователя по id")
     @PatchMapping(path = "/avatar",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Void> updateAvatar(
@@ -69,6 +74,7 @@ public class AccountController {
         }
     }
 
+    @Operation(summary = "Метод удаления аккаунта пользователя по id")
     @DeleteMapping("")
     public ResponseEntity<Void> deleteAccount() {
         UUID accountId = jwtUtil.claimAccountId();
@@ -76,12 +82,14 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
+    @Operation(summary = "Метод получения информации аккаунта пользователя по id")
     @GetMapping("")
     public AccountInfoDto getAccount() {
         UUID accountId = jwtUtil.claimAccountId();
         return accountInfoService.getAccountFullInfo(accountId);
     }
 
+    @Operation(summary = "Метод получения аватара пользователя по id")
     @GetMapping("/avatar")
     public ResponseEntity<byte[]> getAvatar() {
         UUID accountId = jwtUtil.claimAccountId();
