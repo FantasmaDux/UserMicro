@@ -267,12 +267,12 @@ public class AccountUpdateService {
         long codeExpires = codeGenerator.codeExpiresGenerate();
 
         EmailUpdateSessionEntity emailUpdateSession =
-        EmailUpdateSessionEntity.builder()
-                .newEmail(email)
-                .code(hashCode)
-                .accountId(accountId)
-                .codeExpires(new Timestamp(codeExpires))
-                .build();
+                EmailUpdateSessionEntity.builder()
+                        .newEmail(email)
+                        .code(hashCode)
+                        .accountId(accountId)
+                        .codeExpires(new Timestamp(codeExpires))
+                        .build();
 
         emailUpdateSessionRepository.save(emailUpdateSession);
 

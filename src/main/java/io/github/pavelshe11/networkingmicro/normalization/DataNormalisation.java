@@ -8,14 +8,6 @@ import java.util.Map;
 @Component
 public class DataNormalisation {
 
-    private static String normalizeTextData(Object value) {
-        if (value instanceof String str) {
-            str = str.trim();
-            return str.isEmpty() ? null : str;
-        }
-        return null;
-    }
-
     private static Object normalizeNumberData(String value) {
         try {
             if (value.matches("-?\\d+")) {

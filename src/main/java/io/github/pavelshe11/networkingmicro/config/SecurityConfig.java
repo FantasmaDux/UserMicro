@@ -24,7 +24,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
                         auth -> auth
-                                .requestMatchers("/networking/v1/**").permitAll()
+                                .requestMatchers("/networking/v1/**").authenticated()
                                 .requestMatchers("/actuator/**").permitAll()
                                 .anyRequest().denyAll()
                 ).sessionManagement(
@@ -39,6 +39,7 @@ public class SecurityConfig {
                 )
                 .build();
     }
+
     private Converter<Jwt, ? extends AbstractAuthenticationToken> jwtAuthConverter() {
         var converter = new JwtAuthenticationConverter();
         converter.setJwtGrantedAuthoritiesConverter(

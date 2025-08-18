@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class SpecializationDataInitializer implements ApplicationRunner {
     private final SpecializationRepository specializationRepository;
+
     @Override
     public void run(ApplicationArguments args) {
 

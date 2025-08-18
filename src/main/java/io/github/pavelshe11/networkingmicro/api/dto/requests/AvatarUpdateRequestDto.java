@@ -5,8 +5,6 @@ import lombok.Builder;
 import lombok.Data;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @Builder
