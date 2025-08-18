@@ -10,6 +10,13 @@ import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.SchemaProperty;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.AllArgsConstructor;
 import org.springframework.http.MediaType;
@@ -23,6 +30,7 @@ import java.util.UUID;
 @RestController
 @AllArgsConstructor
 @Tag(name = "Account", description = "API аккаунта, networking")
+@SecurityRequirement(name = "bearerTokenAuth")
 @RequestMapping("/networking/v1/account")
 public class AccountController {
     private final AccountUpdateService accountUpdateService;
@@ -31,8 +39,39 @@ public class AccountController {
 
     // Аналог метода с jwt извлечением id
     @Operation(summary = "Метод обновления данных аккаунта пользователя по id")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Данные успешно обновлены"),
+            @ApiResponse(responseCode = "401", description = "Запрос не прошёл аутентификацию"),
+            @ApiResponse(responseCode = "500", description = "Внутренняя ошибка сервера"),
+            @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            description = "Список обновляемых полей аккаунта",
+            required = true,
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(type = "object"),
+                    examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
+                            value = """
+                {
+                  "firstName": "test",
+                  "lastName": "test",
+                  "middleName": "test",
+                  "professor": true,
+                  "consulting": true,
+                  "visible": true,
+                  "dateOfBirth": 1039899600,
+                  "city": "44c56ff4-7db4-411a-8d0f-c2f326ca3666",
+                  "specialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e",
+                  "courseNumber": 3
+                }
+                """
+                    )
+            )
+    )
     @PatchMapping("")
     public ResponseEntity<Void> updateAccountData(
+            @Parameter(description = "Обновляемые поля аккаунта в формате JSON")
             @RequestBody Map<String, Object> updatedData) {
         UUID accountId = jwtUtil.claimAccountId();
         accountUpdateService.updateAccount(accountId, updatedData);

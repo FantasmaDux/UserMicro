@@ -73,3 +73,10 @@ springdoc:
     path: /networking/swagger-ui.html
   api-docs:
     path: /networking/v3/api-docs
+
+#springdoc:
+#  api-docs:
+#    enabled: false       # Отключаем автогенерацию
+#  swagger-ui:
+#    path: /networking/swagger-ui.html  # По желанию — оставить или поменять
+#    url: /openapi.yml   # Подключаем свой YAML-файл
