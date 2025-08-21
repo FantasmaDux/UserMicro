@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
+import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
@@ -45,43 +46,6 @@ public class AccountController {
                     responseCode = "200",
                     description = "Данные успешно обновлены"),
             @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Внутренняя ошибка сервера"
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(
                     responseCode = "400",
                     description = "Неверно указаны данные",
                     content = @Content(
@@ -109,6 +73,7 @@ public class AccountController {
                     )
             )
     })
+    @CommonApiResponses
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Список обновляемых полей аккаунта",
             required = false,
@@ -144,47 +109,7 @@ public class AccountController {
 
     @Operation(summary = "Метод обновления почты пользователя по id")
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Код выслан на почту"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
-            ),
+            @ApiResponse(responseCode = "200", description = "Код выслан на почту"),
             @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
     })
     @PatchMapping(value = "/email", produces = "application/json")
@@ -197,49 +122,10 @@ public class AccountController {
 
     @Operation(summary = "Метод подтверждения обновления почты пользователя по id")
     @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Почта успешно обновлена"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
-            ),
+            @ApiResponse(responseCode = "200", description = "Почта успешно обновлена"),
             @ApiResponse(responseCode = "400", description = "Неверно указана почта или невалидный код")
     })
+    @CommonApiResponses
     @PatchMapping(value = "/confirmEmail", produces = "application/json")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
@@ -250,50 +136,8 @@ public class AccountController {
     }
 
     @Operation(summary = "Метод добавления/обновления аватара пользователя по id")
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Аватар успешно обновлен"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
-            ),
-            @ApiResponse(responseCode = "400", description = "Неверно указаны данные или изображение больше 1 Мб")
-    })
+    @ApiResponse(responseCode = "200", description = "Аватар успешно обновлен")
+    @CommonApiResponses
     @PatchMapping(path = "/avatar",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     public ResponseEntity<Void> updateAvatar(
@@ -310,49 +154,8 @@ public class AccountController {
     }
 
     @Operation(summary = "Метод удаления аккаунта пользователя по id")
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Аккаунт успешно удален"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
-            )
-    })
+    @ApiResponse(responseCode = "200", description = "Аккаунт успешно удален")
+    @CommonApiResponses
     @DeleteMapping(value = "", produces = "application/json")
     public ResponseEntity<Void> deleteAccount() {
         UUID accountId = jwtUtil.claimAccountId();
@@ -361,53 +164,15 @@ public class AccountController {
     }
 
     @Operation(summary = "Метод получения информации аккаунта пользователя по id")
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Данные аккаунта получены",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = AccountInfoDto.class)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Данные аккаунта получены",
+            content = @Content(
+                    mediaType = "application/json",
+                    schema = @Schema(implementation = AccountInfoDto.class)
             )
-    })
+    )
+    @CommonApiResponses
     @GetMapping(value = "", produces = "application/json")
     public AccountInfoDto getAccount() {
         UUID accountId = jwtUtil.claimAccountId();
@@ -415,49 +180,8 @@ public class AccountController {
     }
 
     @Operation(summary = "Метод получения аватара пользователя по id")
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Аватар пользователя получен"
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "Запрос не прошёл аутентификацию",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "UnauthorizedError",
-                                    summary = "Ошибка авторизации",
-                                    value = """
-                                            {
-                                              "field": "Unauthorized",
-                                              "message": "Токен недействителен или отсутствует"
-                                            }
-                                            """
-                            )
-                    )
-
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Внутренняя ошибка сервера",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = FieldErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "ServerError",
-                                    summary = "Ошибка сервера",
-                                    value = """
-                                            {
-                                              "field": "InternalServerError",
-                                              "message": "Произошла непредвиденная ошибка"
-                                            }
-                                            """
-                            )
-                    )
-            )
-    })
+    @ApiResponse(responseCode = "200", description = "Аватар пользователя получен")
+    @CommonApiResponses
     @GetMapping(value = "/avatar", produces = "image/jpeg")
     public ResponseEntity<byte[]> getAvatar() {
         UUID accountId = jwtUtil.claimAccountId();
