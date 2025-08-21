@@ -64,7 +64,6 @@ public class AccountInfoService {
         }
 
         AccountEntity account = accountOpt.get();
-        String avatarUrl = "/api/accounts/" + account.getId() + "/avatar";
 
         AccountInfoDto accountInfoDto = AccountInfoDto.builder()
                 .firstName(account.getFirstName())
@@ -78,7 +77,6 @@ public class AccountInfoService {
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
-                .avatarUrl(avatarUrl)
                 .build();
 
         return accountInfoDto;

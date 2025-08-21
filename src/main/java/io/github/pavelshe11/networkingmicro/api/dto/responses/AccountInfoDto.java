@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.api.dto.responses;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
@@ -8,6 +9,7 @@ import java.time.LocalDate;
 
 @Data
 @Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Ответ с информацией по аккаунту пользователя")
 public class AccountInfoDto {
     @Schema(description = "Имя пользователя")
@@ -18,8 +20,6 @@ public class AccountInfoDto {
     private String middleName;
     @Schema(description = "Почта пользователя")
     private String email;
-    @Schema(description = "Ссылка на аватар пользователя")
-    private String avatarUrl;
     @Schema(description = "Является ли пользователь преподавателем")
     private boolean professor;
     @Schema(description = "Является ли пользователь консультатном")
