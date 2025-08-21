@@ -112,7 +112,7 @@ public class AccountController {
             @ApiResponse(responseCode = "200", description = "Код выслан на почту"),
             @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
     })
-    @PatchMapping(value = "/email", produces = "application/json")
+    @PostMapping(value = "/email", produces = "application/json")
     public EmailUpdateResponseDto updateEmail(
             @RequestBody EmailUpdateRequestDto request) {
         UUID accountId = jwtUtil.claimAccountId();
@@ -126,7 +126,7 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Неверно указана почта или невалидный код")
     })
     @CommonApiResponses
-    @PatchMapping(value = "/confirmEmail", produces = "application/json")
+    @PostMapping(value = "/confirmEmail", produces = "application/json")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
         UUID accountId = jwtUtil.claimAccountId();
@@ -138,7 +138,7 @@ public class AccountController {
     @Operation(summary = "Метод добавления/обновления аватара пользователя по id")
     @ApiResponse(responseCode = "200", description = "Аватар успешно обновлен")
     @CommonApiResponses
-    @PatchMapping(path = "/avatar",
+    @PostMapping(path = "/avatar",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     public ResponseEntity<Void> updateAvatar(
             @ModelAttribute AvatarUpdateRequestDto request) {
