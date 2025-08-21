@@ -77,7 +77,12 @@ public class AccountUpdateService {
         if (normalizedData.containsKey("dateOfBirth")) {
             log.info("Обновление dateOfBirth");
 
-            long dateOfBirthTimestamp = Long.parseLong((String) normalizedData.get("dateOfBirth")) * 1000;
+            Object dobRaw = normalizedData.get("dateOfBirth");
+
+            long dateOfBirthTimestamp = dobRaw instanceof Number
+                    ? ((Number) dobRaw).longValue()
+                    : Long.parseLong(dobRaw.toString());
+
             LocalDate dateOfBirth = Instant.ofEpochMilli(dateOfBirthTimestamp)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();

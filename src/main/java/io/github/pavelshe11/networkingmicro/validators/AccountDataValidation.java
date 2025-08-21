@@ -109,13 +109,14 @@ public class AccountDataValidation {
             return;
         }
 
-        if (!(value instanceof String)) {
+        if (!(value instanceof Number)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
-        try {
-            long timestamp = Long.parseLong((String) value);
 
+        try {
+
+            long timestamp = ((Number) value).longValue();
             LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
                     .atZone(ZoneId.systemDefault())
                     .toLocalDate();
