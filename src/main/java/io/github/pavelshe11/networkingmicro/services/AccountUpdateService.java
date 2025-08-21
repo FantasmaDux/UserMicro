@@ -7,14 +7,8 @@ import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateRespons
 import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
-import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
-import io.github.pavelshe11.networkingmicro.store.entities.CityEntity;
-import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEntity;
-import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
-import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
-import io.github.pavelshe11.networkingmicro.store.repositories.CityRepository;
-import io.github.pavelshe11.networkingmicro.store.repositories.EmailUpdateSessionRepository;
-import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
+import io.github.pavelshe11.networkingmicro.store.entities.*;
+import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
 import lombok.AllArgsConstructor;
@@ -40,6 +34,7 @@ public class AccountUpdateService {
     private final SecurityValidation securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
+    private final ActivitySessionRepository activitySessionRepository;
     private static final int MAX_AVATAR_SIZE_BYTES = 1024 * 1024;
 
     @Transactional
@@ -247,26 +242,16 @@ public class AccountUpdateService {
         account.setAvatar(avatarBytes);
     }
 
-    @Transactional
-    public void deleteAccount(UUID accountId) {
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-
-        if (accountOpt.isEmpty()) {
-            throw new AccountDeleteException();
-        }
-
-        accountRepository.delete(accountOpt.get());
-    }
-
     private EmailUpdateResponseDto handleNewSession(String email, UUID accountId, boolean isFake) {
 
         emailUpdateSessionRepository.deleteByAccountId(accountId);
 
         String rawCode = isFake ? "" : codeGenerator.codeGenerate();
 
-        log.info((isFake ? "FAKE" : "REAL") + "_UPDATE_EMAIL_CODE: " + rawCode +
-                " NEW EMAIL: " + email +
-                " OLD EMAIL: " + accountRepository.findById(accountId).get().getEmail());
+        log.info("{}_UPDATE_EMAIL_CODE: {} NEW EMAIL: {} OLD EMAIL: {}",
+                isFake ? "FAKE" : "REAL",
+                rawCode, email,
+                accountRepository.findById(accountId).get().getEmail());
 
         String hashCode = isFake ? "" : codeGenerator.codeHash(rawCode);
         long codeExpires = codeGenerator.codeExpiresGenerate();
@@ -299,5 +284,45 @@ public class AccountUpdateService {
         }
 
         return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), session.getCodeExpires().getTime());
+    }
+
+    public void setInactivityPeriod(UUID accountId, int inactivityMonths) {
+        if (inactivityMonths > 6 || inactivityMonths <= 0) {
+            throw new SetInactivityMonthException();
+        }
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунт при установке периода бездействия не найден");
+            throw new ServerAnswerException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
+        ActivitySessionEntity activitySession = activitySessionRepository.findByAccount(account)
+                .orElse(ActivitySessionEntity.builder()
+                        .account(account)
+                        .lastActivity(Timestamp.from(Instant.now()))
+                        .inactivityMonths(inactivityMonths)
+                        .build()
+                );
+
+        if (activitySession.getId() != null) {
+            activitySession.setInactivityMonths(inactivityMonths);
+        }
+
+        activitySessionRepository.save(activitySession);
+    }
+
+    @Transactional
+    public void deleteAccount(UUID accountId) {
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+
+        if (accountOpt.isEmpty()) {
+            throw new AccountDeleteException();
+        }
+
+        accountRepository.delete(accountOpt.get());
     }
 }

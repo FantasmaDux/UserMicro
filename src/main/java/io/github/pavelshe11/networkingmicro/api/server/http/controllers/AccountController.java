@@ -3,6 +3,7 @@ package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.AccountInactivityRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
@@ -153,13 +154,18 @@ public class AccountController {
         }
     }
 
-    @Operation(summary = "Метод удаления аккаунта пользователя по id")
-    @ApiResponse(responseCode = "200", description = "Аккаунт успешно удален")
+    @Operation(summary = "Настройка периода бездействия аккаунта для удаления по id")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Установлен период бездействия"),
+            @ApiResponse(responseCode = "400", description = "Указано недопустимое время бездействия")
+    })
     @CommonApiResponses
-    @DeleteMapping(value = "", produces = "application/json")
-    public ResponseEntity<Void> deleteAccount() {
+    @PatchMapping(value = "/set-inactivity", produces = "application/json")
+    public ResponseEntity<Void> setInactivityDeletionPeriod(
+            @RequestBody AccountInactivityRequestDto request
+    ) {
         UUID accountId = jwtUtil.claimAccountId();
-        accountUpdateService.deleteAccount(accountId);
+        accountUpdateService.setInactivityPeriod(accountId, request.getInactivityMonths());
         return ResponseEntity.ok().build();
     }
 

@@ -99,6 +99,10 @@ public class AccountEntity {
     private String ip;
 
     @Builder.Default
+    @Column(name = "last_activity", nullable = false)
+    private Instant lastActivity = Instant.now();
+
+    @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
