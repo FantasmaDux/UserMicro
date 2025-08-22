@@ -12,9 +12,9 @@ import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
-import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,7 +28,6 @@ import java.time.ZoneId;
 import java.util.*;
 
 @Service
-@AllArgsConstructor
 public class AccountUpdateService {
     private final AccountRepository accountRepository;
     private final AccountDataValidation accountDataValidator;
@@ -39,8 +38,20 @@ public class AccountUpdateService {
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
-    private static final int MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
-    private static final long MAX_INACTIVITY_PERIOD = 6L * 30 * 24 * 60 * 60 * 1000;
+    @Value("${MAX_AVATAR_SIZE}") private int MAX_AVATAR_SIZE_BYTES;
+    @Value("${MAX_INACTIVITY_PERIOD}") private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}") private long MIN_INACTIVITY_PERIOD;
+
+    public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator, CityRepository cityRepository, EmailUpdateSessionRepository emailUpdateSessionRepository, CodeGenerator codeGenerator, SecurityValidation securityValidator, SpecializationRepository specializationRepository, ActivitySessionRepository activitySessionRepository) {
+        this.accountRepository = accountRepository;
+        this.accountDataValidator = accountDataValidator;
+        this.cityRepository = cityRepository;
+        this.emailUpdateSessionRepository = emailUpdateSessionRepository;
+        this.codeGenerator = codeGenerator;
+        this.securityValidator = securityValidator;
+        this.specializationRepository = specializationRepository;
+        this.activitySessionRepository = activitySessionRepository;
+    }
 
     @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
@@ -308,7 +319,7 @@ public class AccountUpdateService {
     }
 
     public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
-        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= 0) {
+        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
             throw new SetInactivityMonthException();
         }
 
