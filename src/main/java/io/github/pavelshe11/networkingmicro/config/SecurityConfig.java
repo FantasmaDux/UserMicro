@@ -1,6 +1,5 @@
 package io.github.pavelshe11.networkingmicro.config;
 
-import io.github.pavelshe11.networkingmicro.component.ActivityTrackingFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.convert.converter.Converter;
@@ -20,7 +19,7 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, ActivityTrackingFilter activityTrackingFilter) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(
@@ -46,7 +45,6 @@ public class SecurityConfig {
                                 )
                         )
                 )
-                .addFilterAfter(activityTrackingFilter, org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

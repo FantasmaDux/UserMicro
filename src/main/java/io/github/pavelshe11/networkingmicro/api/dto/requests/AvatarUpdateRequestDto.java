@@ -11,7 +11,7 @@ import org.springframework.web.multipart.MultipartFile;
 @Builder
 @Schema(description = "Запрос на онбовление аватара")
 public class AvatarUpdateRequestDto {
-    @Schema(description = "Аватар пользоавтеля в виде файла")
+    @Schema(description = "Аватар пользователя в виде файла")
     private MultipartFile avatar;
 
 }

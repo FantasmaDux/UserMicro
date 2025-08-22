@@ -39,7 +39,7 @@ public class AccountController {
     private final AccountInfoService accountInfoService;
     private final JwtUtil jwtUtil;
 
-    @Operation(summary = "Метод обновления данных аккаунта пользователя по id")
+    @Operation(summary = "Метод обновления данных аккаунта пользователя по ID")
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
@@ -106,7 +106,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Метод обновления почты пользователя по id")
+    @Operation(summary = "Метод обновления почты пользователя по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Код выслан на почту"),
             @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
@@ -120,7 +120,7 @@ public class AccountController {
         return accountUpdateService.updateEmail(request, accountId);
     }
 
-    @Operation(summary = "Метод подтверждения обновления почты пользователя по id")
+    @Operation(summary = "Метод подтверждения обновления почты пользователя по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Почта успешно обновлена"),
             @ApiResponse(responseCode = "400", description = "Неверно указана почта или невалидный код")
@@ -135,7 +135,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Метод добавления/обновления аватара пользователя по id")
+    @Operation(summary = "Метод добавления/обновления аватара пользователя по ID")
     @ApiResponse(responseCode = "200", description = "Аватар успешно обновлен")
     @CommonApiResponses
     @PostMapping(path = "/avatar",
@@ -148,7 +148,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Настройка периода бездействия аккаунта для удаления по id")
+    @Operation(summary = "Настройка периода бездействия аккаунта для удаления по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Установлен период бездействия"),
             @ApiResponse(responseCode = "400", description = "Указано недопустимое время бездействия")
@@ -163,7 +163,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "Метод получения информации аккаунта пользователя по id")
+    @Operation(summary = "Метод получения информации аккаунта пользователя по ID")
     @ApiResponse(
             responseCode = "200",
             description = "Данные аккаунта получены",
@@ -179,7 +179,7 @@ public class AccountController {
         return accountInfoService.getAccountFullInfo(accountId);
     }
 
-    @Operation(summary = "Метод получения аватара пользователя по id")
+    @Operation(summary = "Метод получения аватара пользователя по ID")
     @ApiResponse(responseCode = "200", description = "Аватар пользователя получен")
     @CommonApiResponses
     @GetMapping(value = "/avatar")
