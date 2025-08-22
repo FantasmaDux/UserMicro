@@ -72,6 +72,7 @@ public class AccountInfoService {
         AccountInfoDto accountInfoDto = AccountInfoDto.builder()
                 .firstName(account.getFirstName())
                 .lastName(account.getLastName())
+                .middleName(account.getMiddleName())
                 .email(account.getEmail())
                 .professor(account.isProfessor())
                 .visible(account.isVisible())
