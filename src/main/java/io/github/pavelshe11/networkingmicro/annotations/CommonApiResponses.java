@@ -16,10 +16,6 @@ import java.lang.annotation.Target;
 @Retention(value= RetentionPolicy.RUNTIME)
 @ApiResponses({
         @ApiResponse(
-                responseCode = "200",
-                description = "Код выслан на почту"
-        ),
-        @ApiResponse(
                 responseCode = "401",
                 description = "Запрос не прошёл аутентификацию",
                 content = @Content(
@@ -55,8 +51,7 @@ import java.lang.annotation.Target;
                                             """
                         )
                 )
-        ),
-        @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
+        )
 })
 public @interface CommonApiResponses {
 

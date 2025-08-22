@@ -113,6 +113,7 @@ public class AccountController {
             @ApiResponse(responseCode = "200", description = "Код выслан на почту"),
             @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
     })
+    @CommonApiResponses
     @PostMapping(value = "/email", produces = "application/json")
     public EmailUpdateResponseDto updateEmail(
             @RequestBody EmailUpdateRequestDto request) {
