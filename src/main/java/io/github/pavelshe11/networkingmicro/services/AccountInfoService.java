@@ -2,6 +2,7 @@ package io.github.pavelshe11.networkingmicro.services;
 
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -10,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class AccountInfoService {
     private static final Logger log = LoggerFactory.getLogger(AccountInfoService.class);
     private final AccountRepository accountRepository;
 
+    @Transactional
     public getAccountInfoProto.GetAccountInfoResponse.Builder getAccountInfoByEmail(String email) {
 
         Optional<AccountEntity> accountOpt = accountRepository.findByEmail(email);
@@ -29,6 +32,7 @@ public class AccountInfoService {
         return getBuilderResponse(accountOpt);
     }
 
+    @Transactional
     public getAccountInfoProto.GetAccountInfoResponse.Builder getAccountById(String accountId) {
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(UUID.fromString(accountId));
@@ -82,19 +86,25 @@ public class AccountInfoService {
         return accountInfoDto;
     }
 
-    public byte[] getAvatar(UUID accountId) {
+    public GetAvatarResponseDto getAvatar(UUID accountId) {
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
+        AccountEntity account = accountOpt.get();
 
-        byte[] avatar = accountOpt.get().getAvatar();
+        byte[] avatar = account.getAvatar();
         if (avatar == null) {
             log.error("Аватара нет.");
             throw new ServerAnswerException();
         }
-        return avatar;
+
+        String mimeType = account.getMimetype() != null
+                ? account.getMimetype().getMimetype()
+                : "application/octet-stream";
+
+        return new GetAvatarResponseDto(avatar, mimeType);
     }
 }

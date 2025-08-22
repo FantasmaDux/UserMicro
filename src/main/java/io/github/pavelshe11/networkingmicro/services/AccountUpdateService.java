@@ -8,6 +8,7 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
+import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
@@ -16,7 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.apache.tika.Tika;
 
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,7 +39,7 @@ public class AccountUpdateService {
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
-    private static final int MAX_AVATAR_SIZE_BYTES = 1024 * 1024;
+    private static final int MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
 
     @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
@@ -220,26 +224,42 @@ public class AccountUpdateService {
     }
 
     @Transactional
-    public void updateAvatar(UUID accountId, byte[] avatarBytes) {
+    public void updateAvatar(UUID accountId, MultipartFile avatarFile) {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
 
-        if (avatarBytes == null || avatarBytes.length == 0) {
+        if (avatarFile == null || avatarFile.isEmpty()) {
             log.error("Аватара нет.");
             throw new ServerAnswerException();
         }
 
-        if (avatarBytes.length > MAX_AVATAR_SIZE_BYTES) {
-            log.error("Аватар больше 1 Мб.");
+        if (avatarFile.getSize() > MAX_AVATAR_SIZE_BYTES) {
+            log.error("Аватар больше 5 Мб.");
             throw new AvatarLargeSizeException();
         }
 
+        String mimeType;
+        try {
+            Tika tika = new Tika();
+            mimeType = tika.detect(avatarFile.getBytes());
 
-        AccountEntity account = accountOpt.get();
-        account.setAvatar(avatarBytes);
+            MediaType mediaType = MediaType.fromMimeType(mimeType);
+
+            if (mediaType == null) {
+                log.error("Недопустимый MIME-тип: " + mimeType);
+                throw new InvalidMimeTypeException();
+            }
+
+            AccountEntity account = accountOpt.get();
+            account.setAvatar(avatarFile.getBytes());
+            account.setMimetype(mediaType);
+        } catch (IOException e) {
+            log.error("Тип mimeType не удалось определить " + e);
+            throw new ServerAnswerException();
+        }
     }
 
     private EmailUpdateResponseDto handleNewSession(String email, UUID accountId, boolean isFake) {

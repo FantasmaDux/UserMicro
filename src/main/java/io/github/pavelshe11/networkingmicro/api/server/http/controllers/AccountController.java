@@ -2,13 +2,13 @@ package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
-import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AccountInactivityRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
@@ -143,15 +143,10 @@ public class AccountController {
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE, produces = "application/json")
     public ResponseEntity<Void> updateAvatar(
             @ModelAttribute AvatarUpdateRequestDto request) {
-        try {
-            byte[] avatarBytes = request.getAvatar().getBytes();
-            UUID accountId = jwtUtil.claimAccountId();
+        UUID accountId = jwtUtil.claimAccountId();
 
-            accountUpdateService.updateAvatar(accountId, avatarBytes);
-            return ResponseEntity.ok().build();
-        } catch (IOException e) {
-            throw new ServerAnswerException();
-        }
+        accountUpdateService.updateAvatar(accountId, request.getAvatar());
+        return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "Настройка периода бездействия аккаунта для удаления по id")
@@ -188,16 +183,14 @@ public class AccountController {
     @Operation(summary = "Метод получения аватара пользователя по id")
     @ApiResponse(responseCode = "200", description = "Аватар пользователя получен")
     @CommonApiResponses
-    @GetMapping(value = "/avatar", produces = "image/jpeg")
+    @GetMapping(value = "/avatar")
     public ResponseEntity<byte[]> getAvatar() {
         UUID accountId = jwtUtil.claimAccountId();
-        byte[] avatar = accountInfoService.getAvatar(accountId);
-        if (avatar == null) {
-            return ResponseEntity.notFound().build();
-        }
+        GetAvatarResponseDto response = accountInfoService.getAvatar(accountId);
+
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG)
-                .body(avatar);
+                .contentType(org.springframework.http.MediaType.parseMediaType(response.getMimetype()))
+                .body(response.getAvatar());
     }
 
 }

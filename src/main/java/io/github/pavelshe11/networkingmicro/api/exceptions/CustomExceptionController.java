@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import java.util.List;
 
@@ -70,6 +71,11 @@ public class CustomExceptionController {
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(response);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public void handleMaxUploadSizeExceededException() {
+        throw new AvatarLargeSizeException();
     }
 
     private String resolveMessage(String codeOrMessage) {
