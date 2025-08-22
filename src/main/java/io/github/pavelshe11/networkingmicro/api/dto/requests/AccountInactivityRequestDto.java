@@ -10,5 +10,6 @@ import lombok.Data;
 @Builder
 @Schema(description = "Запрос на изменение времени бездействия аккаунта до удаления")
 public class AccountInactivityRequestDto {
-    private int inactivityMonths;
+    @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
+    private long inactivityTimeMs;
 }

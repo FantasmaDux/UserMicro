@@ -29,7 +29,7 @@ public class ActivitySessionEntity {
     @Builder.Default
     private Timestamp lastActivity = Timestamp.from(Instant.now());
 
-    @Column(name = "inactivity_months", nullable = false)
+    @Column(name = "inactivity_time_ms", nullable = false)
     @Builder.Default
-    private int inactivityMonths = 6;
+    private long inactivityTimeMs = 6L * 30 * 24 * 60 * 60 * 1000;
 }

@@ -24,20 +24,15 @@ public class AccountCleanerService {
     @Scheduled(fixedRateString = "${DEAD_ACCOUNT_CLEAN_TIME}")
     @Transactional
     protected void cleanInactiveAccounts() {
-        Timestamp now = new Timestamp(System.currentTimeMillis());
+        long now = new Timestamp(System.currentTimeMillis()).getTime();
         List<ActivitySessionEntity> sessions = activitySessionRepository.findAll();
 
         for (ActivitySessionEntity session : sessions) {
 
-            Timestamp lastActivity = session.getLastActivity();
-            int months = session.getInactivityMonths();
+            long inactivityTimeMs = session.getInactivityTimeMs();
+            long lastActivity = session.getLastActivity().getTime();
 
-            Calendar calendar = Calendar.getInstance();
-            calendar.setTime(lastActivity);
-            calendar.add(Calendar.MONTH, months);
-            Timestamp deleteAfter = new Timestamp(calendar.getTimeInMillis());
-
-            if (deleteAfter.before(now)) {
+            if ((lastActivity + inactivityTimeMs) < now) {
                 UUID accountId = session.getAccount().getId();
 
                 try {

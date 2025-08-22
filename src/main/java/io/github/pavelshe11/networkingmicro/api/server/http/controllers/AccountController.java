@@ -9,7 +9,6 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestD
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
@@ -27,7 +26,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.UUID;
 
@@ -161,7 +159,7 @@ public class AccountController {
             @RequestBody AccountInactivityRequestDto request
     ) {
         UUID accountId = jwtUtil.claimAccountId();
-        accountUpdateService.setInactivityPeriod(accountId, request.getInactivityMonths());
+        accountUpdateService.setInactivityPeriod(accountId, request.getInactivityTimeMs());
         return ResponseEntity.ok().build();
     }
 

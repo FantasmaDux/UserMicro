@@ -40,6 +40,7 @@ public class AccountUpdateService {
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
     private static final int MAX_AVATAR_SIZE_BYTES = 5 * 1024 * 1024;
+    private static final long MAX_INACTIVITY_PERIOD = 6L * 30 * 24 * 60 * 60 * 1000;
 
     @Transactional
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
@@ -306,8 +307,8 @@ public class AccountUpdateService {
         return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), session.getCodeExpires().getTime());
     }
 
-    public void setInactivityPeriod(UUID accountId, int inactivityMonths) {
-        if (inactivityMonths > 6 || inactivityMonths <= 0) {
+    public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
+        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= 0) {
             throw new SetInactivityMonthException();
         }
 
@@ -324,12 +325,12 @@ public class AccountUpdateService {
                 .orElse(ActivitySessionEntity.builder()
                         .account(account)
                         .lastActivity(Timestamp.from(Instant.now()))
-                        .inactivityMonths(inactivityMonths)
+                        .inactivityTimeMs(inactivityTimeMs)
                         .build()
                 );
 
         if (activitySession.getId() != null) {
-            activitySession.setInactivityMonths(inactivityMonths);
+            activitySession.setInactivityTimeMs(inactivityTimeMs);
         }
 
         activitySessionRepository.save(activitySession);
