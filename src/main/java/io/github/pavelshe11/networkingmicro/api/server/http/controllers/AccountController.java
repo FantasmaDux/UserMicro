@@ -126,7 +126,7 @@ public class AccountController {
             @ApiResponse(responseCode = "400", description = "Неверно указана почта или невалидный код")
     })
     @CommonApiResponses
-    @PostMapping(value = "/confirmEmail", produces = "application/json")
+    @PatchMapping(value = "/confirmEmail", produces = "application/json")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
         UUID accountId = jwtUtil.claimAccountId();
