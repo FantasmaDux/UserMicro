@@ -106,7 +106,28 @@ public class AccountController {
     @Operation(summary = "Метод обновления почты пользователя по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Код выслан на почту"),
-            @ApiResponse(responseCode = "400", description = "Неверно указаны данные")
+            @ApiResponse(responseCode = "400",
+                    description = "Неверно указаны данные",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ErrorDto.class),
+                            examples = @ExampleObject(
+                                    name = "ValidationError",
+                                    summary = "Ошибка валидации",
+                                    value = """
+                                        {
+                                          "error": "Ошибка валидации",
+                                          "detailedErrors": [
+                                            {
+                                              "field": "email",
+                                              "message": "Некорректный формат Email."
+                                            }
+                                          ]
+                                        }
+                                        """
+                            )
+                    )
+            )
     })
     @CommonApiResponses
     @PostMapping(value = "/email", produces = "application/json")
