@@ -48,7 +48,6 @@ public class AccountController {
                     responseCode = "400",
                     description = "Неверно указаны данные",
                     content = @Content(
-                            mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDto.class),
                             examples = @ExampleObject(
                                     name = "BadRequestDetailed",
@@ -75,9 +74,7 @@ public class AccountController {
     @CommonApiResponses
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
             description = "Список обновляемых полей аккаунта",
-            required = false,
             content = @Content(
-                    mediaType = "application/json",
                     schema = @Schema(type = "object"),
                     examples = @io.swagger.v3.oas.annotations.media.ExampleObject(
                             value = """
@@ -168,7 +165,6 @@ public class AccountController {
             responseCode = "200",
             description = "Данные аккаунта получены",
             content = @Content(
-                    mediaType = "application/json",
                     schema = @Schema(implementation = AccountInfoDto.class)
             )
     )
