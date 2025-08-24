@@ -105,7 +105,7 @@ public class AccountUpdateService {
             Optional<CityEntity> cityOpt = cityRepository.findById(cityId);
             if (cityOpt.isEmpty()) {
                 log.error("Нет города с таким id");
-                throw new ServerAnswerException();
+                throw new CityNotFoundException();
             }
             CityEntity city = cityOpt.get();
             account.setCity(city);
@@ -116,7 +116,7 @@ public class AccountUpdateService {
             Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(cityId);
             if (specializationOpt.isEmpty()) {
                 log.error("Нет специализации с таким id");
-                throw new ServerAnswerException();
+                throw new SpecializationNotFoundException();
             }
             SpecializationEntity specialization = specializationOpt.get();
             account.setSpecialization(specialization);
@@ -245,7 +245,7 @@ public class AccountUpdateService {
 
         if (avatarFile == null || avatarFile.isEmpty()) {
             log.error("Аватара нет.");
-            throw new ServerAnswerException();
+            throw new AvatarNotFoundException();
         }
 
         if (avatarFile.getSize() > MAX_AVATAR_SIZE_BYTES) {
