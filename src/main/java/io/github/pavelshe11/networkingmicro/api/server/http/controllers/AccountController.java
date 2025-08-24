@@ -141,7 +141,7 @@ public class AccountController {
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Почта успешно обновлена"),
             @ApiResponse(
-                    responseCode = "400", // Один код ошибки 400
+                    responseCode = "400",
                     description = "Неверно указана почта или невалидный код",
                     content = @Content(
                             schema = @Schema(implementation = ErrorDto.class),
@@ -154,9 +154,8 @@ public class AccountController {
                                             "error": "validationError",
                                             "detailedErrors": [
                                               {
-                                                "code": "400",
+                                                "field": "400",
                                                 "message": "Проверьте указанную почту.",
-                                                "field": "email"
                                               }
                                             ]
                                           },
@@ -164,9 +163,8 @@ public class AccountController {
                                             "error": "error",
                                             "detailedErrors": [
                                               {
-                                                "code": "400",
+                                                "field": "400",
                                                 "message": "Неверный код подтверждения.",
-                                                "field": "code"
                                               }
                                             ]
                                           }
