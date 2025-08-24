@@ -3,6 +3,7 @@ package io.github.pavelshe11.networkingmicro.services;
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.AvatarNotFoundException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -100,7 +101,7 @@ public class AccountInfoService {
         byte[] avatar = account.getAvatar();
         if (avatar == null) {
             log.error("Аватара нет.");
-            throw new ServerAnswerException();
+            throw new AvatarNotFoundException();
         }
 
         String mimeType = account.getMimetype() != null
