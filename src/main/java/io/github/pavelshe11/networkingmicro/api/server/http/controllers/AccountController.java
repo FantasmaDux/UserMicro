@@ -140,7 +140,41 @@ public class AccountController {
     @Operation(summary = "Метод подтверждения обновления почты пользователя по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Почта успешно обновлена"),
-            @ApiResponse(responseCode = "400", description = "Неверно указана почта или невалидный код")
+            @ApiResponse(
+                    responseCode = "400", // Один код ошибки 400
+                    description = "Неверно указана почта или невалидный код",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorDto.class),
+                            examples = @ExampleObject(
+                                    name = "validationError",
+                                    summary = "Ошибки валидации",
+                                    value = """
+                                        [
+                                          {
+                                            "error": "validationError",
+                                            "detailedErrors": [
+                                              {
+                                                "code": "400",
+                                                "message": "Проверьте указанную почту.",
+                                                "field": "email"
+                                              }
+                                            ]
+                                          },
+                                          {
+                                            "error": "error",
+                                            "detailedErrors": [
+                                              {
+                                                "code": "400",
+                                                "message": "Неверный код подтверждения.",
+                                                "field": "code"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                        """
+                            )
+                    )
+            )
     })
     @CommonApiResponses
     @PatchMapping(value = "/confirmEmail", produces = "application/json")

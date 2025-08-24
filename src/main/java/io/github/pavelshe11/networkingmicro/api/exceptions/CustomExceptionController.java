@@ -21,6 +21,18 @@ import java.util.List;
 @RestControllerAdvice
 public class CustomExceptionController {
     private final MessageSource messageSource;
+    private static final String GENERIC_ERROR = "error";
+
+    private FieldErrorDto createFieldError(HttpStatus status, String message) {
+        return new FieldErrorDto(String.valueOf(status.value()), message);
+    }
+
+    private ErrorDto createErrorDto(HttpStatus status, String message) {
+        return ErrorDto.builder()
+                .error(GENERIC_ERROR)
+                .detailedErrors(List.of(createFieldError(status, message)))
+                .build();
+    }
 
     @ExceptionHandler(FieldValidationException.class)
     public ResponseEntity<ErrorDto> handleFieldValidationExceptions(FieldValidationException ex) {
@@ -51,9 +63,7 @@ public class CustomExceptionController {
                 "page.not.found", null, LocaleContextHolder.getLocale()
         );
 
-        ErrorDto response = ErrorDto.builder()
-                .error(errorMessage)
-                .build();
+        ErrorDto response = createErrorDto(HttpStatus.NOT_FOUND, errorMessage);
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -66,9 +76,7 @@ public class CustomExceptionController {
                 "page.not.found", null, LocaleContextHolder.getLocale()
         );
 
-        ErrorDto response = ErrorDto.builder()
-                .error(errorMessage)
-                .build();
+        ErrorDto response = createErrorDto(HttpStatus.NOT_FOUND, errorMessage);
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
@@ -78,9 +86,9 @@ public class CustomExceptionController {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleGeneralExceptions(Exception ex) {
         System.out.println(ex.getMessage());
-        ErrorDto response = ErrorDto.builder()
-                .error(messageSource.getMessage("server.inner.error", null, LocaleContextHolder.getLocale()))
-                .build();
+        String errorMessage = messageSource.getMessage("server.inner.error", null, LocaleContextHolder.getLocale());
+
+        ErrorDto response = createErrorDto(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -89,16 +97,9 @@ public class CustomExceptionController {
 
     @ExceptionHandler(AbstractException.class)
     public ResponseEntity<ErrorDto> handleAbstractExceptions(AbstractException ex) {
-        String errorMessage = messageSource.getMessage(
-                ex.getMessageCode(),
+        String errorMessage = messageSource.getMessage(ex.getMessageCode(), null, LocaleContextHolder.getLocale());
 
-                null,
-                LocaleContextHolder.getLocale()
-        );
-
-        ErrorDto response = ErrorDto.builder()
-                .error(errorMessage)
-                .build();
+        ErrorDto response = createErrorDto(ex.getStatus(), errorMessage);
 
         return ResponseEntity
                 .status(ex.getStatus())
