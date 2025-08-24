@@ -1,0 +1,40 @@
+package io.github.pavelshe11.networkingmicro.api.dto.responses;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import io.swagger.v3.oas.annotations.media.Schema;
+import lombok.Builder;
+import lombok.Data;
+
+import java.time.LocalDate;
+
+@Data
+@Builder
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@Schema(description = "Ответ с информацией по аккаунту пользователя")
+public class AccountInfoDto {
+    @Schema(description = "Имя пользователя")
+    private String firstName;
+    @Schema(description = "Фамилия пользователя")
+    private String lastName;
+    @Schema(description = "Отчество пользователя")
+    private String middleName;
+    @Schema(description = "Почта пользователя")
+    private String email;
+    @Schema(description = "Является ли пользователь преподавателем")
+    private boolean professor;
+    @Schema(description = "Является ли пользователь консультатном")
+    private boolean consulting;
+    @Schema(description = "Видим ли пользователь")
+    private boolean visible;
+    @Schema(description = "День рождения пользователя", example = "1039899600")
+    private LocalDate dateOfBirth;
+    @Schema(description = "Курс пользователя")
+    private Short courseNumber;
+
+    @Schema(description = "Уникальный идентификатор города пользователя")
+    private String cityName;
+    @Schema(description = "Уникальный идентификатор специализации пользователя")
+    private String specializationName;
+    @Schema(description = "Уникальный идентификатор домена пользователя")
+    private String educationalInstitutionName;
+}

@@ -1,4 +1,4 @@
-package io.github.pavelshe11.networkingmicro.api.grpc.server;
+package io.github.pavelshe11.networkingmicro.api.server.grpc;
 
 import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.AccountCreationServiceGrpc;

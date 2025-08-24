@@ -26,6 +26,15 @@ spring:
     basename: messages
     fallback-to-system-locale: true
 
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 5MB
+
+  web:
+    resources:
+      add-mappings: false
+
 management:
   endpoint:
     health:
@@ -42,9 +51,46 @@ management:
 server:
   port: ${NETWORKING_HTTP}
 
-jwt:
-  secret: ${JWT_SECRET}
-
 grpc:
   server:
     port: 9092
+
+jwt:
+  access-token:
+    lifetime: ${ACCESS_TOKEN_LIFETIME}
+  refresh-token:
+    lifetime: ${REFRESH_TOKEN_LIFETIME}
+  secret: ${JWT_SECRET}
+
+code:
+  lifetime:
+    minutes: ${CODE_LIFETIME_MINUTES}
+
+CODE_PATTERN: ${ACTUAL_CODE_PATTERN}
+
+GRPC_CONFIG_JSON: ${ENV_GRPC_CONFIG_JSON}
+GRPC_SERVICE_ADDRESS: ${ENV_GRPC_SERVICE_ADDRESS}
+
+logging:
+  level:
+    org:
+      springframework:
+        security=DEBUG:
+
+springdoc:
+  swagger-ui:
+    path: /networking/swagger-ui.html
+  api-docs:
+    path: /networking/v3/api-docs
+
+SWAGGER_API_VERSION: ${ENV_SWAGGER_API_VERSION}
+SWAGGER_APP_DESCRIPTION: ${ENV_SWAGGER_APP_DESCRIPTION}
+SWAGGER_LICENSE: ${ENV_SWAGGER_LICENSE}
+SWAGGER_LICENSE_URL: ${ENV_SWAGGER_LICENSE_URL}
+SWAGGER_DEV_SERVER: ${ENV_SWAGGER_DEV_SERVER}
+
+DEAD_ACCOUNT_CLEAN_TIME: ${ENV_DEAD_ACCOUNT_CLEAN_TIME)
+
+MAX_AVATAR_SIZE: ${ENV_MAX_AVATAR_SIZE}
+MAX_INACTIVITY_PERIOD: ${ENV_MAX_INACTIVITY_PERIOD}
+MIN_INACTIVITY_PERIOD: ${ENV_MIN_INACTIVITY_PERIOD}
