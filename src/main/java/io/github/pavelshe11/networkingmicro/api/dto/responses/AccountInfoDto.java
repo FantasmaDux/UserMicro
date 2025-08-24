@@ -29,7 +29,7 @@ public class AccountInfoDto {
     @Schema(description = "День рождения пользователя", example = "1039899600")
     private LocalDate dateOfBirth;
     @Schema(description = "Курс пользователя")
-    private short courseNumber;
+    private Short courseNumber;
 
     @Schema(description = "Уникальный идентификатор города пользователя")
     private String cityName;

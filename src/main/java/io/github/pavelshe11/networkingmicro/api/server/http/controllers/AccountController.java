@@ -109,7 +109,6 @@ public class AccountController {
             @ApiResponse(responseCode = "400",
                     description = "Неверно указаны данные",
                     content = @Content(
-                            mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDto.class),
                             examples = @ExampleObject(
                                     name = "ValidationError",

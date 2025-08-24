@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -70,15 +71,15 @@ public class AccountInfoService {
         AccountEntity account = accountOpt.get();
 
         AccountInfoDto accountInfoDto = AccountInfoDto.builder()
-                .firstName(account.getFirstName())
-                .lastName(account.getLastName())
-                .middleName(account.getMiddleName())
-                .email(account.getEmail())
+                .firstName(nullIfBlank(account.getFirstName()))
+                .lastName(nullIfBlank(account.getLastName()))
+                .middleName(nullIfBlank(account.getMiddleName()))
+                .email(nullIfBlank(account.getEmail()))
                 .professor(account.isProfessor())
                 .visible(account.isVisible())
                 .consulting(account.isConsulting())
-                .courseNumber(account.getCourseNumber())
-                .dateOfBirth(account.getDateOfBirth())
+                .courseNumber(account.getCourseNumber() != 0 ? account.getCourseNumber() : null)
+                .dateOfBirth(account.getDateOfBirth() != null ? account.getDateOfBirth() : null)
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
@@ -107,5 +108,9 @@ public class AccountInfoService {
                 : "application/octet-stream";
 
         return new GetAvatarResponseDto(avatar, mimeType);
+    }
+
+    private String nullIfBlank(String value) {
+        return StringUtils.hasText(value) ? value : null;
     }
 }
