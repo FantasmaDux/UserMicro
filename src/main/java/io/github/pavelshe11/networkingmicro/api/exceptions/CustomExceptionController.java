@@ -8,9 +8,11 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
 
@@ -41,6 +43,36 @@ public class CustomExceptionController {
                 .build();
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorDto> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
+        String errorMessage = messageSource.getMessage(
+                "page.not.found", null, LocaleContextHolder.getLocale()
+        );
+
+        ErrorDto response = ErrorDto.builder()
+                .error(errorMessage)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<ErrorDto> handleNotFound(NoHandlerFoundException ex) {
+        String errorMessage = messageSource.getMessage(
+                "page.not.found", null, LocaleContextHolder.getLocale()
+        );
+
+        ErrorDto response = ErrorDto.builder()
+                .error(errorMessage)
+                .build();
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(response);
     }
 
     @ExceptionHandler(Exception.class)
