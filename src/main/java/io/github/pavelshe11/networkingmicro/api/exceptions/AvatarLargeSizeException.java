@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class AvatarLargeSizeException extends AbstractException {
     public AvatarLargeSizeException() {
-        super("avatar.too.big", HttpStatus.BAD_REQUEST);
+        super("avatar.too.big", "handle.error", HttpStatus.BAD_REQUEST, "avatar");
     }
 }

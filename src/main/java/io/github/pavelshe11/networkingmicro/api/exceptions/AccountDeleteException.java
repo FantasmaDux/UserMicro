@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class AccountDeleteException extends AbstractException {
     public AccountDeleteException() {
-        super("delete.account.exception", HttpStatus.BAD_REQUEST);
+        super("delete.account.exception", null, HttpStatus.BAD_REQUEST, null);
     }
 }

@@ -220,7 +220,7 @@ public class AccountDataValidation {
 
         if (!isDomainExists) {
             errors.add(createFieldErrorDto(
-                    "error", new Object[]{domain}, "institution.domain.not.registered"
+                    "email", new Object[]{domain}, "institution.domain.not.registered"
             ));
         }
     }

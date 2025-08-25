@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class SpecializationNotFoundException extends AbstractException{
     public SpecializationNotFoundException() {
-        super("specialization.not.found", HttpStatus.BAD_REQUEST);
+        super("specialization.not.found", "handle.error", HttpStatus.BAD_REQUEST, "idSpecialization");
     }
 }

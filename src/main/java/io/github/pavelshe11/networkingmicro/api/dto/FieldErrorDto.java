@@ -12,6 +12,6 @@ import lombok.NoArgsConstructor;
 public class FieldErrorDto {
     @Schema(description = "Поле ошибки")
     private String field;
-    @Schema(description = "Сообщение ошибки")
+    @Schema(description = "Сообщение ошибки для отображения рядом с полем ввода")
     private String message;
 }

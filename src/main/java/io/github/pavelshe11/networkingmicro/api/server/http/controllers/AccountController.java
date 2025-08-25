@@ -54,15 +54,15 @@ public class AccountController {
                                     summary = "Ошибка валидации",
                                     value = """
                                                         {
-                                                        "error": "BadRequest",
+                                                        "error": "Ошибка валидации.",
                                               "detailedErrors": [
                                                 {
                                                   "field": "dateOfBirth",
-                                                  "message": "Неверный формат данных"
+                                                  "message": "Неверный формат данных."
                                                 },
                                                 {
                                                   "field": "courseNumber",
-                                                  "message": "Неверное значение поля"
+                                                  "message": "Неверное значение поля."
                                                 }
                                               ]
                                             }
@@ -114,16 +114,16 @@ public class AccountController {
                                     name = "ValidationError",
                                     summary = "Ошибка валидации",
                                     value = """
-                                        {
-                                          "error": "Ошибка валидации",
-                                          "detailedErrors": [
                                             {
-                                              "field": "email",
-                                              "message": "Некорректный формат Email."
+                                              "error": "Ошибка валидации.",
+                                              "detailedErrors": [
+                                                {
+                                                  "field": "email",
+                                                  "message": "Некорректный формат Email."
+                                                }
+                                              ]
                                             }
-                                          ]
-                                        }
-                                        """
+                                            """
                             )
                     )
             )
@@ -144,33 +144,40 @@ public class AccountController {
                     responseCode = "400",
                     description = "Неверно указана почта или невалидный код",
                     content = @Content(
+                            mediaType = "application/json",
                             schema = @Schema(implementation = ErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "validationError",
-                                    summary = "Ошибки валидации",
-                                    value = """
-                                        [
-                                          {
-                                            "error": "validationError",
-                                            "detailedErrors": [
-                                              {
-                                                "field": "400",
-                                                "message": "Проверьте указанную почту.",
-                                              }
-                                            ]
-                                          },
-                                          {
-                                            "error": "error",
-                                            "detailedErrors": [
-                                              {
-                                                "field": "400",
-                                                "message": "Неверный код подтверждения.",
-                                              }
-                                            ]
-                                          }
-                                        ]
-                                        """
-                            )
+                            examples = {
+                                    @ExampleObject(
+                                            name = "invalidEmail",
+                                            summary = "Неверно указана почта",
+                                            value = """
+                                                    {
+                                                      "error": "Ошибка валидации.",
+                                                      "detailedErrors": [
+                                                        {
+                                                          "field": "email",
+                                                          "message": "Проверьте указанную почту."
+                                                        }
+                                                      ]
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "invalidCode",
+                                            summary = "Неверный код подтверждения",
+                                            value = """
+                                                    {
+                                                      "error": "Ошибка подтверждения кода.",
+                                                      "detailedErrors": [
+                                                        {
+                                                          "field": "code",
+                                                          "message": "Неверный код подтверждения."
+                                                        }
+                                                      ]
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             )
     })
@@ -200,7 +207,28 @@ public class AccountController {
     @Operation(summary = "Настройка периода бездействия аккаунта для удаления по ID")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Установлен период бездействия"),
-            @ApiResponse(responseCode = "400", description = "Указано недопустимое время бездействия")
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "Указано недопустимое время бездействия",
+                    content = @Content(
+                            schema = @Schema(implementation = ErrorDto.class),
+                            examples = @ExampleObject(
+                                    name = "Неверное значение поля",
+                                    summary = "Указано недопустимое время бездействия",
+                                    value = """
+                                            {
+                                              "error": "Неверное значение поля",
+                                              "detailedErrors": [
+                                                {
+                                                  "field": "inactivityTimeMs",
+                                                  "message": "Указано недопустимое время бездействия."
+                                                }
+                                              ]
+                                            }
+                                            """
+                            )
+                    )
+            )
     })
     @CommonApiResponses
     @PatchMapping(value = "/set-inactivity", produces = "application/json")

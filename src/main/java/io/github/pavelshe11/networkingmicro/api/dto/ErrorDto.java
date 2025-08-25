@@ -16,7 +16,7 @@ import java.util.List;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Schema(description = "Ответ ошибки валидации полей")
 public class ErrorDto {
-    @Schema(description = "Наименование ошибки")
+    @Schema(description = "Общее название ошибки для отображения пользователю")
     private String error;
     @Schema(description = "Список ошибок")
     private List<FieldErrorDto> detailedErrors;
