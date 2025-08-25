@@ -30,7 +30,7 @@ public class AccountDataValidation {
     private static final String EMAIL_PATTERN = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
 
     private static final Set<String> REQUIRED_FIELDS = Set.of(
-            "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting"
+            "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting", "lastName"
     );
 
     private boolean isRequired(String fieldName) {
