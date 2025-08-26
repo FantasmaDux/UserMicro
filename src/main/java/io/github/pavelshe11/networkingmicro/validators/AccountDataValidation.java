@@ -99,7 +99,7 @@ public class AccountDataValidation {
             return;
         }
 
-        if (courseNumber > 5) {
+        if (courseNumber > 6) {
             errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
         }
     }
@@ -128,12 +128,9 @@ public class AccountDataValidation {
                     .toLocalDate();
 
             LocalDate today = LocalDate.now();
-            LocalDate minDate = today.minusYears(100);
 
             if (date.isAfter(today)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
-            } else if (date.isBefore(minDate)) {
-                errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.too.old"));
             }
 
         } catch (Exception e) {

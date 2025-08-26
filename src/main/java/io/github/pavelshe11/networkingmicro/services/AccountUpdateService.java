@@ -63,6 +63,7 @@ public class AccountUpdateService {
         this.securityValidator = securityValidator;
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
+        this.educationalInstitutionRepository = educationalInstitutionRepository;
     }
 
     @Transactional
