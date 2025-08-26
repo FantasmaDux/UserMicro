@@ -41,13 +41,19 @@ public class AccountDataValidation {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
 
         validatePolitics(userData, errors);
-        validateDomainName(userData, errors);
         String emailToValidate = null;
         Object emailObj = userData.get("email");
         if (emailObj instanceof String emailStr) {
             emailToValidate = emailStr;
         }
         validateEmailField(emailToValidate, errors);
+        boolean emailFormatCorrect = errors.stream()
+                .noneMatch(err -> "email".equals(err.getField()));
+
+        if (emailFormatCorrect) {
+            validateDomainName(userData, errors);
+        }
+
         validateFirstName(userData, errors);
         validateLastName(userData, errors);
 
