@@ -47,12 +47,6 @@ public class AccountDataValidation {
             emailToValidate = emailStr;
         }
         validateEmailField(emailToValidate, errors);
-        boolean emailFormatCorrect = errors.stream()
-                .noneMatch(err -> "email".equals(err.getField()));
-
-        if (emailFormatCorrect) {
-            validateDomainName(userData, errors);
-        }
 
         validateFirstName(userData, errors);
         validateLastName(userData, errors);
@@ -211,10 +205,9 @@ public class AccountDataValidation {
         validateForbiddenSymbols(fieldName, strValue, errors);
     }
 
-    public void validateDomainName(Map<String, Object> userData, Set<FieldErrorDto> errors) {
+    public void validateDomainName(String email, Set<FieldErrorDto> errors) {
 
-        Object emailObj = userData.get("email");
-        if (!(emailObj instanceof String email) || !email.contains("@")) {
+        if (email == null || !email.contains("@")) {
             return;
         }
 
@@ -284,6 +277,8 @@ public class AccountDataValidation {
                     "email", null,
                     "email.format.incorrect"));
         }
+
+        validateDomainName(email, errors);
     }
 
     private FieldErrorDto createFieldErrorDto(String field, Object[] obj, String message) {
