@@ -48,6 +48,8 @@ dependencies {
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.8")
     implementation("org.apache.tika:tika-core:3.2.2")
     implementation("org.apache.tika:tika-parsers-standard-package:3.2.2")
+    implementation ("commons-validator:commons-validator:1.7")
+
     compileOnly("org.projectlombok:lombok")
     compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")
