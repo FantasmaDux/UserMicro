@@ -1,12 +1,17 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
+import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.glassfish.jaxb.core.v2.TODO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -28,6 +33,7 @@ public class AccountDataValidation {
 
     private static final int FIELD_MAX_LENGTH = 32;
     private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
+    private static final String ACCEPTABLE_SYMBOLS_LINK_PATTERN = "^[a-zA-Z0-9._/?=&%#-]+$";
 
     private static final Set<String> REQUIRED_FIELDS = Set.of(
             "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting", "lastName"
@@ -291,4 +297,50 @@ public class AccountDataValidation {
     public boolean checkIfEmailFree(String email) {
         return accountRepository.findByEmail(email).isEmpty();
     }
+
+    public Set<FieldErrorDto> validateContactInfo(ContactInfoUpdateRequestDto request) {
+        Set<FieldErrorDto> errors = new LinkedHashSet<>();
+
+        for (AccountContactInfoDto method : request.getAccountContactMethods()) {
+
+            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
+                validateEmailField(method.getContact(), errors);
+
+                if (errors.stream().noneMatch(e -> e.getField().equals("email"))) {
+                    if (!checkIfEmailFree(method.getContact())) {
+                        log.error("Попытка указать почту, которая занята кем-то в приложении");
+                        throw new ServerAnswerException();
+                    }
+                }
+            }
+
+            if (method.getContactMethodType() == ContactMethodType.LINK) {
+                validateLink(method.getContact(), errors);
+            }
+
+            if (method.getContactMethodType() == ContactMethodType.PHONE) {
+                validatePhoneNumberField(method.getContact(), errors);
+            }
+        }
+        return errors;
+    }
+
+    private void validateLink(String contact, Set<FieldErrorDto> errors) {
+
+        if (contact.startsWith("https://") || contact.startsWith("http://")) {
+            errors.add(createFieldErrorDto("contact", null, "link.not.accepted"));
+        }
+
+        if (!contact.matches(ACCEPTABLE_SYMBOLS_LINK_PATTERN)) {
+            errors.add(createFieldErrorDto("contact", null,
+                    "field.has.forbidden.symbols"));
+        }
+
+        validateTooLongField("contact", contact, errors);
+    }
+
+    private void validatePhoneNumberField(String contact, Set<FieldErrorDto> errors) {
+        //TODO: подключить libphonenumber
+    }
+
 }

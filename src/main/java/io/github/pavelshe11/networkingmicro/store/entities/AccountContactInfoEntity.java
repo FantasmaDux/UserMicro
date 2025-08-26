@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -26,6 +27,13 @@ public class AccountContactInfoEntity {
 
     @Column(nullable = false)
     private String contact;
+
+    @Column(name = "favicon_url")
+    private String faviconUrl;
+
+    @Column(name = "contact_method", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ContactMethodType contactMethod;
 
     @Builder.Default
     @Column(name = "created_at")
