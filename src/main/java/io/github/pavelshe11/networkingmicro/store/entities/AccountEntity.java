@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
+import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -49,7 +50,7 @@ public class AccountEntity {
     @Builder.Default
     private String firstName = "";
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     @Builder.Default
     private String lastName = "";
 
@@ -97,6 +98,10 @@ public class AccountEntity {
 
     @Column(nullable = false)
     private String ip;
+
+    @Column(name = "mimetype")
+    @Enumerated(EnumType.STRING)
+    private MediaType mimetype;
 
     @Builder.Default
     @Column(name = "created_at")

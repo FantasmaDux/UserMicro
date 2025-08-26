@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.component;
 
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
@@ -21,8 +22,8 @@ public class AccountDataInitializer implements ApplicationRunner {
         String adminEmail = "admin@communicator.ru";
         boolean adminExists = accountRepository.existsByEmail(adminEmail);
         if (!adminExists) {
-            EducationalInstitutionEntity educationalInstitution =
-                    educationalInstitutionRepository.findByDomenName("communicator.ru");
+            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
+                    .findByDomenName("communicator.ru").orElseThrow(() -> new ServerAnswerException());
             if (educationalInstitution == null) {
                 throw new IllegalStateException("EducationalInstitution with domenName communicator.ru not found");
             }

@@ -21,7 +21,7 @@ public class SpecializationEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String name;
 
     @Column(name = "count_of_courses", nullable = false)
