@@ -9,6 +9,7 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import lombok.AllArgsConstructor;
@@ -27,6 +28,7 @@ public class AccountContactInfoService {
     private static final Logger log = LoggerFactory.getLogger(AccountContactInfoService.class);
     private final AccountDataValidation accountDataValidatior;
     private final AccountRepository accountRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
 
     public void updateContactInfo(UUID accountId, ContactInfoUpdateRequestDto request) {
         log.info("Начало обновления контактной информации: {}, данные: {}", accountId, request);
@@ -92,6 +94,28 @@ public class AccountContactInfoService {
     }
 
     public void deleteContactInfoMethod(UUID accountId, ContactInfoDeleteRequestDto request) {
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
 
+        AccountEntity account = accountOpt.get();
+
+        for ( UUID contactId : request.getContactMethodsIds()) {
+            Optional<AccountContactInfoEntity> accountContactInfoOpt =
+                    accountContactInfoRepository.findById(contactId);
+            if (accountContactInfoOpt.isPresent()) {
+                AccountContactInfoEntity info = accountContactInfoOpt.get();
+                if (info.getAccount().getId().equals(accountId)) {
+                    accountContactInfoRepository.delete(info);
+                    account.getAccountContactInfos().remove(info);
+                } else {
+                    log.error("Контакт {} не принадлежит аккаунту {}", contactId, accountId);
+                }
+            }
+        }
+        accountRepository.save(account);
     }
+
 }
