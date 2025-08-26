@@ -221,8 +221,9 @@ public class AccountDataValidation {
             return;
         }
 
-        String domain = email.substring(email.indexOf("@") + 1);
-        boolean isDomainExists = !educationalInstitutionRepository.findAllByDomenName(domain).isEmpty();
+        String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
+
+        boolean isDomainExists = educationalInstitutionRepository.findByDomenName(domain).isPresent();
 
         if (!isDomainExists) {
             errors.add(createFieldErrorDto(

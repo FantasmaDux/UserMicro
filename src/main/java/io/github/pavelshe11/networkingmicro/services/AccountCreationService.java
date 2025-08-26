@@ -54,7 +54,9 @@ public class AccountCreationService {
             String firstName = userData.getOrDefault("firstName", Value.newBuilder().setStringValue("").build()).getStringValue();
             String lastName = userData.getOrDefault("lastName", Value.newBuilder().setStringValue("").build()).getStringValue();
             String domain = email.substring(email.indexOf("@") + 1);
-            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository.findByDomenName(domain);
+            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
+                    .findByDomenName(domain)
+                    .get();
 
             AccountEntity account = new AccountEntity();
             account.setEmail(email);

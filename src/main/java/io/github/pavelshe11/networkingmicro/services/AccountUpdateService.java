@@ -40,6 +40,7 @@ public class AccountUpdateService {
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
+    private final EducationalInstitutionRepository educationalInstitutionRepository;
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
     @Value("${MAX_INACTIVITY_PERIOD}")
@@ -47,7 +48,13 @@ public class AccountUpdateService {
     @Value("${MIN_INACTIVITY_PERIOD}")
     private long MIN_INACTIVITY_PERIOD;
 
-    public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator, CityRepository cityRepository, EmailUpdateSessionRepository emailUpdateSessionRepository, CodeGenerator codeGenerator, SecurityValidation securityValidator, SpecializationRepository specializationRepository, ActivitySessionRepository activitySessionRepository) {
+    public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator,
+                                CityRepository cityRepository,
+                                EmailUpdateSessionRepository emailUpdateSessionRepository,
+                                CodeGenerator codeGenerator, SecurityValidation securityValidator,
+                                SpecializationRepository specializationRepository,
+                                ActivitySessionRepository activitySessionRepository,
+                                EducationalInstitutionRepository educationalInstitutionRepository) {
         this.accountRepository = accountRepository;
         this.accountDataValidator = accountDataValidator;
         this.cityRepository = cityRepository;
@@ -56,6 +63,7 @@ public class AccountUpdateService {
         this.securityValidator = securityValidator;
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
+        this.educationalInstitutionRepository = educationalInstitutionRepository;
     }
 
     @Transactional
@@ -233,8 +241,14 @@ public class AccountUpdateService {
             throw new InvalidCodeException();
         }
 
+        String domain = request.getEmail().split("@")[1].toLowerCase();
+
+        Optional<EducationalInstitutionEntity> institutionOpt =
+                educationalInstitutionRepository.findByDomenName(domain);
+
         AccountEntity account = accountOpt.get();
         account.setEmail(request.getEmail());
+        institutionOpt.ifPresent(account::setEducationalInstitution);
 
         accountRepository.save(account);
         emailUpdateSessionRepository.deleteById(accountId);
