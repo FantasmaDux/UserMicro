@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class EmailEqualsException extends AbstractException {
     public EmailEqualsException() {
-        super("check.email", HttpStatus.BAD_REQUEST);
+        super("check.email", "handle.error", HttpStatus.BAD_REQUEST, "email");
     }
 }

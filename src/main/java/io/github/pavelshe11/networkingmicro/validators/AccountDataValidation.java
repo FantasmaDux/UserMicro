@@ -6,6 +6,7 @@ import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -27,10 +28,9 @@ public class AccountDataValidation {
 
     private static final int FIELD_MAX_LENGTH = 32;
     private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
-    private static final String EMAIL_PATTERN = "^[\\w-.]+@[\\w-]+(\\.[\\w-]+)*\\.[a-z]{2,}$";
 
     private static final Set<String> REQUIRED_FIELDS = Set.of(
-            "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting"
+            "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting", "lastName"
     );
 
     private boolean isRequired(String fieldName) {
@@ -41,13 +41,19 @@ public class AccountDataValidation {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
 
         validatePolitics(userData, errors);
-        validateDomainName(userData, errors);
         String emailToValidate = null;
         Object emailObj = userData.get("email");
         if (emailObj instanceof String emailStr) {
             emailToValidate = emailStr;
         }
         validateEmailField(emailToValidate, errors);
+        boolean emailFormatCorrect = errors.stream()
+                .noneMatch(err -> "email".equals(err.getField()));
+
+        if (emailFormatCorrect) {
+            validateDomainName(userData, errors);
+        }
+
         validateFirstName(userData, errors);
         validateLastName(userData, errors);
 
@@ -221,7 +227,7 @@ public class AccountDataValidation {
 
         if (!isDomainExists) {
             errors.add(createFieldErrorDto(
-                    "error", new Object[]{domain}, "institution.domain.not.registered"
+                    "email", new Object[]{domain}, "institution.domain.not.registered"
             ));
         }
     }
@@ -274,7 +280,9 @@ public class AccountDataValidation {
             return;
         }
 
-        if (!email.matches(EMAIL_PATTERN)) {
+        EmailValidator validator = EmailValidator.getInstance(false, true);
+
+        if (!validator.isValid(email)) {
             errors.add(createFieldErrorDto(
                     "email", null,
                     "email.format.incorrect"));

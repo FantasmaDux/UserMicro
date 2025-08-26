@@ -2,8 +2,8 @@ package io.github.pavelshe11.networkingmicro.api.exceptions;
 
 import org.springframework.http.HttpStatus;
 
-public class ServerAnswerException extends AbstractException {
+public class ServerAnswerException extends HttpStatusException {
     public ServerAnswerException() {
-        super("server.inner.error", HttpStatus.BAD_REQUEST);
+        super(HttpStatus.BAD_REQUEST);
     }
 }

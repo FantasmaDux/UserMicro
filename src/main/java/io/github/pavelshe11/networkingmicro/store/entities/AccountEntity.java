@@ -50,7 +50,7 @@ public class AccountEntity {
     @Builder.Default
     private String firstName = "";
 
-    @Column(name = "last_name")
+    @Column(name = "last_name", nullable = false)
     @Builder.Default
     private String lastName = "";
 

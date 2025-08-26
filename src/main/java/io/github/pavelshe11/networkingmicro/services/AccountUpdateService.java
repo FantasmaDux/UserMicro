@@ -12,6 +12,8 @@ import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,9 +41,12 @@ public class AccountUpdateService {
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
-    @Value("${MAX_AVATAR_SIZE}") private int MAX_AVATAR_SIZE_BYTES;
-    @Value("${MAX_INACTIVITY_PERIOD}") private long MAX_INACTIVITY_PERIOD;
-    @Value("${MIN_INACTIVITY_PERIOD}") private long MIN_INACTIVITY_PERIOD;
+    @Value("${MAX_AVATAR_SIZE}")
+    private int MAX_AVATAR_SIZE_BYTES;
+    @Value("${MAX_INACTIVITY_PERIOD}")
+    private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}")
+    private long MIN_INACTIVITY_PERIOD;
 
     public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator,
                                 CityRepository cityRepository,
@@ -58,7 +63,6 @@ public class AccountUpdateService {
         this.securityValidator = securityValidator;
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
-        this.educationalInstitutionRepository = educationalInstitutionRepository;
     }
 
     @Transactional
@@ -275,8 +279,17 @@ public class AccountUpdateService {
             MediaType mediaType = MediaType.fromMimeType(mimeType);
 
             if (mediaType == null) {
-                log.error("Недопустимый MIME-тип: " + mimeType);
-                throw new InvalidMimeTypeException();
+                String extension = "unknown";
+                try {
+                    MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+                    MimeType tikaMimeType = allTypes.forName(mimeType);
+                    extension = tikaMimeType.getExtension();
+                } catch (Exception e) {
+                    log.error("Неизвестное расширение");
+                }
+
+                log.error("Недопустимый MIME-тип: {} (расширение: {})", mimeType, extension);
+                throw new InvalidMimeTypeException(extension, "avatar");
             }
 
             AccountEntity account = accountOpt.get();
