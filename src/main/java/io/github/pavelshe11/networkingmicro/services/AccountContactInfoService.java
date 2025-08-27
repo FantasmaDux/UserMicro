@@ -38,6 +38,11 @@ public class AccountContactInfoService {
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
         }
 
+        List<AccountContactInfoDto> limitedContacts = request.getAccountContactMethods()
+                .stream()
+                .limit(5)
+                .toList();
+
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
@@ -47,7 +52,7 @@ public class AccountContactInfoService {
         AccountEntity account = accountOpt.get();
         List<AccountContactInfoEntity> existingContacts = new ArrayList<>(account.getAccountContactInfos());
 
-        for (AccountContactInfoDto method : request.getAccountContactMethods()) {
+        for (AccountContactInfoDto method : limitedContacts) {
             String normalizedContact = method.getContact().trim().toLowerCase();
 
             Optional<AccountContactInfoEntity> existingContactOpt = existingContacts.stream()
@@ -84,7 +89,7 @@ public class AccountContactInfoService {
         AccountContactInfoEntity newContact = AccountContactInfoEntity.builder()
                 .contact(method.getContact())
                 .contactMethod(method.getContactMethodType())
-                .faviconUrl(faviconUrl)
+                .iconUrl(faviconUrl)
                 .account(account)
                 .build();
 

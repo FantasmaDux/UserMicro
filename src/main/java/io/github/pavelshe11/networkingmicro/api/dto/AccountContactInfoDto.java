@@ -30,13 +30,20 @@ public class AccountContactInfoDto {
             description = "Ссылка на иконку сайта, связанного с контактом",
             accessMode = Schema.AccessMode.READ_ONLY,
             example = "https://github.com/favicon.ico"
-    )    private String faviconUrl;
+    )
+    private String iconUrl;
+
+    @Schema(
+            description = "Определяет, виден ли этот контакт остальным пользователям",
+            example = "true"
+    )
+    private boolean visibility;
 
     public static AccountContactInfoDto fromEntity(AccountContactInfoEntity entity) {
         return AccountContactInfoDto.builder()
                 .contactMethodType(entity.getContactMethod())
                 .contact(entity.getContact())
-                .faviconUrl(entity.getFaviconUrl())
+                .iconUrl(entity.getIconUrl())
                 .build();
     }
 }

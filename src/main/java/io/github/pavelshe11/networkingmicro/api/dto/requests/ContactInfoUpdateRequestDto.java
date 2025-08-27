@@ -20,15 +20,18 @@ import java.util.List;
       "accountContactMethods": [
         {
           "contactMethodType": "LINK",
-          "contact": "https://github.com/username"
+          "contact": "https://github.com/username",
+          "visibility": true
         },
         {
           "contactMethodType": "EMAIL",
           "contact": "test@communicator.ru"
+          "visibility": false
         },
         {
           "contactMethodType": "PHONE",
           "contact": "89006120022"
+          "visibility": true
         }
       ]
     }

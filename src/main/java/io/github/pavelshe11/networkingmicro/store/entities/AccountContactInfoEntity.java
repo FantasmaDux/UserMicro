@@ -28,8 +28,13 @@ public class AccountContactInfoEntity {
     @Column(nullable = false, unique = true)
     private String contact;
 
-    @Column(name = "favicon_url")
-    private String faviconUrl;
+    @Column(name = "icon_url")
+    private String iconUrl;
+
+    @Builder.Default
+    @Column(name = "visibility", nullable = false)
+    private boolean visibility = false;
+
 
     @Column(name = "contact_method", nullable = false)
     @Enumerated(EnumType.STRING)
