@@ -58,8 +58,9 @@ public class AccountEntity {
     @Builder.Default
     private String middleName = "";
 
-    @Column(unique = true, nullable = false)
-    private String email;
+    @OneToOne
+    @JoinColumn(name = "main_email_contact", unique = true)
+    private AccountContactInfoEntity mainEmailContact;
 
     @Column(name = "is_professor", nullable = false)
     @Builder.Default

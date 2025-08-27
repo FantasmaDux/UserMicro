@@ -5,8 +5,10 @@ import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
@@ -59,7 +61,15 @@ public class AccountCreationService {
                     .get();
 
             AccountEntity account = new AccountEntity();
-            account.setEmail(email);
+
+            AccountContactInfoEntity emailContact = AccountContactInfoEntity.builder()
+                    .contact(email)
+                    .contactMethod(ContactMethodType.EMAIL)
+                    .account(account)
+                    .build();
+
+            account.setMainEmailContact(emailContact);
+            account.setAccountContactInfos(List.of(emailContact));
             account.setFirstName(firstName);
             account.setLastName(lastName);
             account.setIp(ip);

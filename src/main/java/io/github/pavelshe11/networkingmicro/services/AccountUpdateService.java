@@ -41,6 +41,8 @@ public class AccountUpdateService {
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
+
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
     @Value("${MAX_INACTIVITY_PERIOD}")
@@ -54,7 +56,8 @@ public class AccountUpdateService {
                                 CodeGenerator codeGenerator, SecurityValidation securityValidator,
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
-                                EducationalInstitutionRepository educationalInstitutionRepository) {
+                                EducationalInstitutionRepository educationalInstitutionRepository,
+                                AccountContactInfoRepository accountContactInfoRepository) {
         this.accountRepository = accountRepository;
         this.accountDataValidator = accountDataValidator;
         this.cityRepository = cityRepository;
@@ -64,6 +67,7 @@ public class AccountUpdateService {
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
         this.educationalInstitutionRepository = educationalInstitutionRepository;
+        this.accountContactInfoRepository = accountContactInfoRepository;
     }
 
     @Transactional
@@ -247,7 +251,12 @@ public class AccountUpdateService {
                 educationalInstitutionRepository.findByDomenName(domain);
 
         AccountEntity account = accountOpt.get();
-        account.setEmail(request.getEmail());
+
+        AccountContactInfoEntity emailContact = accountContactInfoRepository
+                .findByContact(request.getEmail())
+                .orElseThrow(ServerAnswerException::new);
+
+        account.setMainEmailContact(emailContact);
         institutionOpt.ifPresent(account::setEducationalInstitution);
 
         accountRepository.save(account);
@@ -311,7 +320,8 @@ public class AccountUpdateService {
         log.info("{}_UPDATE_EMAIL_CODE: {} NEW EMAIL: {} OLD EMAIL: {}",
                 isFake ? "FAKE" : "REAL",
                 rawCode, email,
-                accountRepository.findById(accountId).get().getEmail());
+                accountRepository.findById(accountId).get()
+                        .getMainEmailContact().getContact());
 
         String hashCode = isFake ? "" : codeGenerator.codeHash(rawCode);
         long codeExpires = codeGenerator.codeExpiresGenerate();

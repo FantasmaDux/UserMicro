@@ -4,7 +4,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ContactAlreadyExistsException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ContactsLimitException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
@@ -40,7 +40,7 @@ public class AccountContactInfoService {
 
         List<AccountContactInfoDto> limitedContacts = request.getAccountContactMethods()
                 .stream()
-                .limit(5)
+                .limit(4)
                 .toList();
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
@@ -71,13 +71,18 @@ public class AccountContactInfoService {
     private void handleNewContact(AccountEntity account, AccountContactInfoDto method) {
         String contact = method.getContact().trim().toLowerCase();
 
+        if (account.getAccountContactInfos().size() > 5) {
+            log.error("Попытка сохранить больше 5 контактов.");
+            throw new ContactsLimitException();
+        }
+
         boolean contactTakenByOther = accountContactInfoRepository.existsByContactIgnoreCase(contact) &&
                 account.getAccountContactInfos().stream()
                         .noneMatch(info -> info.getContact().equalsIgnoreCase(contact));
 
         if (contactTakenByOther) {
             log.error("Контакт '{}' уже используется.", method.getContact());
-            throw new ContactAlreadyExistsException();
+            throw new ServerAnswerException();
         }
 
         String faviconUrl = null;

@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class ServerAnswerException extends HttpStatusException {
     public ServerAnswerException() {
-        super(HttpStatus.BAD_REQUEST);
+        super(HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

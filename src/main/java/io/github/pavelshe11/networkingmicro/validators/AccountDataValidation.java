@@ -288,7 +288,7 @@ public class AccountDataValidation {
                     "email.format.incorrect"));
         }
 
-        validateDomainName(email, errors);
+            validateDomainName(email, errors);
     }
 
     private FieldErrorDto createFieldErrorDto(String field, Object[] obj, String message) {
@@ -299,7 +299,7 @@ public class AccountDataValidation {
     }
 
     public boolean checkIfEmailFree(String email) {
-        return accountRepository.findByEmail(email).isEmpty();
+        return accountRepository.findByMainEmailContactContact(email).isEmpty();
     }
 
     public Set<FieldErrorDto> validateContactInfo(ContactInfoUpdateRequestDto request) {
@@ -313,7 +313,7 @@ public class AccountDataValidation {
                 continue;
             }
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
-                validateEmailField(method.getContact(), errors);
+                validateEmailFieldForContactInfo(method.getContact(), errors);
 
                 if (errors.stream().noneMatch(e -> e.getField().equals("email"))) {
                     if (!checkIfEmailFree(method.getContact())) {
@@ -357,6 +357,24 @@ public class AccountDataValidation {
             }
         } catch (NumberParseException e ) {
             errors.add(createFieldErrorDto("contact", null, "phone.parse.error"));
+        }
+    }
+
+    public void validateEmailFieldForContactInfo(String email, Set<FieldErrorDto> errors) {
+
+        if (email == null || email.isBlank()) {
+            errors.add(createFieldErrorDto(
+                    "email", null,
+                    "field.empty"));
+            return;
+        }
+
+        EmailValidator validator = EmailValidator.getInstance(false, true);
+
+        if (!validator.isValid(email)) {
+            errors.add(createFieldErrorDto(
+                    "email", null,
+                    "email.format.incorrect"));
         }
     }
 

@@ -25,12 +25,12 @@ import java.util.List;
         },
         {
           "contactMethodType": "EMAIL",
-          "contact": "test@communicator.ru"
+          "contact": "test@communicator.ru",
           "visibility": false
         },
         {
           "contactMethodType": "PHONE",
-          "contact": "89006120022"
+          "contact": "89006120022",
           "visibility": true
         }
       ]

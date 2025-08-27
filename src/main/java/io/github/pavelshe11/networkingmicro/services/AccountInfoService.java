@@ -7,7 +7,9 @@ import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseD
 import io.github.pavelshe11.networkingmicro.api.exceptions.AvatarNotFoundException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
+import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -24,11 +26,12 @@ import java.util.stream.Collectors;
 public class AccountInfoService {
     private static final Logger log = LoggerFactory.getLogger(AccountInfoService.class);
     private final AccountRepository accountRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
 
     @Transactional
     public getAccountInfoProto.GetAccountInfoResponse.Builder getAccountInfoByEmail(String email) {
 
-        Optional<AccountEntity> accountOpt = accountRepository.findByEmail(email);
+        Optional<AccountEntity> accountOpt = accountRepository.findByMainEmailContactContact(email);
 
         return getBuilderResponse(accountOpt);
     }
@@ -77,11 +80,16 @@ public class AccountInfoService {
                         .collect(Collectors.toList()))
                 .orElse(null);
 
+        String email = accountContactInfoRepository
+                .findById(account.getMainEmailContact().getId())
+                .map(AccountContactInfoEntity::getContact)
+                .orElse(null);
+
         AccountInfoDto accountInfoDto = AccountInfoDto.builder()
                 .firstName(nullIfBlank(account.getFirstName()))
                 .lastName(nullIfBlank(account.getLastName()))
                 .middleName(nullIfBlank(account.getMiddleName()))
-                .email(nullIfBlank(account.getEmail()))
+                .email(email)
                 .professor(account.isProfessor())
                 .visible(account.isVisible())
                 .consulting(account.isConsulting())
