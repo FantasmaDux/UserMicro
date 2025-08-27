@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.services;
 
 import com.google.protobuf.Value;
+import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.AvatarNotFoundException;
@@ -15,10 +16,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -71,6 +70,13 @@ public class AccountInfoService {
 
         AccountEntity account = accountOpt.get();
 
+        List<AccountContactInfoDto> contactMethods = Optional.ofNullable(account.getAccountContactInfos())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(AccountContactInfoDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .orElse(null);
+
         AccountInfoDto accountInfoDto = AccountInfoDto.builder()
                 .firstName(nullIfBlank(account.getFirstName()))
                 .lastName(nullIfBlank(account.getLastName()))
@@ -84,6 +90,7 @@ public class AccountInfoService {
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
+                .contactMethods(contactMethods)
                 .build();
 
         return accountInfoDto;

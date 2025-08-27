@@ -15,5 +15,6 @@ import java.util.UUID;
 @NoArgsConstructor
 @Schema(description = "Запрос на удаление контактной информации пользователя")
 public class ContactInfoDeleteRequestDto {
+    @Schema(description = "Список контактов")
     List<UUID> contactMethodsIds;
 }

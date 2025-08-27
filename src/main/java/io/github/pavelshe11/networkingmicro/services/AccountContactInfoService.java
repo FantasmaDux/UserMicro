@@ -4,6 +4,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ContactAlreadyExistsException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
@@ -18,9 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.net.URL;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
@@ -46,27 +45,59 @@ public class AccountContactInfoService {
         }
 
         AccountEntity account = accountOpt.get();
+        List<AccountContactInfoEntity> existingContacts = new ArrayList<>(account.getAccountContactInfos());
 
         for (AccountContactInfoDto method : request.getAccountContactMethods()) {
-            if (method.getContactMethodType() == ContactMethodType.LINK ||
-                    method.getContactMethodType() == ContactMethodType.EMAIL) {
-                String faviconUrl = fetchFaviconUrl(method.getContact());
-                method.setFaviconUrl(faviconUrl);
+            String normalizedContact = method.getContact().trim().toLowerCase();
+
+            Optional<AccountContactInfoEntity> existingContactOpt = existingContacts.stream()
+                    .filter(c -> c.getContact().trim().equalsIgnoreCase(normalizedContact))
+                    .findFirst();
+
+            if (existingContactOpt.isPresent()) {
+                handleExistingContact(account, existingContactOpt.get(), method);
+            } else {
+                handleNewContact(account, method);
             }
-
-            AccountContactInfoEntity accountContactInfo = AccountContactInfoEntity.builder()
-                    .contact(method.getContact())
-                    .contactMethod(method.getContactMethodType())
-                    .faviconUrl(method.getFaviconUrl())
-                    .account(account)
-                    .build();
-
-            account.getAccountContactInfos().add(accountContactInfo);
-
         }
         accountRepository.save(account);
     }
 
+    private void handleNewContact(AccountEntity account, AccountContactInfoDto method) {
+        String contact = method.getContact().trim().toLowerCase();
+
+        boolean contactTakenByOther = accountContactInfoRepository.existsByContactIgnoreCase(contact) &&
+                account.getAccountContactInfos().stream()
+                        .noneMatch(info -> info.getContact().equalsIgnoreCase(contact));
+
+        if (contactTakenByOther) {
+            log.error("Контакт '{}' уже используется.", method.getContact());
+            throw new ContactAlreadyExistsException();
+        }
+
+        String faviconUrl = null;
+        if (method.getContactMethodType() == ContactMethodType.LINK ||
+                method.getContactMethodType() == ContactMethodType.EMAIL) {
+            faviconUrl = fetchFaviconUrl(method.getContact());
+        }
+
+        AccountContactInfoEntity newContact = AccountContactInfoEntity.builder()
+                .contact(method.getContact())
+                .contactMethod(method.getContactMethodType())
+                .faviconUrl(faviconUrl)
+                .account(account)
+                .build();
+
+        account.getAccountContactInfos().add(newContact);
+    }
+
+    private void handleExistingContact(AccountEntity account, AccountContactInfoEntity existingContact, AccountContactInfoDto method) {
+        log.info("Обновление существующего контакта: {}", existingContact.getContact());
+
+        account.getAccountContactInfos().remove(existingContact);
+
+        handleNewContact(account, method);
+    }
 
 
     private String fetchFaviconUrl(String contact) {

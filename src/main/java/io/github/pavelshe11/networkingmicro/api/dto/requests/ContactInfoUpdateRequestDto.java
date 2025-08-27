@@ -13,7 +13,28 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Schema(description = "Запрос на добавление или изменение контактной информации пользователя")
+@Schema(
+        description = "Запрос на добавление или изменение контактной информации пользователя",
+        example = """
+    {
+      "accountContactMethods": [
+        {
+          "contactMethodType": "LINK",
+          "contact": "https://github.com/username"
+        },
+        {
+          "contactMethodType": "EMAIL",
+          "contact": "test@communicator.ru"
+        },
+        {
+          "contactMethodType": "PHONE",
+          "contact": "89006120022"
+        }
+      ]
+    }
+    """
+)
 public class ContactInfoUpdateRequestDto {
+    @Schema(description = "Список контактов")
     private List<AccountContactInfoDto> accountContactMethods;
 }

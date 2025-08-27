@@ -1,5 +1,8 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
+import com.google.i18n.phonenumbers.NumberParseException;
+import com.google.i18n.phonenumbers.PhoneNumberUtil;
+import com.google.i18n.phonenumbers.Phonenumber;
 import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
@@ -33,7 +36,8 @@ public class AccountDataValidation {
 
     private static final int FIELD_MAX_LENGTH = 32;
     private static final String ACCEPTABLE_SYMBOLS_PATTERN = "^[a-zA-Zа-яА-ЯёЁ]+$";
-    private static final String ACCEPTABLE_SYMBOLS_LINK_PATTERN = "^[a-zA-Z0-9._/?=&%#-]+$";
+    private static final String ACCEPTABLE_SYMBOLS_LINK_PATTERN = "^[a-zA-Z0-9.:_/?=&%#-]+$";
+    private static final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 
     private static final Set<String> REQUIRED_FIELDS = Set.of(
             "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting", "lastName"
@@ -300,9 +304,14 @@ public class AccountDataValidation {
 
     public Set<FieldErrorDto> validateContactInfo(ContactInfoUpdateRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
+        Set<String> seen = new HashSet<>();
 
         for (AccountContactInfoDto method : request.getAccountContactMethods()) {
-
+            String key = method.getContactMethodType() + "::" + method.getContact().trim().toLowerCase();
+            if (!seen.add(key)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                continue;
+            }
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
                 validateEmailField(method.getContact(), errors);
 
@@ -327,7 +336,7 @@ public class AccountDataValidation {
 
     private void validateLink(String contact, Set<FieldErrorDto> errors) {
 
-        if (contact.startsWith("https://") || contact.startsWith("http://")) {
+        if (!contact.startsWith("https://") && !contact.startsWith("http://")) {
             errors.add(createFieldErrorDto("contact", null, "link.not.accepted"));
         }
 
@@ -340,7 +349,15 @@ public class AccountDataValidation {
     }
 
     private void validatePhoneNumberField(String contact, Set<FieldErrorDto> errors) {
-        //TODO: подключить libphonenumber
+        try {
+            Phonenumber.PhoneNumber phoneNumber = phoneUtil.parse(contact, "RU");
+
+            if (!phoneUtil.isValidNumber(phoneNumber)) {
+                errors.add(createFieldErrorDto("contact", null, "phone.not.valid"));
+            }
+        } catch (NumberParseException e ) {
+            errors.add(createFieldErrorDto("contact", null, "phone.parse.error"));
+        }
     }
 
 }

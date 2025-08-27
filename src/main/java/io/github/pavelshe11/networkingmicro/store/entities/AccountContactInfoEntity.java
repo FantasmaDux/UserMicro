@@ -25,7 +25,7 @@ public class AccountContactInfoEntity {
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String contact;
 
     @Column(name = "favicon_url")
