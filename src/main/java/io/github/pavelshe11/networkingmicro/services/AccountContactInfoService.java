@@ -7,6 +7,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRe
 import io.github.pavelshe11.networkingmicro.api.exceptions.ContactsLimitException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
@@ -28,6 +29,7 @@ public class AccountContactInfoService {
     private final AccountDataValidation accountDataValidatior;
     private final AccountRepository accountRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final DataNormalisation dataNormalisation;
 
     public void updateContactInfo(UUID accountId, ContactInfoUpdateRequestDto request) {
         log.info("Начало добавления контактной информации: {}, данные: {}", accountId, request);
@@ -53,10 +55,14 @@ public class AccountContactInfoService {
         List<AccountContactInfoEntity> existingContacts = new ArrayList<>(account.getAccountContactInfos());
 
         for (AccountContactInfoDto method : limitedContacts) {
-            String normalizedContact = method.getContact().trim().toLowerCase();
+            String normalizedContact
+                    = dataNormalisation.normalizeContact(method.getContact(), method.getContactMethodType());
 
             Optional<AccountContactInfoEntity> existingContactOpt = existingContacts.stream()
-                    .filter(c -> c.getContact().trim().equalsIgnoreCase(normalizedContact))
+                    .filter(c -> {
+                        String existingNormalized = dataNormalisation.normalizeContact(c.getContact(), c.getContactMethod());
+                        return existingNormalized != null && existingNormalized.equalsIgnoreCase(normalizedContact);
+                    })
                     .findFirst();
 
             if (existingContactOpt.isPresent()) {
@@ -69,16 +75,17 @@ public class AccountContactInfoService {
     }
 
     private void handleNewContact(AccountEntity account, AccountContactInfoDto method) {
-        String contact = method.getContact().trim().toLowerCase();
+        String normalizeContact
+                = dataNormalisation.normalizeContact(method.getContact(), method.getContactMethodType());
 
-        if (account.getAccountContactInfos().size() > 5) {
+        if (account.getAccountContactInfos().size() >= 5) {
             log.error("Попытка сохранить больше 5 контактов.");
             throw new ContactsLimitException();
         }
 
-        boolean contactTakenByOther = accountContactInfoRepository.existsByContactIgnoreCase(contact) &&
+        boolean contactTakenByOther = accountContactInfoRepository.existsByContactIgnoreCase(normalizeContact) &&
                 account.getAccountContactInfos().stream()
-                        .noneMatch(info -> info.getContact().equalsIgnoreCase(contact));
+                        .noneMatch(info -> info.getContact().equalsIgnoreCase(normalizeContact));
 
         if (contactTakenByOther) {
             log.error("Контакт '{}' уже используется.", method.getContact());
@@ -88,11 +95,11 @@ public class AccountContactInfoService {
         String faviconUrl = null;
         if (method.getContactMethodType() == ContactMethodType.LINK ||
                 method.getContactMethodType() == ContactMethodType.EMAIL) {
-            faviconUrl = fetchFaviconUrl(method.getContact());
+            faviconUrl = fetchFaviconUrl(normalizeContact);
         }
 
         AccountContactInfoEntity newContact = AccountContactInfoEntity.builder()
-                .contact(method.getContact())
+                .contact(normalizeContact)
                 .contactMethod(method.getContactMethodType())
                 .iconUrl(faviconUrl)
                 .account(account)
@@ -193,10 +200,19 @@ public class AccountContactInfoService {
             ));
         }
 
+        String faviconUrl = null;
+        if (request.getContactMethodType() == ContactMethodType.LINK ||
+                request.getContactMethodType() == ContactMethodType.EMAIL) {
+            faviconUrl = fetchFaviconUrl(request.getContact());
+        }
+
+        String normalizeContact
+                = dataNormalisation.normalizeContact(request.getContact(), request.getContactMethodType());
+
         contact.setAccount(account);
-        contact.setContact(request.getContact());
+        contact.setContact(normalizeContact);
         contact.setContactMethod(request.getContactMethodType());
-        contact.setIconUrl(request.getIconUrl());
+        contact.setIconUrl(faviconUrl);
         contact.setVisibility(request.isVisibility());
 
         accountContactInfoRepository.save(contact);

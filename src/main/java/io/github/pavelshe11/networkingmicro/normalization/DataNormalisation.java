@@ -1,9 +1,12 @@
 package io.github.pavelshe11.networkingmicro.normalization;
 
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType.EMAIL;
 
 @Component
 public class DataNormalisation {
@@ -43,5 +46,15 @@ public class DataNormalisation {
             }
         }
         return result;
+    }
+
+    public String normalizeContact(String contact, ContactMethodType type) {
+        if (contact == null) return null;
+        String trimmed = contact.trim();
+
+        return switch (type) {
+            case EMAIL -> trimmed.toLowerCase();
+            case LINK, PHONE -> trimmed;
+        };
     }
 }
