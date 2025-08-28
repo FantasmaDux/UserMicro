@@ -30,7 +30,7 @@ public class AccountContactInfoService {
     private final AccountContactInfoRepository accountContactInfoRepository;
 
     public void updateContactInfo(UUID accountId, ContactInfoUpdateRequestDto request) {
-        log.info("Начало обновления контактной информации: {}, данные: {}", accountId, request);
+        log.info("Начало добавления контактной информации: {}, данные: {}", accountId, request);
         Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfo(request);
 
         if (!validationErrors.isEmpty()) {
@@ -159,4 +159,46 @@ public class AccountContactInfoService {
         accountRepository.save(account);
     }
 
+    public void editContactInfoById(UUID accountId, UUID contactId, AccountContactInfoDto request) {
+        log.info("Начало обновления контактной информации: {}, данные: {}", accountId, request);
+
+        ContactInfoUpdateRequestDto tempRequest = new ContactInfoUpdateRequestDto(List.of(request));
+        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfo(tempRequest);
+
+        if (!validationErrors.isEmpty()) {
+            log.error("Ошибка валидации данных: {}", validationErrors);
+            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
+        }
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
+        Optional<AccountContactInfoEntity> contactOpt = accountContactInfoRepository.findById(contactId);
+        if (contactOpt.isEmpty()) {
+            log.error("Контакта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        AccountContactInfoEntity contact = contactOpt.get();
+
+        if (account.getMainEmailContact().getId().equals(contactId)) {
+            log.warn("Попытка изменить основной email, что запрещено.");
+            throw new FieldValidationException("handle.error", List.of(
+                    new FieldErrorDto("contactId", "main.email.edit.forbidden")
+            ));
+        }
+
+        contact.setAccount(account);
+        contact.setContact(request.getContact());
+        contact.setContactMethod(request.getContactMethodType());
+        contact.setIconUrl(request.getIconUrl());
+        contact.setVisibility(request.isVisibility());
+
+        accountContactInfoRepository.save(contact);
+    }
 }

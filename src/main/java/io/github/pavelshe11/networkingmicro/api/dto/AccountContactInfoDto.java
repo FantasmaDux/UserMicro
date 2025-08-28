@@ -3,6 +3,8 @@ package io.github.pavelshe11.networkingmicro.api.dto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,12 +16,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Schema(description = "Основа для запросов и ответов по контактной информации")
 public class AccountContactInfoDto {
+    @NotNull
     @Schema(
             description = "Тип контакта. Возможные значения: LINK, PHONE, EMAIL",
             example = "LINK"
     )
     private ContactMethodType contactMethodType;
 
+    @NotBlank
     @Schema(
             description = "Контакт: ссылка, телефон или email",
             example = "https://github.com/username"
