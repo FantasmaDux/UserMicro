@@ -1,9 +1,9 @@
 package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
-import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
-import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.services.AccountContactInfoService;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -37,10 +37,10 @@ public class ContactInfoController {
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity<Void> updateAccountContactInfo(
             @Parameter(description = "Список контактов на добавление")
-            @RequestBody ContactInfoUpdateRequestDto request
+            @RequestBody ContactInfoAddRequestDto request
             ) {
         UUID accountId = jwtUtil.claimAccountId();
-        accountContactInfoService.updateContactInfo(accountId, request);
+        accountContactInfoService.addContactInfo(accountId, request);
         return ResponseEntity.ok().build();
     }
 
@@ -65,11 +65,10 @@ public class ContactInfoController {
     @ApiResponse(responseCode = "200", description = "Контакт обновлён")
     @PatchMapping(value = "/{contactId}", produces = "application/json")
     public ResponseEntity<Void> editContactInfoById(
-            @Parameter(description = "ID контакта") @PathVariable UUID contactId,
-            @Valid @RequestBody AccountContactInfoDto request
+            @Valid @RequestBody ContactInfoUpdateListRequestDto request
     ) {
         UUID accountId = jwtUtil.claimAccountId();
-        accountContactInfoService.editContactInfoById(accountId, contactId, request);
+        accountContactInfoService.editContactInfoById(accountId, request);
         return ResponseEntity.ok().build();
     }
 }

@@ -37,7 +37,7 @@ import java.util.List;
     }
     """
 )
-public class ContactInfoUpdateRequestDto {
+public class ContactInfoAddRequestDto {
     @Schema(description = "Список контактов")
     private List<AccountContactInfoDto> accountContactMethods;
 }

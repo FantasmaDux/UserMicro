@@ -5,16 +5,14 @@ import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
 import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
-import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
-import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
-import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.glassfish.jaxb.core.v2.TODO;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
@@ -302,7 +300,7 @@ public class AccountDataValidation {
         return accountRepository.findByMainEmailContactContact(email).isEmpty();
     }
 
-    public Set<FieldErrorDto> validateContactInfo(ContactInfoUpdateRequestDto request) {
+    public Set<FieldErrorDto> validateContactInfoForAdd(ContactInfoAddRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
         Set<String> seen = new HashSet<>();
 
@@ -331,6 +329,40 @@ public class AccountDataValidation {
                 validatePhoneNumberField(method.getContact(), errors);
             }
         }
+        return errors;
+    }
+
+    public Set<FieldErrorDto> validateContactInfoForEdit(ContactInfoUpdateListRequestDto request) {
+        Set<FieldErrorDto> errors = new LinkedHashSet<>();
+        Set<String> seen = new HashSet<>();
+
+        for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
+            String key = method.getContactMethodType() + "::" + method.getContact().trim().toLowerCase();
+
+            if (!seen.add(key)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                continue;
+            }
+
+            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
+                validateEmailFieldForContactInfo(method.getContact(), errors);
+                if (errors.stream().noneMatch(e -> e.getField().equals("email"))) {
+                    if (!checkIfEmailFree(method.getContact())) {
+                        log.error("Попытка указать почту, которая занята кем-то в приложении");
+                        throw new ServerAnswerException();
+                    }
+                }
+            }
+
+            if (method.getContactMethodType() == ContactMethodType.LINK) {
+                validateLink(method.getContact(), errors);
+            }
+
+            if (method.getContactMethodType() == ContactMethodType.PHONE) {
+                validatePhoneNumberField(method.getContact(), errors);
+            }
+        }
+
         return errors;
     }
 
