@@ -10,4 +10,5 @@ public interface AccountContactInfoRepository extends JpaRepository<AccountConta
     boolean existsByContactIgnoreCase(String normalizedContact);
 
     Optional<AccountContactInfoEntity> findByContact(String email);
+
 }

@@ -8,7 +8,9 @@ import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +32,7 @@ public class AccountDataValidation {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final MessageSource messageSource;
     private final AccountRepository accountRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
     private static final Logger log = LoggerFactory.getLogger(AccountDataValidation.class);
 
     private static final int FIELD_MAX_LENGTH = 32;
@@ -286,7 +289,7 @@ public class AccountDataValidation {
                     "email.format.incorrect"));
         }
 
-            validateDomainName(email, errors);
+        validateDomainName(email, errors);
     }
 
     private FieldErrorDto createFieldErrorDto(String field, Object[] obj, String message) {
@@ -334,24 +337,29 @@ public class AccountDataValidation {
 
     public Set<FieldErrorDto> validateContactInfoForEdit(ContactInfoUpdateListRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
-        Set<String> seen = new HashSet<>();
+        Set<String> ContactsInRequest = new HashSet<>();
 
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
-            String key = method.getContactMethodType() + "::" + method.getContact().trim().toLowerCase();
+            if (method.getContact() != null && method.getContactMethodType() != null) {
+                String trimmedContact = method.getContact().trim();
 
-            if (!seen.add(key)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
-                continue;
+                Optional<AccountContactInfoEntity> duplicateInDb
+                        = accountContactInfoRepository.findByContact(trimmedContact);
+                if (duplicateInDb.isPresent() && !duplicateInDb.get().getId().equals(method.getContactId())) {
+                    log.error("Попытка указать контакт, который занят кем-то в приложении");
+                    throw new ServerAnswerException();
+                }
+
+                String key = method.getContactMethodType() + "::" + trimmedContact.toLowerCase();
+
+                if (!ContactsInRequest.add(key)) {
+                    errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                    continue;
+                }
             }
 
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
                 validateEmailFieldForContactInfo(method.getContact(), errors);
-                if (errors.stream().noneMatch(e -> e.getField().equals("email"))) {
-                    if (!checkIfEmailFree(method.getContact())) {
-                        log.error("Попытка указать почту, которая занята кем-то в приложении");
-                        throw new ServerAnswerException();
-                    }
-                }
             }
 
             if (method.getContactMethodType() == ContactMethodType.LINK) {
@@ -387,7 +395,7 @@ public class AccountDataValidation {
             if (!phoneUtil.isValidNumber(phoneNumber)) {
                 errors.add(createFieldErrorDto("contact", null, "phone.not.valid"));
             }
-        } catch (NumberParseException e ) {
+        } catch (NumberParseException e) {
             errors.add(createFieldErrorDto("contact", null, "phone.parse.error"));
         }
     }

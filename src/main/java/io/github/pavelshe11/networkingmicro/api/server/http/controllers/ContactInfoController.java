@@ -63,7 +63,7 @@ public class ContactInfoController {
     @Operation(summary = "Редактирование контакта по ID")
     @CommonApiResponses
     @ApiResponse(responseCode = "200", description = "Контакт обновлён")
-    @PatchMapping(value = "/{contactId}", produces = "application/json")
+    @PatchMapping(value = "", produces = "application/json")
     public ResponseEntity<Void> editContactInfoById(
             @Valid @RequestBody ContactInfoUpdateListRequestDto request
     ) {

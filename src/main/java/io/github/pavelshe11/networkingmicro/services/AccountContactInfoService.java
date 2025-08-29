@@ -2,8 +2,8 @@ package io.github.pavelshe11.networkingmicro.services;
 
 import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
-import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ContactsLimitException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
@@ -155,10 +155,19 @@ public class AccountContactInfoService {
             Optional<AccountContactInfoEntity> accountContactInfoOpt =
                     accountContactInfoRepository.findById(contactId);
             if (accountContactInfoOpt.isPresent()) {
-                AccountContactInfoEntity info = accountContactInfoOpt.get();
-                if (info.getAccount().getId().equals(accountId)) {
-                    accountContactInfoRepository.delete(info);
-                    account.getAccountContactInfos().remove(info);
+                AccountContactInfoEntity contact = accountContactInfoOpt.get();
+
+                if (account.getMainEmailContact() != null &&
+                        account.getMainEmailContact().getId().equals(contactId)) {
+                    log.warn("Попытка удалить основной email, что запрещено.");
+                    throw new FieldValidationException("handle.error", List.of(
+                            new FieldErrorDto("contactId", "main.email.delete.forbidden")
+                    ));
+                }
+
+                if (contact.getAccount().getId().equals(accountId)) {
+                    accountContactInfoRepository.delete(contact);
+                    account.getAccountContactInfos().remove(contact);
                 } else {
                     log.error("Контакт {} не принадлежит аккаунту {}", contactId, accountId);
                 }
@@ -185,6 +194,7 @@ public class AccountContactInfoService {
         AccountEntity account = accountOpt.get();
 
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto newContact : request.getAccountContactMethods()) {
+
             Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
                     .findById(newContact.getContactId());
 
@@ -234,6 +244,7 @@ public class AccountContactInfoService {
             }
 
             accountContactInfoRepository.save(oldContact);
+
         }
     }
 }
