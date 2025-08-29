@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,7 +34,7 @@ public class AccountContactInfoEntity {
 
     @Builder.Default
     @Column(name = "visibility", nullable = false)
-    private boolean visibility = false;
+    private ContactVisibilityType visibility = ContactVisibilityType.PRIVATE;
 
 
     @Column(name = "contact_method", nullable = false)

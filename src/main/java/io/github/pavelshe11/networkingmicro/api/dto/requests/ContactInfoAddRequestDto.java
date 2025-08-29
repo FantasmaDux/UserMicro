@@ -21,17 +21,17 @@ import java.util.List;
         {
           "contactMethodType": "LINK",
           "contact": "https://github.com/username",
-          "visibility": true
+          "visibility": "PRIVATE"
         },
         {
           "contactMethodType": "EMAIL",
           "contact": "test@communicator.ru",
-          "visibility": false
+          "visibility": "PUBLIC"
         },
         {
           "contactMethodType": "PHONE",
           "contact": "89006120022",
-          "visibility": true
+          "visibility": "PUBLIC"
         }
       ]
     }

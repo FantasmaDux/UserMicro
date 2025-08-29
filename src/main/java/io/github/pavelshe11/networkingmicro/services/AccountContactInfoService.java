@@ -12,6 +12,7 @@ import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
@@ -103,6 +104,7 @@ public class AccountContactInfoService {
                 .contact(normalizeContact)
                 .contactMethod(method.getContactMethodType())
                 .iconUrl(faviconUrl)
+                .visibility(method.getVisibility())
                 .account(account)
                 .build();
 

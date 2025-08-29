@@ -35,6 +35,10 @@ spring:
     resources:
       add-mappings: false
 
+  jackson:
+    mapper:
+      accept-case-insensitive-enums: true
+
 management:
   endpoint:
     health:

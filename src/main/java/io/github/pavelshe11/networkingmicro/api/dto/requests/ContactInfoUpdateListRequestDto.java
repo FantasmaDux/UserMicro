@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.api.dto.requests;
 
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -56,9 +57,10 @@ public class ContactInfoUpdateListRequestDto {
         private String iconUrl;
 
         @Schema(
-                description = "Определяет, виден ли этот контакт остальным пользователям",
-                example = "true"
+                description = "Определяет, виден ли этот контакт остальным пользователям." +
+                        "Возможные значения: PUBLIC, PRIVATE",
+                example = "PUBLIC"
         )
-        private Boolean visibility;
+        private ContactVisibilityType visibility;
     }
 }
