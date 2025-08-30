@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.store.repositories;
 
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;
@@ -11,4 +12,5 @@ public interface AccountContactInfoRepository extends JpaRepository<AccountConta
 
     Optional<AccountContactInfoEntity> findByContact(String email);
 
+    boolean existsByContactAndAccount(String trimmedContact, AccountEntity account);
 }

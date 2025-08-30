@@ -35,7 +35,16 @@ public class AccountContactInfoService {
 
     public void addContactInfo(UUID accountId, ContactInfoAddRequestDto request) {
         log.info("Начало добавления контактной информации: {}, данные: {}", accountId, request);
-        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForAdd(request);
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
+        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForAdd(account, request);
 
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
@@ -47,13 +56,6 @@ public class AccountContactInfoService {
                 .limit(4)
                 .toList();
 
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-        if (accountOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
-        }
-
-        AccountEntity account = accountOpt.get();
         List<AccountContactInfoEntity> existingContacts = new ArrayList<>(account.getAccountContactInfos());
 
         for (AccountContactInfoDto method : limitedContacts) {
@@ -181,12 +183,6 @@ public class AccountContactInfoService {
     public void editContactInfoById(UUID accountId, ContactInfoUpdateListRequestDto request) {
         log.info("Начало обновления контактной информации: {}, данные: {}", accountId, request);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForEdit(request);
-        if (!validationErrors.isEmpty()) {
-            log.error("Ошибка валидации данных: {}", validationErrors);
-            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
-        }
-
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
@@ -194,6 +190,13 @@ public class AccountContactInfoService {
         }
 
         AccountEntity account = accountOpt.get();
+
+        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForEdit(account, request);
+        if (!validationErrors.isEmpty()) {
+            log.error("Ошибка валидации данных: {}", validationErrors);
+            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
+        }
+
 
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto newContact : request.getAccountContactMethods()) {
 

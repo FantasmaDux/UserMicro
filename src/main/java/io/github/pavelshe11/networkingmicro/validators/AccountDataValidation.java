@@ -9,6 +9,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddReque
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
@@ -303,70 +304,66 @@ public class AccountDataValidation {
         return accountRepository.findByMainEmailContactContact(email).isEmpty();
     }
 
-    public Set<FieldErrorDto> validateContactInfoForAdd(ContactInfoAddRequestDto request) {
+    public Set<FieldErrorDto> validateContactInfoForAdd(AccountEntity account, ContactInfoAddRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
         Set<String> seen = new HashSet<>();
 
         for (AccountContactInfoDto method : request.getAccountContactMethods()) {
-            String key = method.getContactMethodType() + "::" + method.getContact().trim().toLowerCase();
+            String trimmedContact = method.getContact().trim().toLowerCase();
+            String key = method.getContactMethodType() + "::" + trimmedContact;
+
             if (!seen.add(key)) {
                 errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
                 continue;
             }
-            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
-                validateEmailFieldForContactInfo(method.getContact(), errors);
 
-                if (errors.stream().noneMatch(e -> e.getField().equals("email"))) {
-                    if (!checkIfEmailFree(method.getContact())) {
-                        log.error("Попытка указать почту, которая занята кем-то в приложении");
-                        throw new ServerAnswerException();
-                    }
-                }
+            if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                continue;
             }
 
-            if (method.getContactMethodType() == ContactMethodType.LINK) {
+            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
+                validateEmailFieldForContactInfo(method.getContact(), errors);
+            }
+
+            else if (method.getContactMethodType() == ContactMethodType.LINK) {
                 validateLink(method.getContact(), errors);
             }
 
-            if (method.getContactMethodType() == ContactMethodType.PHONE) {
+            else if (method.getContactMethodType() == ContactMethodType.PHONE) {
                 validatePhoneNumberField(method.getContact(), errors);
             }
         }
         return errors;
     }
 
-    public Set<FieldErrorDto> validateContactInfoForEdit(ContactInfoUpdateListRequestDto request) {
+    public Set<FieldErrorDto> validateContactInfoForEdit(AccountEntity account, ContactInfoUpdateListRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
-        Set<String> ContactsInRequest = new HashSet<>();
+        Set<String> seen = new HashSet<>();
 
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
-            if (method.getContact() != null && method.getContactMethodType() != null) {
-                String trimmedContact = method.getContact().trim();
+            String trimmedContact = method.getContact().trim().toLowerCase();
+            String key = method.getContactMethodType() + "::" + trimmedContact;
 
-                Optional<AccountContactInfoEntity> duplicateInDb
-                        = accountContactInfoRepository.findByContact(trimmedContact);
-                if (duplicateInDb.isPresent() && !duplicateInDb.get().getId().equals(method.getContactId())) {
-                    log.error("Попытка указать контакт, который занят кем-то в приложении");
-                    throw new ServerAnswerException();
-                }
+            if (!seen.add(key)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                continue;
+            }
 
-                String key = method.getContactMethodType() + "::" + trimmedContact.toLowerCase();
-
-                if (!ContactsInRequest.add(key)) {
-                    errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
-                    continue;
-                }
+            if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                continue;
             }
 
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
                 validateEmailFieldForContactInfo(method.getContact(), errors);
             }
 
-            if (method.getContactMethodType() == ContactMethodType.LINK) {
+            else if (method.getContactMethodType() == ContactMethodType.LINK) {
                 validateLink(method.getContact(), errors);
             }
 
-            if (method.getContactMethodType() == ContactMethodType.PHONE) {
+            else if (method.getContactMethodType() == ContactMethodType.PHONE) {
                 validatePhoneNumberField(method.getContact(), errors);
             }
         }
