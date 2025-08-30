@@ -313,12 +313,12 @@ public class AccountDataValidation {
             String key = method.getContactMethodType() + "::" + trimmedContact;
 
             if (!seen.add(key)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
                 continue;
             }
 
             if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
                 continue;
             }
 
@@ -346,12 +346,12 @@ public class AccountDataValidation {
             String key = method.getContactMethodType() + "::" + trimmedContact;
 
             if (!seen.add(key)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
                 continue;
             }
 
             if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
                 continue;
             }
 
@@ -374,15 +374,15 @@ public class AccountDataValidation {
     private void validateLink(String contact, Set<FieldErrorDto> errors) {
 
         if (!contact.startsWith("https://") && !contact.startsWith("http://")) {
-            errors.add(createFieldErrorDto("contact", null, "link.not.accepted"));
+            errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
         }
 
         if (!contact.matches(ACCEPTABLE_SYMBOLS_LINK_PATTERN)) {
-            errors.add(createFieldErrorDto("contact", null,
+            errors.add(createFieldErrorDto(contact, null,
                     "field.has.forbidden.symbols"));
         }
 
-        validateTooLongField("contact", contact, errors);
+        validateTooLongField(contact, contact, errors);
     }
 
     private void validatePhoneNumberField(String contact, Set<FieldErrorDto> errors) {
@@ -390,10 +390,10 @@ public class AccountDataValidation {
             Phonenumber.PhoneNumber phoneNumber = phoneUtil.parse(contact, "RU");
 
             if (!phoneUtil.isValidNumber(phoneNumber)) {
-                errors.add(createFieldErrorDto("contact", null, "phone.not.valid"));
+                errors.add(createFieldErrorDto(contact, null, "phone.not.valid"));
             }
         } catch (NumberParseException e) {
-            errors.add(createFieldErrorDto("contact", null, "phone.parse.error"));
+            errors.add(createFieldErrorDto(contact, null, "phone.parse.error"));
         }
     }
 
@@ -401,7 +401,7 @@ public class AccountDataValidation {
 
         if (email == null || email.isBlank()) {
             errors.add(createFieldErrorDto(
-                    "email", null,
+                    "contact", null,
                     "field.empty"));
             return;
         }
@@ -410,7 +410,7 @@ public class AccountDataValidation {
 
         if (!validator.isValid(email)) {
             errors.add(createFieldErrorDto(
-                    "email", null,
+                    email, null,
                     "email.format.incorrect"));
         }
     }
