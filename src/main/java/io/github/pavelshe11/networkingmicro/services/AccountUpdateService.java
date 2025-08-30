@@ -8,6 +8,8 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
@@ -23,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 
 import java.io.IOException;
+import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -175,10 +178,7 @@ public class AccountUpdateService {
                 = emailUpdateSessionRepository.findByNewEmail(request.getEmail());
 
         boolean isAccountFree = accountDataValidator.checkIfEmailFree(request.getEmail());
-        boolean isAccountUsedInAnotherSession = sessionOptByEmail
-                .map(session -> session.getAccountId().equals(accountId))
-                .orElse(false);
-        boolean isFake = !isAccountFree || isAccountUsedInAnotherSession;
+        boolean isFake = !isAccountFree;
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
@@ -253,8 +253,12 @@ public class AccountUpdateService {
         AccountEntity account = accountOpt.get();
 
         AccountContactInfoEntity emailContact = accountContactInfoRepository
-                .findByContact(request.getEmail())
+                .findByContact(account.getMainEmailContact().getContact())
                 .orElseThrow(ServerAnswerException::new);
+
+        emailContact.setContact(request.getEmail());
+
+        accountContactInfoRepository.save(emailContact);
 
         account.setMainEmailContact(emailContact);
         institutionOpt.ifPresent(account::setEducationalInstitution);
@@ -350,6 +354,7 @@ public class AccountUpdateService {
         boolean wasSessionFake = session.getCode().isEmpty();
 
         if (isExpired || !isSameAccount || !isSameEmail || (wasSessionFake && !isFake)) {
+            emailUpdateSessionRepository.delete(session);
             return handleNewSession(email, accountId, isFake);
         }
 
@@ -394,5 +399,29 @@ public class AccountUpdateService {
         }
 
         accountRepository.delete(accountOpt.get());
+    }
+
+    private String fetchFaviconUrl(String contact) {
+        String faviconUrl = "";
+
+        try {
+            String domain;
+
+            if (contact.contains("@")) {
+                domain = contact.substring(contact.indexOf("@") + 1);
+            } else {
+                URL url = new URL(contact);
+                domain = url.getHost();
+            }
+
+            if (!domain.isEmpty()) {
+                faviconUrl = "https://" + domain + "/favicon.ico";
+            }
+
+        } catch (Exception e) {
+            log.error("Ошибка извлечения favicon.");
+        }
+
+        return faviconUrl;
     }
 }
