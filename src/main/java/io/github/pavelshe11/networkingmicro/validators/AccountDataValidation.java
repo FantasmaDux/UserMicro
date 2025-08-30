@@ -345,6 +345,21 @@ public class AccountDataValidation {
             String trimmedContact = method.getContact().trim().toLowerCase();
             String key = method.getContactMethodType() + "::" + trimmedContact;
 
+            Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
+                    .findById(method.getContactId());
+
+            if (existingContactOpt.isPresent()) {
+                AccountContactInfoEntity existingContact = existingContactOpt.get();
+
+                boolean contactChanged = !existingContact.getContact().equalsIgnoreCase(trimmedContact);
+                boolean typeChanged = !existingContact.getContactMethod().equals(method.getContactMethodType());
+                boolean visibilityChanged = !existingContact.getVisibility().equals(method.getVisibility());
+
+                if (!contactChanged && !typeChanged && !visibilityChanged) {
+                    continue;
+                }
+            }
+
             if (!seen.add(key)) {
                 errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
                 continue;

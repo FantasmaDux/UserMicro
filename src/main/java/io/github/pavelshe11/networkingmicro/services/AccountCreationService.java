@@ -3,7 +3,6 @@ package io.github.pavelshe11.networkingmicro.services;
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
-import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -66,6 +65,7 @@ public class AccountCreationService {
                     .contact(email)
                     .contactMethod(ContactMethodType.EMAIL)
                     .account(account)
+                    .modifiable(false)
                     .build();
 
             account.setMainEmailContact(emailContact);

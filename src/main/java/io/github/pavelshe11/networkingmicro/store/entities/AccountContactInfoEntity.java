@@ -41,6 +41,9 @@ public class AccountContactInfoEntity {
     @Enumerated(EnumType.STRING)
     private ContactMethodType contactMethod;
 
+    @Column(name = "modifiable", nullable = false)
+    private boolean modifiable = true;
+
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();

@@ -12,7 +12,6 @@ import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
@@ -87,20 +86,14 @@ public class AccountContactInfoService {
             throw new ContactsLimitException();
         }
 
-        boolean contactTakenByOther = accountContactInfoRepository.existsByContactIgnoreCase(normalizeContact) &&
-                account.getAccountContactInfos().stream()
-                        .noneMatch(info -> info.getContact().equalsIgnoreCase(normalizeContact));
-
-        if (contactTakenByOther) {
-            log.error("Контакт '{}' уже используется.", method.getContact());
-            throw new ServerAnswerException();
-        }
-
         String faviconUrl = null;
         if (method.getContactMethodType() == ContactMethodType.LINK ||
                 method.getContactMethodType() == ContactMethodType.EMAIL) {
             faviconUrl = fetchFaviconUrl(normalizeContact);
         }
+
+        boolean isModifiable = !(account.getMainEmailContact() != null
+                && account.getMainEmailContact().getContact().equalsIgnoreCase(method.getContact()));
 
         AccountContactInfoEntity newContact = AccountContactInfoEntity.builder()
                 .contact(normalizeContact)
@@ -108,6 +101,7 @@ public class AccountContactInfoService {
                 .iconUrl(faviconUrl)
                 .visibility(method.getVisibility())
                 .account(account)
+                .modifiable(isModifiable)
                 .build();
 
         account.getAccountContactInfos().add(newContact);
@@ -161,15 +155,14 @@ public class AccountContactInfoService {
             if (accountContactInfoOpt.isPresent()) {
                 AccountContactInfoEntity contact = accountContactInfoOpt.get();
 
-                if (account.getMainEmailContact() != null &&
-                        account.getMainEmailContact().getId().equals(contactId)) {
-                    log.warn("Попытка удалить основной email, что запрещено.");
-                    throw new FieldValidationException("handle.error", List.of(
-                            new FieldErrorDto("contactId", "main.email.delete.forbidden")
-                    ));
-                }
-
                 if (contact.getAccount().getId().equals(accountId)) {
+                    if (!contact.isModifiable()) {
+                        log.warn("Попытка удалить не изменяемую основную почту");
+                        throw new FieldValidationException("handle.error", List.of(
+                                new FieldErrorDto("contactId", "main.email.edit.forbidden")
+                        ));
+                    }
+
                     accountContactInfoRepository.delete(contact);
                     account.getAccountContactInfos().remove(contact);
                 } else {

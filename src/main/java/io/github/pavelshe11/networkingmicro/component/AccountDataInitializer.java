@@ -49,6 +49,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                     .contact(adminEmail)
                     .contactMethod(ContactMethodType.EMAIL)
                     .visibility(ContactVisibilityType.PUBLIC)
+                    .modifiable(false)
                     .build();
 
             account.setMainEmailContact(emailContact);

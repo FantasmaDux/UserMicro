@@ -11,6 +11,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.UUID;
+
 @Data
 @Builder
 @AllArgsConstructor
@@ -31,6 +33,12 @@ public class AccountContactInfoDto {
     )
     private String contact;
 
+    @NotBlank
+    @Schema(
+            description = "ID контакта"
+    )
+    private UUID contactId;
+
     @Schema(
             description = "Ссылка на иконку сайта, связанного с контактом",
             accessMode = Schema.AccessMode.READ_ONLY,
@@ -45,12 +53,21 @@ public class AccountContactInfoDto {
     )
     private ContactVisibilityType visibility;
 
+    @Schema(
+            description = "Определяет, разрешено ли изменять контакт." +
+                    "Возможные значения: true, false",
+            example = "true"
+    )
+    private Boolean modifiable;
+
     public static AccountContactInfoDto fromEntity(AccountContactInfoEntity entity) {
         return AccountContactInfoDto.builder()
                 .contactMethodType(entity.getContactMethod())
                 .contact(entity.getContact())
                 .iconUrl(entity.getIconUrl())
                 .visibility(entity.getVisibility())
+                .contactId(entity.getId())
+                .modifiable(entity.isModifiable())
                 .build();
     }
 }
