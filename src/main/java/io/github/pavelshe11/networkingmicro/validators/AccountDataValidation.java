@@ -3,11 +3,10 @@ package io.github.pavelshe11.networkingmicro.validators;
 import com.google.i18n.phonenumbers.NumberParseException;
 import com.google.i18n.phonenumbers.PhoneNumberUtil;
 import com.google.i18n.phonenumbers.Phonenumber;
-import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
@@ -37,6 +36,7 @@ public class AccountDataValidation {
     private final MessageSource messageSource;
     private final AccountRepository accountRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final DataNormalisation dataNormalisation;
     private static final Logger log = LoggerFactory.getLogger(AccountDataValidation.class);
 
     private static final int FIELD_MAX_LENGTH = 32;
@@ -310,33 +310,28 @@ public class AccountDataValidation {
 
     public Set<FieldErrorDto> validateContactInfoForAdd(AccountEntity account, ContactInfoAddRequestDto request) {
         Set<FieldErrorDto> errors = new LinkedHashSet<>();
-        Set<String> seen = new HashSet<>();
+        String rawContact = request.getContact();
+        ContactMethodType methodType = request.getContactMethodType();
 
-        for (AccountContactInfoDto method : request.getAccountContactMethods()) {
-            String trimmedContact = method.getContact().trim().toLowerCase();
-            String key = method.getContactMethodType() + "::" + trimmedContact;
+        if (rawContact == null || rawContact.isBlank()) {
+            errors.add(createFieldErrorDto(request.getContact(), null, "field.empty"));
+            return errors;
+        }
 
-            if (!seen.add(key)) {
-                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
-                continue;
-            }
+        String normalizedContact = dataNormalisation.normalizeContact(request.getContact(), methodType);
 
-            if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
-                continue;
-            }
+        if (accountContactInfoRepository.existsByContactAndAccount(normalizedContact, account)) {
+            errors.add(createFieldErrorDto(request.getContact(), null, "error.contact.already.exists"));
+        }
 
-            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
-                validateEmailFieldForContactInfo(method.getContact(), errors);
-            }
-
-            else if (method.getContactMethodType() == ContactMethodType.LINK) {
-                validateLink(method.getContact(), errors);
-            }
-
-            else if (method.getContactMethodType() == ContactMethodType.PHONE) {
-                validatePhoneNumberField(method.getContact(), errors);
-            }
+        if (methodType == ContactMethodType.EMAIL) {
+            validateEmailFieldForContactInfo(request.getContact(), errors);
+        } else if (methodType == ContactMethodType.LINK) {
+            validateLink(request.getContact(), errors);
+        } else if (methodType == ContactMethodType.PHONE) {
+            validatePhoneNumberField(request.getContact(), errors);
+        } else {
+            errors.add(createFieldErrorDto(rawContact, null, "method.unsupported.type"));
         }
         return errors;
     }
@@ -376,13 +371,9 @@ public class AccountDataValidation {
 
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
                 validateEmailFieldForContactInfo(method.getContact(), errors);
-            }
-
-            else if (method.getContactMethodType() == ContactMethodType.LINK) {
+            } else if (method.getContactMethodType() == ContactMethodType.LINK) {
                 validateLink(method.getContact(), errors);
-            }
-
-            else if (method.getContactMethodType() == ContactMethodType.PHONE) {
+            } else if (method.getContactMethodType() == ContactMethodType.PHONE) {
                 validatePhoneNumberField(method.getContact(), errors);
             }
         }
