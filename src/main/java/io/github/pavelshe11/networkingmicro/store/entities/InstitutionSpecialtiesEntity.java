@@ -20,11 +20,11 @@ public class InstitutionSpecialtiesEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
     private EducationalInstitutionEntity educationalInstitution;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialization_id", referencedColumnName = "id", nullable = false)
     private SpecializationEntity specialization;
 

@@ -23,20 +23,20 @@ public class AccountEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id", referencedColumnName = "id")
     private CityEntity city;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
 //    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
     @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
     private EducationalInstitutionEntity educationalInstitution;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialization_id", referencedColumnName = "id")
     private SpecializationEntity specialization;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     @JoinColumn(name = "set_skills_id", referencedColumnName = "id", unique = true)
     SetSkillsEntity setSkills;
 
@@ -109,19 +109,19 @@ public class AccountEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AccountContactInfoEntity> accountContactInfos;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InitiativeEntity> initiatives;
 
-    @OneToMany(mappedBy = "account1", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account1", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MatchWithSpecialistEntity> matchesAsAccount1;
 
-    @OneToMany(mappedBy = "account2", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account2", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MatchWithSpecialistEntity> matchesAsAccount2;
 
-    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MatchWithInitiativeEntity> initiativeMatches;
 
 

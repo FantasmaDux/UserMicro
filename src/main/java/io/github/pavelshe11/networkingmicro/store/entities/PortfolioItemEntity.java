@@ -20,7 +20,7 @@ public class PortfolioItemEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne()
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "description_skill_area_id", referencedColumnName = "id", nullable = false)
     private DescriptionSkillAreaEntity descriptionSkillArea;
 

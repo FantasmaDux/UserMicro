@@ -22,15 +22,15 @@ public class InitiativeEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_tags_id", referencedColumnName = "id")
     private SetTagsEntity setTags;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "city_id", referencedColumnName = "id", nullable = false)
     private CityEntity city;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account;
 
@@ -72,9 +72,9 @@ public class InitiativeEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<RoleInInitiativeEntity> roles;
 
-    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "initiative", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MatchWithInitiativeEntity> matches;
 }

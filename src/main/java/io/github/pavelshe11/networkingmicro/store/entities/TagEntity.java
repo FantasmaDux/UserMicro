@@ -29,6 +29,6 @@ public class TagEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tag", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TagFromSetTagsEntity> tagFromSetTags;
 }

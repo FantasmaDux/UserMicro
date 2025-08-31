@@ -33,10 +33,10 @@ public class EducationalInstitutionEntity {
 
     // For two-way communication with FK
     @Builder.Default
-    @OneToMany(mappedBy = "educationalInstitution")
+    @OneToMany(mappedBy = "educationalInstitution", fetch = FetchType.LAZY)
     private List<AccountEntity> accounts = new ArrayList<>();
 
     @Builder.Default
-    @OneToMany(mappedBy = "educationalInstitution", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "educationalInstitution", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InstitutionSpecialtiesEntity> institutionSpecialties = new ArrayList<>();
 }

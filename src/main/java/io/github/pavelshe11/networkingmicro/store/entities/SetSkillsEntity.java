@@ -26,7 +26,7 @@ public class SetSkillsEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "setSkills")
+    @OneToMany(mappedBy = "setSkills", fetch = FetchType.LAZY)
     private List<SkillSetSkillsEntity> skillSetSkills;
 
     @OneToOne(mappedBy = "setSkills")
