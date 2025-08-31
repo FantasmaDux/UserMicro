@@ -362,6 +362,7 @@ public class AccountDataValidation {
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
             String contact = method.getContact();
             String trimmedContact = contact != null ? contact.trim().toLowerCase() : null;
+            ContactMethodType newType = method.getContactMethodType();
             String methodType = method.getContactMethodType() != null ? method.getContactMethodType().toString() : "null";
             String key = methodType + "::" + (trimmedContact != null ? trimmedContact : "null");
             UUID contactId = method.getContactId();
@@ -381,6 +382,18 @@ public class AccountDataValidation {
                 if (!contactChanged && !typeChanged && !visibilityChanged) {
                     continue;
                 }
+
+                if (typeChanged && !contactChanged) {
+                    trimmedContact = existingContact.getContact();
+                }
+            }
+
+            if (newType != null && trimmedContact != null) {
+                switch (newType) {
+                    case EMAIL -> validateEmailFieldForContactInfo(trimmedContact, errors, contactId);
+                    case LINK -> validateLink(trimmedContact, errors, contactId);
+                    case PHONE -> validatePhoneNumberField(trimmedContact, errors, contactId);
+                }
             }
 
             if (!seen.add(key)) {
@@ -391,16 +404,8 @@ public class AccountDataValidation {
 
             if (trimmedContact != null && accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
                 errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists", contactId));
-                continue;
             }
 
-            if (method.getContactMethodType() != null && method.getContact() != null) {
-                switch (method.getContactMethodType()) {
-                    case EMAIL -> validateEmailFieldForContactInfo(method.getContact(), errors, contactId);
-                    case LINK -> validateLink(method.getContact(), errors, contactId);
-                    case PHONE -> validatePhoneNumberField(method.getContact(), errors, contactId);
-                }
-            }
         }
 
         return errors;

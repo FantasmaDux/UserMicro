@@ -15,6 +15,7 @@ import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -65,6 +66,7 @@ public class AccountCreationService {
                     .contact(email)
                     .contactMethod(ContactMethodType.EMAIL)
                     .account(account)
+                    .iconUrl(fetchFaviconUrl(email))
                     .modifiable(false)
                     .build();
 
@@ -103,5 +105,28 @@ public class AccountCreationService {
                 .setField(dto.getField())
                 .setMessage(dto.getMessage())
                 .build();
+    }
+
+    private String fetchFaviconUrl(String contact) {
+        String faviconUrl = "";
+
+        try {
+            String domain;
+
+            if (contact.contains("@")) {
+                domain = contact.substring(contact.indexOf("@") + 1);
+            } else {
+                URL url = new URL(contact);
+                domain = url.getHost();
+            }
+
+            if (!domain.isEmpty()) {
+                faviconUrl = "https://" + domain + "/favicon.ico";
+            }
+
+        } catch (Exception e) {
+        }
+
+        return faviconUrl;
     }
 }
