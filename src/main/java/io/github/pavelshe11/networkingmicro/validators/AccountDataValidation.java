@@ -367,13 +367,15 @@ public class AccountDataValidation {
             String key = methodType + "::" + (trimmedContact != null ? trimmedContact : "null");
             UUID contactId = method.getContactId();
 
+            boolean contactChanged = true;
+
             Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
                     .findById(method.getContactId());
 
             if (existingContactOpt.isPresent()) {
                 AccountContactInfoEntity existingContact = existingContactOpt.get();
 
-                boolean contactChanged = contact != null && !existingContact.getContact().equalsIgnoreCase(trimmedContact);
+                contactChanged = trimmedContact != null && !existingContact.getContact().equalsIgnoreCase(trimmedContact);
                 boolean typeChanged = method.getContactMethodType() != null &&
                         !existingContact.getContactMethod().equals(method.getContactMethodType());
                 boolean visibilityChanged = method.getVisibility() != null &&
@@ -384,7 +386,7 @@ public class AccountDataValidation {
                 }
 
                 if (typeChanged && !contactChanged) {
-                    trimmedContact = existingContact.getContact();
+                    trimmedContact = existingContact.getContact().toLowerCase();
                 }
             }
 
@@ -402,8 +404,10 @@ public class AccountDataValidation {
                 continue;
             }
 
-            if (trimmedContact != null && accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists", contactId));
+            if (contactChanged && trimmedContact != null
+                    && accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
+                errors.add(createFieldErrorDto("contact", null,
+                        "error.contact.already.exists", contactId));
             }
 
         }

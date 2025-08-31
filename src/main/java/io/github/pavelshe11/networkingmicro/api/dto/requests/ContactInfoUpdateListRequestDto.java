@@ -3,6 +3,7 @@ package io.github.pavelshe11.networkingmicro.api.dto.requests;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,6 +22,7 @@ public class ContactInfoUpdateListRequestDto {
 
     @NotNull
     @Schema(description = "Список контактных данных для обновления")
+    @Valid
     private List<ContactInfoUpdateRequestDto> accountContactMethods;
 
     @Data

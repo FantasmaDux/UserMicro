@@ -10,6 +10,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
@@ -148,6 +149,27 @@ public class CustomExceptionController {
                 .detailedErrors(List.of(
                         createFieldError(null, messageText, null)
                 ))
+                .build();
+
+        return ResponseEntity
+                .badRequest()
+                .body(response);
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ErrorDto> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        String errorText = resolveMessage("handle.error");
+        List<FieldErrorDto> detailedErrors = ex.getBindingResult().getFieldErrors().stream()
+                .map(fieldError -> createFieldError(
+                        fieldError.getField(),
+                        fieldError.getDefaultMessage(),
+                        null
+                ))
+                .toList();
+
+        ErrorDto response = ErrorDto.builder()
+                .error(errorText)
+                .detailedErrors(detailedErrors)
                 .build();
 
         return ResponseEntity

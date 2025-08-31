@@ -80,6 +80,7 @@ logging:
     org:
       springframework:
         security=DEBUG:
+        validation=DEBUG:
 
 springdoc:
   swagger-ui:

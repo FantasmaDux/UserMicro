@@ -37,7 +37,7 @@ public class ContactInfoController {
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity<Void> updateAccountContactInfo(
             @Parameter(description = "Контакт для добавления")
-            @RequestBody ContactInfoAddRequestDto request
+            @Valid @RequestBody ContactInfoAddRequestDto request
             ) {
         UUID accountId = jwtUtil.claimAccountId();
         accountContactInfoService.addContactInfo(accountId, request);
