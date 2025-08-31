@@ -4,6 +4,6 @@ import org.springframework.http.HttpStatus;
 
 public class ContactsLimitException extends AbstractException{
     public ContactsLimitException() {
-        super("error.contact.limit", "handle.error", HttpStatus.BAD_REQUEST, "contact");
+        super("error.contact.limit", "handle.error", HttpStatus.BAD_REQUEST, "contact", null);
     }
 }

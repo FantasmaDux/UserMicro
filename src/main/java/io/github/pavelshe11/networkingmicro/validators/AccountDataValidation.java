@@ -329,8 +329,18 @@ public class AccountDataValidation {
 
         String normalizedContact = dataNormalisation.normalizeContact(request.getContact(), methodType);
 
-        if (accountContactInfoRepository.existsByContactAndAccount(normalizedContact, account)) {
-            errors.add(createFieldErrorDto(request.getContact(), null, "error.contact.already.exists"));
+
+        Optional<AccountContactInfoEntity> existing =
+                accountContactInfoRepository.findByContactAndAccount(normalizedContact, account);
+
+        if (existing.isPresent()) {
+            UUID conflictingId = existing.get().getId();
+            errors.add(createFieldErrorDto(
+                    "contact",
+                    null,
+                    "error.contact.already.exists",
+                    conflictingId
+            ));
         }
 
         if (methodType == ContactMethodType.EMAIL) {

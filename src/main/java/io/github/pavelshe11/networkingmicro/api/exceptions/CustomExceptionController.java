@@ -137,17 +137,22 @@ public class CustomExceptionController {
                 .body(response);
     }
 
-    @ExceptionHandler(HttpMessageNotReadableException.class)
-    public ResponseEntity<ErrorDto> handleJsonMappingException(HttpMessageNotReadableException ex) {
-        return ResponseEntity
-                .badRequest()
-                .body(ErrorDto.builder()
-                        .error("handle.error")
-                        .detailedErrors(List.of(
-                                new FieldErrorDto(null, "request.invalid")
-                        ))
-                        .build());
-    }
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    public ResponseEntity<ErrorDto> handleJsonMappingException(HttpMessageNotReadableException ex) {
+//        String errorText = resolveMessage("handle.error");
+//        String messageText = resolveMessage("request.invalid");
+//
+//        ErrorDto response = ErrorDto.builder()
+//                .error(errorText)
+//                .detailedErrors(List.of(
+//                        createFieldError(null, messageText, null)
+//                ))
+//                .build();
+//
+//        return ResponseEntity
+//                .badRequest()
+//                .body(response);
+//    }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     public void handleMaxUploadSizeExceededException() {

@@ -13,4 +13,6 @@ public interface AccountContactInfoRepository extends JpaRepository<AccountConta
     Optional<AccountContactInfoEntity> findByContact(String email);
 
     boolean existsByContactAndAccount(String trimmedContact, AccountEntity account);
+
+    Optional<AccountContactInfoEntity> findByContactAndAccount(String normalizedContact, AccountEntity account);
 }
