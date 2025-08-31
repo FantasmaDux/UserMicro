@@ -1,6 +1,5 @@
 package io.github.pavelshe11.networkingmicro.api.dto.requests;
 
-import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -11,9 +10,6 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.List;
-import java.util.UUID;
-
 @Data
 @Builder
 @AllArgsConstructor
@@ -21,26 +17,12 @@ import java.util.UUID;
 @Schema(
         description = "Запрос на добавление или изменение контактной информации пользователя",
         example = """
-    {
-      "accountContactMethods": [
-        {
-          "contactMethodType": "LINK",
-          "contact": "https://github.com/username",
-          "visibility": "PRIVATE"
-        },
-        {
-          "contactMethodType": "EMAIL",
-          "contact": "test@communicator.ru",
-          "visibility": "PUBLIC"
-        },
-        {
-          "contactMethodType": "PHONE",
-          "contact": "89006120022",
-          "visibility": "PUBLIC"
-        }
-      ]
-    }
-    """
+                    {
+                      "contactMethodType": "LINK",
+                      "contact": "https://github.com/username",
+                      "visibility": "PRIVATE"
+                    }
+                """
 )
 public class ContactInfoAddRequestDto {
     @NotNull

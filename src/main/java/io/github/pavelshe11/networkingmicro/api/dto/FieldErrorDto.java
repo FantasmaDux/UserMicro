@@ -14,6 +14,7 @@ import java.util.UUID;
 @Schema(description = "Ответ ошибки")
 public class FieldErrorDto {
     @Schema(description = "Поле ошибки")
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String field;
     @Schema(description = "Сообщение ошибки для отображения рядом с полем ввода")
     private String message;
