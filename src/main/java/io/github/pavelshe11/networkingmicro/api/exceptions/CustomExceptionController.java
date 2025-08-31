@@ -15,6 +15,7 @@ import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.servlet.NoHandlerFoundException;
 
 import java.util.List;
+import java.util.UUID;
 
 
 @RequiredArgsConstructor
@@ -22,8 +23,10 @@ import java.util.List;
 public class CustomExceptionController {
     private final MessageSource messageSource;
 
-    private FieldErrorDto createFieldError(String field, String message) {
-        return new FieldErrorDto(field, message);
+    private FieldErrorDto createFieldError(String field, String message, UUID objectId) {
+        return objectId != null
+                ? new FieldErrorDto(field, message, objectId)
+                : new FieldErrorDto(field, message);
     }
 
     @ExceptionHandler(FieldValidationException.class)
@@ -99,7 +102,7 @@ public class CustomExceptionController {
         ErrorDto response = ErrorDto.builder()
                 .error(errorText)
                 .detailedErrors(List.of(
-                        createFieldError(ex.getFieldName(), messageText)
+                        createFieldError(ex.getFieldName(), messageText, ex.getObjectId())
                 ))
                 .build();
 
@@ -124,7 +127,7 @@ public class CustomExceptionController {
         ErrorDto response = ErrorDto.builder()
                 .error(errorText)
                 .detailedErrors(List.of(
-                        createFieldError(ex.getFieldName(), messageText)
+                        createFieldError(ex.getFieldName(), messageText, null)
                 ))
                 .build();
 
