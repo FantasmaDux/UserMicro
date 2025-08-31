@@ -350,8 +350,10 @@ public class AccountDataValidation {
         Set<String> seen = new HashSet<>();
 
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
-            String trimmedContact = method.getContact().trim().toLowerCase();
-            String key = method.getContactMethodType() + "::" + trimmedContact;
+            String contact = method.getContact();
+            String trimmedContact = contact != null ? contact.trim().toLowerCase() : null;
+            String methodType = method.getContactMethodType() != null ? method.getContactMethodType().toString() : "null";
+            String key = methodType + "::" + (trimmedContact != null ? trimmedContact : "null");
             UUID contactId = method.getContactId();
 
             Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
@@ -360,9 +362,11 @@ public class AccountDataValidation {
             if (existingContactOpt.isPresent()) {
                 AccountContactInfoEntity existingContact = existingContactOpt.get();
 
-                boolean contactChanged = !existingContact.getContact().equalsIgnoreCase(trimmedContact);
-                boolean typeChanged = !existingContact.getContactMethod().equals(method.getContactMethodType());
-                boolean visibilityChanged = !existingContact.getVisibility().equals(method.getVisibility());
+                boolean contactChanged = contact != null && !existingContact.getContact().equalsIgnoreCase(trimmedContact);
+                boolean typeChanged = method.getContactMethodType() != null &&
+                        !existingContact.getContactMethod().equals(method.getContactMethodType());
+                boolean visibilityChanged = method.getVisibility() != null &&
+                        !existingContact.getVisibility().equals(method.getVisibility());
 
                 if (!contactChanged && !typeChanged && !visibilityChanged) {
                     continue;
@@ -375,18 +379,17 @@ public class AccountDataValidation {
                 continue;
             }
 
-            if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists",
-                        contactId));
+            if (trimmedContact != null && accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists", contactId));
                 continue;
             }
 
-            if (method.getContactMethodType() == ContactMethodType.EMAIL) {
-                validateEmailFieldForContactInfo(method.getContact(), errors, contactId);
-            } else if (method.getContactMethodType() == ContactMethodType.LINK) {
-                validateLink(method.getContact(), errors, contactId);
-            } else if (method.getContactMethodType() == ContactMethodType.PHONE) {
-                validatePhoneNumberField(method.getContact(), errors, contactId);
+            if (method.getContactMethodType() != null && method.getContact() != null) {
+                switch (method.getContactMethodType()) {
+                    case EMAIL -> validateEmailFieldForContactInfo(method.getContact(), errors, contactId);
+                    case LINK -> validateLink(method.getContact(), errors, contactId);
+                    case PHONE -> validatePhoneNumberField(method.getContact(), errors, contactId);
+                }
             }
         }
 
