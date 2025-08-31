@@ -16,12 +16,15 @@ import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
+import org.apache.commons.validator.routines.UrlValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -41,6 +44,7 @@ public class AccountDataValidation {
     private static final String ACCEPTABLE_SYMBOLS_LINK_PATTERN = "^[a-zA-Z0-9.:_/?=&%#-]+$";
     private static final PhoneNumberUtil phoneUtil = PhoneNumberUtil.getInstance();
 
+    private static final Set<String> ACCEPTABLE_TLDS = Set.of(".com", ".org", ".net", ".ru");
     private static final Set<String> REQUIRED_FIELDS = Set.of(
             "firstName", "email", "isProfessor", "isAdmin", "isVisible", "isConsulting", "lastName"
     );
@@ -388,7 +392,24 @@ public class AccountDataValidation {
 
     private void validateLink(String contact, Set<FieldErrorDto> errors) {
 
-        if (!contact.startsWith("https://") && !contact.startsWith("http://")) {
+        String[] schemes = {"https", "http"};
+        long options = UrlValidator.NO_FRAGMENTS;
+
+        UrlValidator validator = new UrlValidator(schemes, options);
+
+        if (!validator.isValid(contact)) {
+            errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
+        }
+        
+        try {
+            URI uri = new URI(contact);
+            String host = uri.getHost();
+            if (host == null || ACCEPTABLE_TLDS.stream().noneMatch(host::endsWith)) {
+                log.error("uri не прошёл проверку");
+                errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
+            }
+        } catch (URISyntaxException e) {
+            log.error("Не принят uri");
             errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
         }
 
