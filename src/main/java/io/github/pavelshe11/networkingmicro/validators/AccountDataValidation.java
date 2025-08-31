@@ -304,6 +304,15 @@ public class AccountDataValidation {
         );
     }
 
+    private FieldErrorDto createFieldErrorDto(String field, Object[] obj, String message,
+                                              UUID objectId) {
+        return new FieldErrorDto(
+                field,
+                messageSource.getMessage(message, obj, LocaleContextHolder.getLocale()),
+                objectId
+        );
+    }
+
     public boolean checkIfEmailFree(String email) {
         return accountRepository.findByMainEmailContactContact(email).isEmpty();
     }
@@ -325,11 +334,11 @@ public class AccountDataValidation {
         }
 
         if (methodType == ContactMethodType.EMAIL) {
-            validateEmailFieldForContactInfo(request.getContact(), errors);
+            validateEmailFieldForContactInfo(request.getContact(), errors, null);
         } else if (methodType == ContactMethodType.LINK) {
-            validateLink(request.getContact(), errors);
+            validateLink(request.getContact(), errors, null);
         } else if (methodType == ContactMethodType.PHONE) {
-            validatePhoneNumberField(request.getContact(), errors);
+            validatePhoneNumberField(request.getContact(), errors, null);
         } else {
             errors.add(createFieldErrorDto(rawContact, null, "method.unsupported.type"));
         }
@@ -343,6 +352,7 @@ public class AccountDataValidation {
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto method : request.getAccountContactMethods()) {
             String trimmedContact = method.getContact().trim().toLowerCase();
             String key = method.getContactMethodType() + "::" + trimmedContact;
+            UUID contactId = method.getContactId();
 
             Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
                     .findById(method.getContactId());
@@ -360,28 +370,30 @@ public class AccountDataValidation {
             }
 
             if (!seen.add(key)) {
-                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists",
+                        contactId));
                 continue;
             }
 
             if (accountContactInfoRepository.existsByContactAndAccount(trimmedContact, account)) {
-                errors.add(createFieldErrorDto(method.getContact(), null, "error.contact.already.exists"));
+                errors.add(createFieldErrorDto("contact", null, "error.contact.already.exists",
+                        contactId));
                 continue;
             }
 
             if (method.getContactMethodType() == ContactMethodType.EMAIL) {
-                validateEmailFieldForContactInfo(method.getContact(), errors);
+                validateEmailFieldForContactInfo(method.getContact(), errors, contactId);
             } else if (method.getContactMethodType() == ContactMethodType.LINK) {
-                validateLink(method.getContact(), errors);
+                validateLink(method.getContact(), errors, contactId);
             } else if (method.getContactMethodType() == ContactMethodType.PHONE) {
-                validatePhoneNumberField(method.getContact(), errors);
+                validatePhoneNumberField(method.getContact(), errors, contactId);
             }
         }
 
         return errors;
     }
 
-    private void validateLink(String contact, Set<FieldErrorDto> errors) {
+    private void validateLink(String contact, Set<FieldErrorDto> errors, UUID objectId) {
 
         String[] schemes = {"https", "http"};
         long options = UrlValidator.NO_FRAGMENTS;
@@ -389,7 +401,7 @@ public class AccountDataValidation {
         UrlValidator validator = new UrlValidator(schemes, options);
 
         if (!validator.isValid(contact)) {
-            errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
+            objectIdResolver(errors, "contact", null, "link.not.accepted", objectId);
         }
 
         try {
@@ -397,49 +409,51 @@ public class AccountDataValidation {
             String host = uri.getHost();
             if (host == null || ACCEPTABLE_TLDS.stream().noneMatch(host::endsWith)) {
                 log.error("uri не прошёл проверку");
-                errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
+                objectIdResolver(errors, "contact", null, "link.not.accepted", objectId);
             }
         } catch (URISyntaxException e) {
             log.error("Не принят uri");
-            errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
+            objectIdResolver(errors, "contact", null, "link.not.accepted", objectId);
         }
 
         if (!contact.matches(ACCEPTABLE_SYMBOLS_LINK_PATTERN)) {
-            errors.add(createFieldErrorDto(contact, null,
-                    "field.has.forbidden.symbols"));
+            objectIdResolver(errors, "contact", null, "field.has.forbidden.symbols", objectId);
         }
 
         validateTooLongField(contact, contact, errors);
     }
 
-    private void validatePhoneNumberField(String contact, Set<FieldErrorDto> errors) {
+    private void validatePhoneNumberField(String contact, Set<FieldErrorDto> errors, UUID objectId) {
         try {
             Phonenumber.PhoneNumber phoneNumber = phoneUtil.parse(contact, "RU");
 
             if (!phoneUtil.isValidNumber(phoneNumber)) {
-                errors.add(createFieldErrorDto(contact, null, "phone.not.valid"));
+                objectIdResolver(errors, "contact", null, "phone.not.valid", objectId);
             }
         } catch (NumberParseException e) {
-            errors.add(createFieldErrorDto(contact, null, "phone.parse.error"));
+            objectIdResolver(errors, "contact", null, "phone.parse.error", objectId);
         }
     }
 
-    public void validateEmailFieldForContactInfo(String email, Set<FieldErrorDto> errors) {
+    public void validateEmailFieldForContactInfo(String email, Set<FieldErrorDto> errors, UUID objectId) {
 
         if (email == null || email.isBlank()) {
-            errors.add(createFieldErrorDto(
-                    "contact", null,
-                    "field.empty"));
+            objectIdResolver(errors, "contact", null, "field.empty", objectId);
             return;
         }
 
         EmailValidator validator = EmailValidator.getInstance(false, true);
 
         if (!validator.isValid(email)) {
-            errors.add(createFieldErrorDto(
-                    email, null,
-                    "email.format.incorrect"));
+            objectIdResolver(errors, "contact", null, "email.format.incorrect", objectId);
         }
     }
 
+    private void objectIdResolver(Set<FieldErrorDto> errors, String field, Object[] args, String code, UUID objectId) {
+        if (objectId != null) {
+            errors.add(createFieldErrorDto(field, args, code, objectId));
+        } else {
+            errors.add(createFieldErrorDto(field, args, code));
+        }
+    }
 }
