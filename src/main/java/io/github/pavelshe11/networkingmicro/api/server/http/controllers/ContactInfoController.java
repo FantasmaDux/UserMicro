@@ -28,15 +28,15 @@ public class ContactInfoController {
     private final JwtUtil jwtUtil;
     private final AccountContactInfoService accountContactInfoService;
 
-    @Operation(summary = "Метод вставки контактов пользователя")
+    @Operation(summary = "Метод вставки контакта пользователя")
     @CommonApiResponses
     @ApiResponse(
             responseCode = "200",
-            description = "Контакты добавлены"
+            description = "Контакт добавлен"
             )
     @PostMapping(value = "", produces = "application/json")
     public ResponseEntity<Void> updateAccountContactInfo(
-            @Parameter(description = "Список контактов на добавление")
+            @Parameter(description = "Контакт для добавления")
             @RequestBody ContactInfoAddRequestDto request
             ) {
         UUID accountId = jwtUtil.claimAccountId();
