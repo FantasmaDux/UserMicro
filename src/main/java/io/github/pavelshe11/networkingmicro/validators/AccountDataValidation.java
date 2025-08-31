@@ -400,7 +400,7 @@ public class AccountDataValidation {
         if (!validator.isValid(contact)) {
             errors.add(createFieldErrorDto(contact, null, "link.not.accepted"));
         }
-        
+
         try {
             URI uri = new URI(contact);
             String host = uri.getHost();
