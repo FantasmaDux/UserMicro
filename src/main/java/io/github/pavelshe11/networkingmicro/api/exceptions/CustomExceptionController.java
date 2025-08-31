@@ -8,6 +8,7 @@ import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -134,6 +135,18 @@ public class CustomExceptionController {
         return ResponseEntity
                 .status(ex.getStatus())
                 .body(response);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorDto> handleJsonMappingException(HttpMessageNotReadableException ex) {
+        return ResponseEntity
+                .badRequest()
+                .body(ErrorDto.builder()
+                        .error("handle.error")
+                        .detailedErrors(List.of(
+                                new FieldErrorDto(null, "request.invalid")
+                        ))
+                        .build());
     }
 
     @ExceptionHandler(MaxUploadSizeExceededException.class)

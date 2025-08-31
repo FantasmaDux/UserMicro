@@ -146,23 +146,30 @@ public class AccountContactInfoService {
         for (UUID contactId : request.getContactMethodsIds()) {
             Optional<AccountContactInfoEntity> accountContactInfoOpt =
                     accountContactInfoRepository.findById(contactId);
-            if (accountContactInfoOpt.isPresent()) {
-                AccountContactInfoEntity contact = accountContactInfoOpt.get();
 
-                if (contact.getAccount().getId().equals(accountId)) {
-                    if (!contact.isModifiable()) {
-                        log.warn("Попытка удалить не изменяемую основную почту");
-                        throw new FieldValidationException("handle.error", List.of(
-                                new FieldErrorDto("contactId", "main.email.edit.forbidden")
-                        ));
-                    }
-
-                    accountContactInfoRepository.delete(contact);
-                    account.getAccountContactInfos().remove(contact);
-                } else {
-                    log.error("Контакт {} не принадлежит аккаунту {}", contactId, accountId);
-                }
+            if (accountContactInfoOpt.isEmpty()) {
+                throw new FieldValidationException("handle.error", List.of(
+                        new FieldErrorDto("contactId", "contact.not.found", contactId)));
             }
+
+            AccountContactInfoEntity contact = accountContactInfoOpt.get();
+
+            if (!contact.getAccount().getId().equals(accountId)) {
+                log.error("Контакт {} не принадлежит аккаунту {}", contactId, accountId);
+                throw new FieldValidationException("handle.error", List.of(
+                        new FieldErrorDto("contactId", "contact.not.found", contactId)));
+            }
+
+            if (!contact.isModifiable()) {
+                log.warn("Попытка удалить не изменяемую основную почту");
+                throw new FieldValidationException("handle.error", List.of(
+                        new FieldErrorDto("contactId", "main.email.edit.forbidden", contactId)));
+            }
+
+
+            accountContactInfoRepository.delete(contact);
+            account.getAccountContactInfos().remove(contact);
+
         }
         accountRepository.save(account);
     }
