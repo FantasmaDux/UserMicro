@@ -2,8 +2,6 @@ package io.github.pavelshe11.networkingmicro.validators;
 
 import io.github.pavelshe11.networkingmicro.api.exceptions.CodeExpiredException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.InvalidCodeException;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
-import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
 import io.github.pavelshe11.networkingmicro.store.entities.EmailUpdateSessionEntity;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -15,8 +13,8 @@ import java.sql.Timestamp;
 
 @Component
 @RequiredArgsConstructor
-public class SecurityValidation {
-    private static final Logger log = LoggerFactory.getLogger(SecurityValidation.class);
+public class SecurityValidator {
+    private static final Logger log = LoggerFactory.getLogger(SecurityValidator.class);
     private final PasswordEncoder passwordEncoder;
 
     public String getTrimmedCodeOrThrow(String code) {

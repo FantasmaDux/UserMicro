@@ -10,12 +10,12 @@ import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutio
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
+import io.github.pavelshe11.networkingmicro.util.HelperUtils;
 import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
+import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -25,14 +25,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountCreationService {
     private final AccountRepository accountRepository;
-    private final AccountDataValidation accountDataValidator;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final RegistrationValidator registrationValidator;
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<FieldErrorDto> validationErrors = registrationValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
                 .map((FieldErrorDto) -> this.mapToProto(FieldErrorDto))
                 .collect(Collectors.toList());
@@ -66,7 +66,7 @@ public class AccountCreationService {
                     .contact(email)
                     .contactMethod(ContactMethodType.EMAIL)
                     .account(account)
-                    .iconUrl(fetchFaviconUrl(email))
+                    .iconUrl(HelperUtils.fetchFaviconUrl(email))
                     .modifiable(false)
                     .build();
 
@@ -107,26 +107,4 @@ public class AccountCreationService {
                 .build();
     }
 
-    private String fetchFaviconUrl(String contact) {
-        String faviconUrl = "";
-
-        try {
-            String domain;
-
-            if (contact.contains("@")) {
-                domain = contact.substring(contact.indexOf("@") + 1);
-            } else {
-                URL url = new URL(contact);
-                domain = url.getHost();
-            }
-
-            if (!domain.isEmpty()) {
-                faviconUrl = "https://" + domain + "/favicon.ico";
-            }
-
-        } catch (Exception e) {
-        }
-
-        return faviconUrl;
-    }
 }

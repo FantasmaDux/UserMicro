@@ -8,12 +8,11 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.*;
 import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
-import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
+import io.github.pavelshe11.networkingmicro.validators.AccountUpdateInfoValidator;
+import io.github.pavelshe11.networkingmicro.validators.CommonFieldsValidator;
+import io.github.pavelshe11.networkingmicro.validators.SecurityValidator;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.apache.tika.Tika;
 
 import java.io.IOException;
-import java.net.URL;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -35,11 +33,12 @@ import java.util.*;
 @Service
 public class AccountUpdateService {
     private final AccountRepository accountRepository;
-    private final AccountDataValidation accountDataValidator;
+    private final AccountUpdateInfoValidator accountUpdateInfoValidator;
+    private final CommonFieldsValidator commonFieldsValidator;
     private final CityRepository cityRepository;
     private final EmailUpdateSessionRepository emailUpdateSessionRepository;
     private final CodeGenerator codeGenerator;
-    private final SecurityValidation securityValidator;
+    private final SecurityValidator securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
@@ -53,16 +52,18 @@ public class AccountUpdateService {
     @Value("${MIN_INACTIVITY_PERIOD}")
     private long MIN_INACTIVITY_PERIOD;
 
-    public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator,
+    public AccountUpdateService(AccountRepository accountRepository,
+                                AccountUpdateInfoValidator accountUpdateInfoValidator,
+                                CommonFieldsValidator commonFieldsValidator,
                                 CityRepository cityRepository,
                                 EmailUpdateSessionRepository emailUpdateSessionRepository,
-                                CodeGenerator codeGenerator, SecurityValidation securityValidator,
+                                CodeGenerator codeGenerator, SecurityValidator securityValidator,
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
                                 EducationalInstitutionRepository educationalInstitutionRepository,
                                 AccountContactInfoRepository accountContactInfoRepository) {
         this.accountRepository = accountRepository;
-        this.accountDataValidator = accountDataValidator;
+        this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
         this.emailUpdateSessionRepository = emailUpdateSessionRepository;
         this.codeGenerator = codeGenerator;
@@ -71,6 +72,7 @@ public class AccountUpdateService {
         this.activitySessionRepository = activitySessionRepository;
         this.educationalInstitutionRepository = educationalInstitutionRepository;
         this.accountContactInfoRepository = accountContactInfoRepository;
+        this.commonFieldsValidator = commonFieldsValidator;
     }
 
     @Transactional
@@ -79,7 +81,7 @@ public class AccountUpdateService {
 
         Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateUpdateData(normalizedData);
+        Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
@@ -168,7 +170,7 @@ public class AccountUpdateService {
     @Transactional
     public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
         Set<FieldErrorDto> validationErrors = new HashSet<>();
-        accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
 
         if (!validationErrors.isEmpty()) {
             throw new FieldValidationException("email", validationErrors.stream().toList());
@@ -177,7 +179,7 @@ public class AccountUpdateService {
         Optional<EmailUpdateSessionEntity> sessionOptByEmail
                 = emailUpdateSessionRepository.findByNewEmail(request.getEmail());
 
-        boolean isAccountFree = accountDataValidator.checkIfEmailFree(request.getEmail());
+        boolean isAccountFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
         boolean isFake = !isAccountFree;
 
         boolean accountExists = accountRepository.existsById(accountId);
@@ -203,7 +205,7 @@ public class AccountUpdateService {
     public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
 
         Set<FieldErrorDto> validationErrors = new HashSet<>();
-        accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
 
         if (!validationErrors.isEmpty()) {
             throw new FieldValidationException("email", validationErrors.stream().toList());
@@ -233,7 +235,7 @@ public class AccountUpdateService {
         securityValidator.checkIfCodeIsValid(session, code);
         securityValidator.ensureCodeIsNotExpired(session);
 
-        boolean isEmailStillFree = accountDataValidator.checkIfEmailFree(request.getEmail());
+        boolean isEmailStillFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
         if (!isEmailStillFree) {
             log.info("Почта уже занята.");
             throw new InvalidCodeException();
@@ -401,27 +403,4 @@ public class AccountUpdateService {
         accountRepository.delete(accountOpt.get());
     }
 
-    private String fetchFaviconUrl(String contact) {
-        String faviconUrl = "";
-
-        try {
-            String domain;
-
-            if (contact.contains("@")) {
-                domain = contact.substring(contact.indexOf("@") + 1);
-            } else {
-                URL url = new URL(contact);
-                domain = url.getHost();
-            }
-
-            if (!domain.isEmpty()) {
-                faviconUrl = "https://" + domain + "/favicon.ico";
-            }
-
-        } catch (Exception e) {
-            log.error("Ошибка извлечения favicon.");
-        }
-
-        return faviconUrl;
-    }
 }

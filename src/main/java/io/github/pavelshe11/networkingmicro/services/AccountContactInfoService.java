@@ -13,36 +13,31 @@ import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
+import io.github.pavelshe11.networkingmicro.util.HelperUtils;
+import io.github.pavelshe11.networkingmicro.validators.ContactInfoValidator;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.net.URL;
 import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class AccountContactInfoService {
     private static final Logger log = LoggerFactory.getLogger(AccountContactInfoService.class);
-    private final AccountDataValidation accountDataValidatior;
     private final AccountRepository accountRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
     private final DataNormalisation dataNormalisation;
+    private static final int MAX_CONTACT_FOR_ACCOUNT_LIMIT = 5;
+    private final ContactInfoValidator contactInfoValidator;
 
     public void addContactInfo(UUID accountId, ContactInfoAddRequestDto request) {
         log.info("Начало добавления контактной информации: {}, данные: {}", accountId, request);
 
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-        if (accountOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
-        }
+        AccountEntity account = getAccountOrThrow(accountId);
 
-        AccountEntity account = accountOpt.get();
-
-        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForAdd(account, request);
+        Set<FieldErrorDto> validationErrors = contactInfoValidator.validateContactInfoForAdd(account, request);
 
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
@@ -74,7 +69,7 @@ public class AccountContactInfoService {
         String normalizeContact
                 = dataNormalisation.normalizeContact(request.getContact(), request.getContactMethodType());
 
-        if (account.getAccountContactInfos().size() >= 5) {
+        if (account.getAccountContactInfos().size() >= MAX_CONTACT_FOR_ACCOUNT_LIMIT) {
             log.error("Попытка сохранить больше 5 контактов.");
             throw new ContactsLimitException();
         }
@@ -82,7 +77,7 @@ public class AccountContactInfoService {
         String faviconUrl = null;
         if (request.getContactMethodType() == ContactMethodType.LINK ||
                 request.getContactMethodType() == ContactMethodType.EMAIL) {
-            faviconUrl = fetchFaviconUrl(normalizeContact);
+            faviconUrl = HelperUtils.fetchFaviconUrl(normalizeContact);
         }
 
         boolean isModifiable = !(account.getMainEmailContact() != null
@@ -109,39 +104,8 @@ public class AccountContactInfoService {
         handleNewContact(account, request);
     }
 
-
-    private String fetchFaviconUrl(String contact) {
-        String faviconUrl = "";
-
-        try {
-            String domain;
-
-            if (contact.contains("@")) {
-                domain = contact.substring(contact.indexOf("@") + 1);
-            } else {
-                URL url = new URL(contact);
-                domain = url.getHost();
-            }
-
-            if (!domain.isEmpty()) {
-                faviconUrl = "https://" + domain + "/favicon.ico";
-            }
-
-        } catch (Exception e) {
-            log.error("Ошибка извлечения favicon.");
-        }
-
-        return faviconUrl;
-    }
-
     public void deleteContactInfoMethod(UUID accountId, ContactInfoDeleteRequestDto request) {
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-        if (accountOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
-        }
-
-        AccountEntity account = accountOpt.get();
+        AccountEntity account = getAccountOrThrow(accountId);
 
         for (UUID contactId : request.getContactMethodsIds()) {
             Optional<AccountContactInfoEntity> accountContactInfoOpt =
@@ -177,15 +141,9 @@ public class AccountContactInfoService {
     public void editContactInfoById(UUID accountId, ContactInfoUpdateListRequestDto request) {
         log.info("Начало обновления контактной информации: {}, данные: {}", accountId, request);
 
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-        if (accountOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
-        }
+        AccountEntity account = getAccountOrThrow(accountId);
 
-        AccountEntity account = accountOpt.get();
-
-        Set<FieldErrorDto> validationErrors = accountDataValidatior.validateContactInfoForEdit(account, request);
+        Set<FieldErrorDto> validationErrors = contactInfoValidator.validateContactInfoForEdit(account, request);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
@@ -204,48 +162,64 @@ public class AccountContactInfoService {
                 ));
             }
 
-            AccountContactInfoEntity oldContact = existingContactOpt.get();
+            AccountContactInfoEntity contact = existingContactOpt.get();
 
-            boolean isMainEmail = account.getMainEmailContact() != null
-                    && account.getMainEmailContact().getId().equals(newContact.getContactId());
+            editFromOldToNewContact(account, newContact, contact);
 
-            if (isMainEmail) {
-                boolean contactChanged = newContact.getContact() != null
-                        && !Objects.equals(newContact.getContact(), oldContact.getContact());
-
-                boolean typeChanged = newContact.getContactMethodType() != null
-                        && !Objects.equals(newContact.getContactMethodType(), oldContact.getContactMethod());
-
-                if (contactChanged || typeChanged) {
-                    log.error("Попытка изменить основной email, что запрещено.");
-                    throw new FieldValidationException("handle.error", List.of(
-                            new FieldErrorDto("contactId", "main.email.edit.forbidden")
-                    ));
-                }
-
-            } else {
-                if (newContact.getContact() != null) {
-                    oldContact.setContact(newContact.getContact());
-                }
-
-                if (newContact.getContactMethodType() != null) {
-                    oldContact.setContactMethod(newContact.getContactMethodType());
-                }
-
-                if ((newContact.getContactMethodType() == ContactMethodType.LINK
-                        || newContact.getContactMethodType() == ContactMethodType.EMAIL)
-                        && newContact.getContact() != null) {
-                    String faviconUrl = fetchFaviconUrl(newContact.getContact());
-                    oldContact.setIconUrl(faviconUrl);
-                }
-            }
-
-            if (newContact.getVisibility() != null) {
-                oldContact.setVisibility(newContact.getVisibility());
-            }
-
-            accountContactInfoRepository.save(oldContact);
+            accountContactInfoRepository.save(contact);
 
         }
+    }
+
+    private void editFromOldToNewContact(AccountEntity account,
+                                         ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto newContact,
+                                         AccountContactInfoEntity contact) {
+        boolean isMainEmail = account.getMainEmailContact() != null
+                && account.getMainEmailContact().getId().equals(newContact.getContactId());
+
+        if (isMainEmail) {
+            boolean contactChanged = newContact.getContact() != null
+                    && !Objects.equals(newContact.getContact(), contact.getContact());
+
+            boolean typeChanged = newContact.getContactMethodType() != null
+                    && !Objects.equals(newContact.getContactMethodType(), contact.getContactMethod());
+
+            if (contactChanged || typeChanged) {
+                log.error("Попытка изменить основной email, что запрещено.");
+                throw new FieldValidationException("handle.error", List.of(
+                        new FieldErrorDto("contactId", "main.email.edit.forbidden")
+                ));
+            }
+
+        } else {
+            if (newContact.getContact() != null) {
+                contact.setContact(newContact.getContact());
+            }
+
+            if (newContact.getContactMethodType() != null) {
+                contact.setContactMethod(newContact.getContactMethodType());
+            }
+
+            if ((newContact.getContactMethodType() == ContactMethodType.LINK
+                    || newContact.getContactMethodType() == ContactMethodType.EMAIL)
+                    && newContact.getContact() != null) {
+                String faviconUrl = HelperUtils.fetchFaviconUrl(newContact.getContact());
+                contact.setIconUrl(faviconUrl);
+            }
+        }
+
+        if (newContact.getVisibility() != null) {
+            contact.setVisibility(newContact.getVisibility());
+        }
+    }
+
+    private AccountEntity getAccountOrThrow(UUID accountId) {
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new ServerAnswerException();
+        }
+
+        return accountOpt.get();
     }
 }
