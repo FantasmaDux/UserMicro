@@ -198,8 +198,10 @@ public class AccountContactInfoService {
                     .findById(newContact.getContactId());
 
             if (existingContactOpt.isEmpty()) {
-                log.warn("Контакт с ID {} не найден", newContact.getContactId());
-                continue;
+                log.error("Контакт с ID {} не найден", newContact.getContactId());
+                throw new FieldValidationException("handle.error", List.of(
+                        new FieldErrorDto("contactId", "contact.not.found", newContact.getContactId())
+                ));
             }
 
             AccountContactInfoEntity oldContact = existingContactOpt.get();
@@ -215,7 +217,7 @@ public class AccountContactInfoService {
                         && !Objects.equals(newContact.getContactMethodType(), oldContact.getContactMethod());
 
                 if (contactChanged || typeChanged) {
-                    log.warn("Попытка изменить основной email, что запрещено.");
+                    log.error("Попытка изменить основной email, что запрещено.");
                     throw new FieldValidationException("handle.error", List.of(
                             new FieldErrorDto("contactId", "main.email.edit.forbidden")
                     ));
