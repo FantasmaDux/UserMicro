@@ -25,7 +25,7 @@ public class SpecializationService {
     public SpecializationsByInstitutionDto getSpecializationsByInstitution(UUID institutionId) {
 
         if (!educationalInstitutionRepository.existsById(institutionId)) {
-            log.error("Институт с id " + institutionId + " не найден");
+            log.error("Институт с id {} не найден", institutionId);
             throw new InstitutionNotFoundException();
         }
 
