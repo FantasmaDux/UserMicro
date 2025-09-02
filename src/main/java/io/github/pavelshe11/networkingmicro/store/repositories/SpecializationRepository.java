@@ -3,8 +3,11 @@ package io.github.pavelshe11.networkingmicro.store.repositories;
 import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 public interface SpecializationRepository extends JpaRepository<SpecializationEntity, UUID> {
     boolean existsByName(String specializationName);
+
+    Optional<SpecializationEntity> findByName(String specializationName);
 }
