@@ -21,6 +21,8 @@ public class AccountInfoDto {
     private String lastName;
     @Schema(description = "Отчество пользователя")
     private String middleName;
+    @Schema(description = "Информация о себе")
+    private String bio;
     @Schema(description = "Почта пользователя")
     private String email;
     @Schema(description = "Является ли пользователь преподавателем")

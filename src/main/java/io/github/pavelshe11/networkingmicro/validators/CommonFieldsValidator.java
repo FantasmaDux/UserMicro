@@ -252,4 +252,9 @@ public class CommonFieldsValidator {
         return accountRepository.findByMainEmailContactContact(email).isEmpty();
     }
 
+    public void validateBioField(String bio, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (bio.length() > BIO_FIELD_MAX_LENGTH) {
+            errors.add(new FieldErrorDto("bio", "Поле 'О себе' не должно превышать 100 символов"));
+        }
+    }
 }

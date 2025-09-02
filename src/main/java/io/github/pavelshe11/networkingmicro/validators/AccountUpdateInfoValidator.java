@@ -38,6 +38,10 @@ public class AccountUpdateInfoValidator {
             commonFieldsValidator.validateBooleanField("consulting", updatedData, errors);
         }
 
+        if (updatedData.containsKey("bio")) {
+            commonFieldsValidator.validateBioField("bio", updatedData, errors);
+        }
+
         return errors;
     }
 }

@@ -89,6 +89,7 @@ public class AccountInfoService {
                 .firstName(nullIfBlank(account.getFirstName()))
                 .lastName(nullIfBlank(account.getLastName()))
                 .middleName(nullIfBlank(account.getMiddleName()))
+                .bio(nullIfBlank(account.getBio()))
                 .email(email)
                 .professor(account.isProfessor())
                 .visible(account.isVisible())

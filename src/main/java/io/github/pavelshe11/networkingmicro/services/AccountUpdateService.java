@@ -100,11 +100,18 @@ public class AccountUpdateService {
         }
 
         if (normalizedData.containsKey("middleName")) {
-            account.setMiddleName((String) (normalizedData.get("middleName")));
+            account.setMiddleName(normalizedData.get("middleName") != null
+                    ? normalizedData.get("middleName").toString()
+                    : null);
         }
 
         if (normalizedData.containsKey("lastName")) {
-            account.setLastName((String) (normalizedData.get("lastName")));
+            account.setLastName((String) normalizedData.get("lastName"));
+        }
+
+        if (normalizedData.containsKey("bio")) {
+            Object bioValue = normalizedData.get("bio");
+            account.setBio(bioValue != null ? bioValue.toString() : null);
         }
 
         if (normalizedData.containsKey("dateOfBirth")) {
@@ -112,14 +119,18 @@ public class AccountUpdateService {
 
             Object dobRaw = normalizedData.get("dateOfBirth");
 
-            long dateOfBirthTimestamp = dobRaw instanceof Number
-                    ? ((Number) dobRaw).longValue()
-                    : Long.parseLong(dobRaw.toString());
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
 
-            LocalDate dateOfBirth = Instant.ofEpochMilli(dateOfBirthTimestamp)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-            account.setDateOfBirth(dateOfBirth);
+                LocalDate dateOfBirth = Instant.ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                account.setDateOfBirth(dateOfBirth);
+            } else {
+                account.setDateOfBirth(null);
+            }
         }
 
         if (normalizedData.containsKey("idCity")) {

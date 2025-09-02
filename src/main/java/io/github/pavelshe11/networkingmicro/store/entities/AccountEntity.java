@@ -104,6 +104,10 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private MediaType mimetype;
 
+    @Column(name = "bio", length = 100)
+    @Builder.Default
+    private String bio = "";
+
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
