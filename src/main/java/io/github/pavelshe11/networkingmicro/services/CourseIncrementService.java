@@ -19,15 +19,21 @@ public class CourseIncrementService {
     private final Logger log = LoggerFactory.getLogger(CourseIncrementService.class);
     private final AccountRepository accountRepository;
 
-    @Scheduled(fixedRateString = "${INCREMENT_COURSE_TIME}")
+    @Scheduled(cron = "${INCREMENT_COURSE_TIME}")
     @Transactional
-    protected void courseYearIncrement() {
+    public void courseYearIncrement() {
+        log.info("Вызван метод courseYearIncrement()");
+
         List<AccountEntity> accounts = accountRepository.findAll();
 
         for (AccountEntity account : accounts) {
             short currentCourse = account.getCourseNumber();
             short courseIncrement = (short) (currentCourse + 1);
             SpecializationEntity specialization = account.getSpecialization();
+            if (specialization == null) {
+                log.warn("Аккаунт {} не имеет специализации, пропуск", account.getId());
+                continue;
+            }
             int maxCourseNumber = specialization.getCountOfCourses();
 
             if (courseIncrement <= maxCourseNumber) {

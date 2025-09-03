@@ -3,8 +3,10 @@ package io.github.pavelshe11.networkingmicro.component;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
@@ -16,6 +18,7 @@ public class AccountDataInitializer implements ApplicationRunner {
 
     private final AccountRepository accountRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final SpecializationRepository specializationRepository;
 
     @Override
     public void run(ApplicationArguments args) {
@@ -28,6 +31,16 @@ public class AccountDataInitializer implements ApplicationRunner {
                 throw new IllegalStateException("EducationalInstitution with domenName communicator.ru not found");
             }
 
+            String specializationName = "Физика";
+            SpecializationEntity specialization = specializationRepository.findByName(specializationName)
+                    .orElseGet(() -> {
+                        SpecializationEntity newSpecialization = SpecializationEntity.builder()
+                                .name(specializationName)
+                                .countOfCourses(5)
+                                .build();
+                        return specializationRepository.save(newSpecialization);
+                    });
+
             AccountEntity account = AccountEntity.builder()
                     .email("admin@communicator.ru")
                     .admin(true)
@@ -36,6 +49,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                     .ip("1.1.1.1")
                     .acceptedPrivacyPolicy(true)
                     .acceptedPersonalDataProcessing(true)
+                    .specialization(specialization)
                     .build();
             accountRepository.save(account);
         }
