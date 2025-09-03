@@ -26,16 +26,16 @@ public class CourseIncrementService {
 
         for (AccountEntity account : accounts) {
             short currentCourse = account.getCourseNumber();
-            account.setCourseNumber((short) (currentCourse + 1));
-            accountRepository.save(account);
-
+            short courseIncrement = (short) (currentCourse + 1);
             SpecializationEntity specialization = account.getSpecialization();
             int maxCourseNumber = specialization.getCountOfCourses();
-            currentCourse = account.getCourseNumber();
 
-            if (currentCourse > maxCourseNumber) {
-                // TODO: выполнить действие?
-                log.warn("Превышен макимальный курс у аккаунта {}", account.getId());
+            if (courseIncrement <= maxCourseNumber) {
+                account.setCourseNumber(courseIncrement);
+                accountRepository.save(account);
+            } else {
+                log.warn("Попытка превысить макимальный курс у аккаунта {}." +
+                        " Курс остаётся равным {}", account.getId(), maxCourseNumber);
             }
 
         }
