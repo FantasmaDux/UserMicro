@@ -128,7 +128,7 @@ public class AccountContactInfoService {
 
             if (!contact.isModifiable()) {
                 log.warn("Попытка удалить не изменяемую основную почту");
-                errors.add(new FieldErrorDto("contactId", "contact.not.found", contactId));
+                errors.add(new FieldErrorDto("contactId", "main.email.edit.forbidden", contactId));
                 continue;
             }
             contactsToDelete.add(contact);
@@ -142,7 +142,7 @@ public class AccountContactInfoService {
             accountContactInfoRepository.delete(contact);
             account.getAccountContactInfos().remove(contact);
         }
-        
+
         accountRepository.save(account);
     }
 
@@ -151,31 +151,40 @@ public class AccountContactInfoService {
 
         AccountEntity account = getAccountOrThrow(accountId);
 
+        List<FieldErrorDto> errors = new ArrayList<>();
+        Map<UUID, AccountContactInfoEntity> contactsToUpdate = new HashMap<>();
+
+        for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto newContact : request.getAccountContactMethods()) {
+
+            UUID contactId = newContact.getContactId();
+
+            Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
+                    .findById(contactId);
+
+            if (existingContactOpt.isEmpty()) {
+                log.error("Контакт с ID {} не найден", newContact.getContactId());
+                errors.add(new FieldErrorDto("contactId", "contact.not.found", contactId));
+                continue;
+            }
+
+            AccountContactInfoEntity contact = existingContactOpt.get();
+            contactsToUpdate.put(contactId, contact);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new FieldValidationException("handle.error", errors);
+        }
+
         Set<FieldErrorDto> validationErrors = contactInfoValidator.validateContactInfoForEdit(account, request);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
         }
 
-
         for (ContactInfoUpdateListRequestDto.ContactInfoUpdateRequestDto newContact : request.getAccountContactMethods()) {
-
-            Optional<AccountContactInfoEntity> existingContactOpt = accountContactInfoRepository
-                    .findById(newContact.getContactId());
-
-            if (existingContactOpt.isEmpty()) {
-                log.error("Контакт с ID {} не найден", newContact.getContactId());
-                throw new FieldValidationException("handle.error", List.of(
-                        new FieldErrorDto("contactId", "contact.not.found", newContact.getContactId())
-                ));
-            }
-
-            AccountContactInfoEntity contact = existingContactOpt.get();
-
+            AccountContactInfoEntity contact = contactsToUpdate.get(newContact.getContactId());
             editFromOldToNewContact(account, newContact, contact);
-
             accountContactInfoRepository.save(contact);
-
         }
     }
 
