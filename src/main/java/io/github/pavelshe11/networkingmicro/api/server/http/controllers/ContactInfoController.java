@@ -4,6 +4,7 @@ import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.ContactsListResponseDto;
 import io.github.pavelshe11.networkingmicro.services.AccountContactInfoService;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
@@ -70,5 +71,15 @@ public class ContactInfoController {
         UUID accountId = jwtUtil.claimAccountId();
         accountContactInfoService.editContactInfoById(accountId, request);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "Получение списка контактов по ID аккаунта")
+    @CommonApiResponses
+    @ApiResponse(responseCode = "200", description = "Контакты получены")
+    @GetMapping(value = "", produces = "application/json")
+    public ContactsListResponseDto getContactsByAccountId(
+    ) {
+        UUID accountId = jwtUtil.claimAccountId();
+        return accountContactInfoService.getContactsByAccountId(accountId);
     }
 }

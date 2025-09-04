@@ -42,6 +42,4 @@ public class AccountInfoDto {
     private String specializationName;
     @Schema(description = "Название домена пользователя")
     private String educationalInstitutionName;
-    @Schema(description = "Список контактов пользователя")
-    private List<AccountContactInfoDto> contactMethods;
 }

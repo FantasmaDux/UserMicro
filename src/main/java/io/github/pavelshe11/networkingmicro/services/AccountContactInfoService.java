@@ -1,9 +1,11 @@
 package io.github.pavelshe11.networkingmicro.services;
 
+import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.ContactsListResponseDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ContactsLimitException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
@@ -21,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -238,5 +241,20 @@ public class AccountContactInfoService {
         }
 
         return accountOpt.get();
+    }
+
+    public ContactsListResponseDto getContactsByAccountId(UUID accountId) {
+        AccountEntity account = getAccountOrThrow(accountId);
+
+        List<AccountContactInfoDto> contactMethods = Optional.ofNullable(account.getAccountContactInfos())
+                .filter(list -> !list.isEmpty())
+                .map(list -> list.stream()
+                        .map(AccountContactInfoDto::fromEntity)
+                        .collect(Collectors.toList()))
+                .orElse(Collections.emptyList());
+
+        return ContactsListResponseDto.builder()
+                .contactMethods(contactMethods)
+                .build();
     }
 }
