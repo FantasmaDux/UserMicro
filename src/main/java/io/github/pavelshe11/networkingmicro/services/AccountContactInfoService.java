@@ -131,7 +131,7 @@ public class AccountContactInfoService {
 
             if (!contact.isModifiable()) {
                 log.warn("Попытка удалить не изменяемую основную почту");
-                errors.add(new FieldErrorDto("contactId", "main.email.edit.forbidden", contactId));
+                errors.add(new FieldErrorDto("contactId", "main.email.delete.forbidden", contactId));
                 continue;
             }
             contactsToDelete.add(contact);
