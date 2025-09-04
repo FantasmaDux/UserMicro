@@ -20,11 +20,11 @@ public class MatchWithSpecialistEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account1_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account1;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account2_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account2;
 

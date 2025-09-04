@@ -29,7 +29,7 @@ public class FilterGroupEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "filterGroup")
+    @OneToMany(mappedBy = "filterGroup", fetch = FetchType.LAZY)
     private Set<FilterGroupsFiltersEntity> filterGroupsFilters;
 
 }

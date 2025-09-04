@@ -21,7 +21,7 @@ public class ActivitySessionEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "id", unique = true)
     private AccountEntity account;
 

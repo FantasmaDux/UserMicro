@@ -14,11 +14,13 @@ import java.lang.annotation.Target;
 @ApiResponses({
         @ApiResponse(
                 responseCode = "401",
-                description = "Запрос не прошёл аутентификацию"
+                description = "Запрос не прошёл аутентификацию",
+                content = @Content()
         ),
         @ApiResponse(
                 responseCode = "500",
-                description = "Внутренняя ошибка сервера"
+                description = "Внутренняя ошибка сервера",
+                content = @Content()
         )
 })
 public @interface CommonApiResponses {

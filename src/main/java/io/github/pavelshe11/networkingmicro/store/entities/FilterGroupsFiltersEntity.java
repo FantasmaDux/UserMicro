@@ -20,11 +20,11 @@ public class FilterGroupsFiltersEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filter_id", referencedColumnName = "id", nullable = false)
     private FilterEntity filter;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "filter_group_id", referencedColumnName = "id", nullable = false)
     private FilterGroupEntity filterGroup;
 

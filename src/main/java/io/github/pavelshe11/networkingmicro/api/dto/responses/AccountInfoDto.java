@@ -1,11 +1,14 @@
 package io.github.pavelshe11.networkingmicro.api.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,6 +21,8 @@ public class AccountInfoDto {
     private String lastName;
     @Schema(description = "Отчество пользователя")
     private String middleName;
+    @Schema(description = "Информация о себе")
+    private String bio;
     @Schema(description = "Почта пользователя")
     private String email;
     @Schema(description = "Является ли пользователь преподавателем")
@@ -31,10 +36,10 @@ public class AccountInfoDto {
     @Schema(description = "Курс пользователя")
     private Short courseNumber;
 
-    @Schema(description = "Уникальный идентификатор города пользователя")
+    @Schema(description = "Название города пользователя")
     private String cityName;
-    @Schema(description = "Уникальный идентификатор специализации пользователя")
+    @Schema(description = "Название специализации пользователя")
     private String specializationName;
-    @Schema(description = "Уникальный идентификатор домена пользователя")
+    @Schema(description = "Название домена пользователя")
     private String educationalInstitutionName;
 }

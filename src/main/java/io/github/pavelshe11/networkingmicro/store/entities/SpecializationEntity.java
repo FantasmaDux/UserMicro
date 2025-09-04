@@ -32,9 +32,9 @@ public class SpecializationEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "specialization")
+    @OneToMany(mappedBy = "specialization", fetch = FetchType.LAZY)
     private List<AccountEntity> accounts;
 
-    @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<InstitutionSpecialtiesEntity> institutionSpecialties;
 }

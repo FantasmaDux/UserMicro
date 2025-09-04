@@ -1,5 +1,7 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -20,12 +22,27 @@ public class AccountContactInfoEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "account_id", referencedColumnName = "id", nullable = false)
     private AccountEntity account;
 
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String contact;
+
+    @Column(name = "icon_url")
+    private String iconUrl;
+
+    @Builder.Default
+    @Column(name = "visibility", nullable = false)
+    private ContactVisibilityType visibility = ContactVisibilityType.PRIVATE;
+
+
+    @Column(name = "contact_method", nullable = false)
+    @Enumerated(EnumType.STRING)
+    private ContactMethodType contactMethod;
+
+    @Column(name = "modifiable", nullable = false)
+    private boolean modifiable = true;
 
     @Builder.Default
     @Column(name = "created_at")

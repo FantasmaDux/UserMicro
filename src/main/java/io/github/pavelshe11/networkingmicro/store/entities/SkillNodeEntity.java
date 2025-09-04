@@ -22,7 +22,7 @@ public class SkillNodeEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "skill_node_parent_id", referencedColumnName = "id")
     private SkillNodeEntity skillNodeParent;
 
@@ -36,10 +36,10 @@ public class SkillNodeEntity {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
-    @OneToMany(mappedBy = "skillNodeParent", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "skillNodeParent", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private Set<SkillNodeEntity> skillNodeChildren;
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "skillNode")
+    @OneToMany(mappedBy = "skillNode", fetch = FetchType.LAZY)
     private List<SkillSetSkillsEntity> skillSetSkills;
 }

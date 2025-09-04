@@ -29,6 +29,6 @@ public class SetTagsEntity {
     @OneToOne(mappedBy = "setTags")
     private InitiativeEntity initiative;
 
-    @OneToMany(mappedBy = "setTags", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "setTags", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<TagFromSetTagsEntity> tagFromSetTags;
 }

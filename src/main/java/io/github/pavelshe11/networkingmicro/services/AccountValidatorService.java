@@ -3,10 +3,9 @@ package io.github.pavelshe11.networkingmicro.services;
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountValidatorProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
-import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
 import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
+import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -19,13 +18,13 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountValidatorService {
 
-    private final AccountDataValidation accountDataValidator;
+    private final RegistrationValidator registrationValidator;
 
     public AccountValidatorProto.ValidateUserDataResponse validateUserData(Map<String, Value> userData) {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<FieldErrorDto> validationErrors = registrationValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
                 .map((fieldErrorDto) -> this.mapToProto(fieldErrorDto))
                 .collect(Collectors.toList());

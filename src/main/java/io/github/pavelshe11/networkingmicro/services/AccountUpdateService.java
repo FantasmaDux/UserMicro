@@ -10,8 +10,9 @@ import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
-import io.github.pavelshe11.networkingmicro.validators.SecurityValidation;
+import io.github.pavelshe11.networkingmicro.validators.AccountUpdateInfoValidator;
+import io.github.pavelshe11.networkingmicro.validators.CommonFieldsValidator;
+import io.github.pavelshe11.networkingmicro.validators.SecurityValidator;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
@@ -32,15 +33,18 @@ import java.util.*;
 @Service
 public class AccountUpdateService {
     private final AccountRepository accountRepository;
-    private final AccountDataValidation accountDataValidator;
+    private final AccountUpdateInfoValidator accountUpdateInfoValidator;
+    private final CommonFieldsValidator commonFieldsValidator;
     private final CityRepository cityRepository;
     private final EmailUpdateSessionRepository emailUpdateSessionRepository;
     private final CodeGenerator codeGenerator;
-    private final SecurityValidation securityValidator;
+    private final SecurityValidator securityValidator;
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
+
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
     @Value("${MAX_INACTIVITY_PERIOD}")
@@ -48,15 +52,18 @@ public class AccountUpdateService {
     @Value("${MIN_INACTIVITY_PERIOD}")
     private long MIN_INACTIVITY_PERIOD;
 
-    public AccountUpdateService(AccountRepository accountRepository, AccountDataValidation accountDataValidator,
+    public AccountUpdateService(AccountRepository accountRepository,
+                                AccountUpdateInfoValidator accountUpdateInfoValidator,
+                                CommonFieldsValidator commonFieldsValidator,
                                 CityRepository cityRepository,
                                 EmailUpdateSessionRepository emailUpdateSessionRepository,
-                                CodeGenerator codeGenerator, SecurityValidation securityValidator,
+                                CodeGenerator codeGenerator, SecurityValidator securityValidator,
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
-                                EducationalInstitutionRepository educationalInstitutionRepository) {
+                                EducationalInstitutionRepository educationalInstitutionRepository,
+                                AccountContactInfoRepository accountContactInfoRepository) {
         this.accountRepository = accountRepository;
-        this.accountDataValidator = accountDataValidator;
+        this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
         this.emailUpdateSessionRepository = emailUpdateSessionRepository;
         this.codeGenerator = codeGenerator;
@@ -64,6 +71,8 @@ public class AccountUpdateService {
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
         this.educationalInstitutionRepository = educationalInstitutionRepository;
+        this.accountContactInfoRepository = accountContactInfoRepository;
+        this.commonFieldsValidator = commonFieldsValidator;
     }
 
     @Transactional
@@ -72,7 +81,7 @@ public class AccountUpdateService {
 
         Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateUpdateData(normalizedData);
+        Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
@@ -91,11 +100,18 @@ public class AccountUpdateService {
         }
 
         if (normalizedData.containsKey("middleName")) {
-            account.setMiddleName((String) (normalizedData.get("middleName")));
+            account.setMiddleName(normalizedData.get("middleName") != null
+                    ? normalizedData.get("middleName").toString()
+                    : null);
         }
 
         if (normalizedData.containsKey("lastName")) {
-            account.setLastName((String) (normalizedData.get("lastName")));
+            account.setLastName((String) normalizedData.get("lastName"));
+        }
+
+        if (normalizedData.containsKey("bio")) {
+            Object bioValue = normalizedData.get("bio");
+            account.setBio(bioValue != null ? bioValue.toString() : null);
         }
 
         if (normalizedData.containsKey("dateOfBirth")) {
@@ -103,14 +119,18 @@ public class AccountUpdateService {
 
             Object dobRaw = normalizedData.get("dateOfBirth");
 
-            long dateOfBirthTimestamp = dobRaw instanceof Number
-                    ? ((Number) dobRaw).longValue()
-                    : Long.parseLong(dobRaw.toString());
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
 
-            LocalDate dateOfBirth = Instant.ofEpochMilli(dateOfBirthTimestamp)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-            account.setDateOfBirth(dateOfBirth);
+                LocalDate dateOfBirth = Instant.ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                account.setDateOfBirth(dateOfBirth);
+            } else {
+                account.setDateOfBirth(null);
+            }
         }
 
         if (normalizedData.containsKey("idCity")) {
@@ -161,7 +181,7 @@ public class AccountUpdateService {
     @Transactional
     public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
         Set<FieldErrorDto> validationErrors = new HashSet<>();
-        accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
 
         if (!validationErrors.isEmpty()) {
             throw new FieldValidationException("email", validationErrors.stream().toList());
@@ -170,11 +190,8 @@ public class AccountUpdateService {
         Optional<EmailUpdateSessionEntity> sessionOptByEmail
                 = emailUpdateSessionRepository.findByNewEmail(request.getEmail());
 
-        boolean isAccountFree = accountDataValidator.checkIfEmailFree(request.getEmail());
-        boolean isAccountUsedInAnotherSession = sessionOptByEmail
-                .map(session -> session.getAccountId().equals(accountId))
-                .orElse(false);
-        boolean isFake = !isAccountFree || isAccountUsedInAnotherSession;
+        boolean isAccountFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
+        boolean isFake = !isAccountFree;
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
@@ -199,7 +216,7 @@ public class AccountUpdateService {
     public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
 
         Set<FieldErrorDto> validationErrors = new HashSet<>();
-        accountDataValidator.validateEmailField(request.getEmail(), validationErrors);
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
 
         if (!validationErrors.isEmpty()) {
             throw new FieldValidationException("email", validationErrors.stream().toList());
@@ -229,7 +246,7 @@ public class AccountUpdateService {
         securityValidator.checkIfCodeIsValid(session, code);
         securityValidator.ensureCodeIsNotExpired(session);
 
-        boolean isEmailStillFree = accountDataValidator.checkIfEmailFree(request.getEmail());
+        boolean isEmailStillFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
         if (!isEmailStillFree) {
             log.info("Почта уже занята.");
             throw new InvalidCodeException();
@@ -247,7 +264,16 @@ public class AccountUpdateService {
                 educationalInstitutionRepository.findByDomenName(domain);
 
         AccountEntity account = accountOpt.get();
-        account.setEmail(request.getEmail());
+
+        AccountContactInfoEntity emailContact = accountContactInfoRepository
+                .findByContact(account.getMainEmailContact().getContact())
+                .orElseThrow(ServerAnswerException::new);
+
+        emailContact.setContact(request.getEmail());
+
+        accountContactInfoRepository.save(emailContact);
+
+        account.setMainEmailContact(emailContact);
         institutionOpt.ifPresent(account::setEducationalInstitution);
 
         accountRepository.save(account);
@@ -311,7 +337,8 @@ public class AccountUpdateService {
         log.info("{}_UPDATE_EMAIL_CODE: {} NEW EMAIL: {} OLD EMAIL: {}",
                 isFake ? "FAKE" : "REAL",
                 rawCode, email,
-                accountRepository.findById(accountId).get().getEmail());
+                accountRepository.findById(accountId).get()
+                        .getMainEmailContact().getContact());
 
         String hashCode = isFake ? "" : codeGenerator.codeHash(rawCode);
         long codeExpires = codeGenerator.codeExpiresGenerate();
@@ -340,6 +367,7 @@ public class AccountUpdateService {
         boolean wasSessionFake = session.getCode().isEmpty();
 
         if (isExpired || !isSameAccount || !isSameEmail || (wasSessionFake && !isFake)) {
+            emailUpdateSessionRepository.delete(session);
             return handleNewSession(email, accountId, isFake);
         }
 
@@ -385,4 +413,5 @@ public class AccountUpdateService {
 
         accountRepository.delete(accountOpt.get());
     }
+
 }

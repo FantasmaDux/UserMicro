@@ -3,14 +3,16 @@ package io.github.pavelshe11.networkingmicro.services;
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networking.grpc.AccountCreationProto;
 import io.github.pavelshe11.networking.grpc.ErrorProto;
-import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
-import io.github.pavelshe11.networkingmicro.validators.AccountDataValidation;
+import io.github.pavelshe11.networkingmicro.util.HelperUtils;
 import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
+import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -23,14 +25,14 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountCreationService {
     private final AccountRepository accountRepository;
-    private final AccountDataValidation accountDataValidator;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final RegistrationValidator registrationValidator;
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
         Map<String, Object> dataForValidation = GrpcConvertor.convertToObjectMap(userData);
 
-        Set<FieldErrorDto> validationErrors = accountDataValidator.validateRegistrationData(dataForValidation);
+        Set<FieldErrorDto> validationErrors = registrationValidator.validateRegistrationData(dataForValidation);
         List<ErrorProto.FieldError> errors = validationErrors.stream()
                 .map((FieldErrorDto) -> this.mapToProto(FieldErrorDto))
                 .collect(Collectors.toList());
@@ -59,7 +61,17 @@ public class AccountCreationService {
                     .get();
 
             AccountEntity account = new AccountEntity();
-            account.setEmail(email);
+
+            AccountContactInfoEntity emailContact = AccountContactInfoEntity.builder()
+                    .contact(email)
+                    .contactMethod(ContactMethodType.EMAIL)
+                    .account(account)
+                    .iconUrl(HelperUtils.fetchFaviconUrl(email))
+                    .modifiable(false)
+                    .build();
+
+            account.setMainEmailContact(emailContact);
+            account.setAccountContactInfos(List.of(emailContact));
             account.setFirstName(firstName);
             account.setLastName(lastName);
             account.setIp(ip);
@@ -94,4 +106,5 @@ public class AccountCreationService {
                 .setMessage(dto.getMessage())
                 .build();
     }
+
 }

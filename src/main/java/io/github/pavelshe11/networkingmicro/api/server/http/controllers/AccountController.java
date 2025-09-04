@@ -256,7 +256,14 @@ public class AccountController {
     }
 
     @Operation(summary = "Метод получения аватара пользователя по ID")
-    @ApiResponse(responseCode = "200", description = "Аватар пользователя получен")
+    @ApiResponse(
+            responseCode = "200",
+            description = "Аватар пользователя получен",
+            content = @Content(
+                    mediaType = "*/*",
+                    schema = @Schema(type = "string", format = "binary")
+            )
+    )
     @CommonApiResponses
     @GetMapping(value = "/avatar")
     public ResponseEntity<byte[]> getAvatar() {

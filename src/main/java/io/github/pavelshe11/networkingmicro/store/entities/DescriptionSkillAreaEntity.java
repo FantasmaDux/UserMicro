@@ -20,7 +20,7 @@ public class DescriptionSkillAreaEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "skill_set_skills_id", referencedColumnName = "id", unique = true, nullable = false)
     private SkillSetSkillsEntity skillSetSkills;
 
@@ -35,7 +35,7 @@ public class DescriptionSkillAreaEntity {
     private Instant createdAt = Instant.now();
 
     // For two-way communication with FK
-    @OneToMany(mappedBy = "descriptionSkillArea")
+    @OneToMany(mappedBy = "descriptionSkillArea", fetch = FetchType.LAZY)
     private List<PortfolioItemEntity> portfolioItems;
 
 }

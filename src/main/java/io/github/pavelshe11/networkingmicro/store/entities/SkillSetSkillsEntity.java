@@ -20,11 +20,11 @@ public class SkillSetSkillsEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "skill_node_id", referencedColumnName = "id")
     private SkillNodeEntity skillNode;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_skills_id", referencedColumnName = "id")
     private SetSkillsEntity setSkills;
 

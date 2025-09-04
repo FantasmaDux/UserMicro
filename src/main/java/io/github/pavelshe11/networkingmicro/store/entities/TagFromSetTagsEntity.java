@@ -20,11 +20,11 @@ public class TagFromSetTagsEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_tags_id", referencedColumnName = "id", nullable = false)
     private SetTagsEntity setTags;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tag_id", referencedColumnName = "id", nullable = false)
     private TagEntity tag;
 

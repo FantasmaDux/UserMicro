@@ -20,11 +20,11 @@ public class RoleInInitiativeEntity {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
-    @OneToOne
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "set_skills_id", referencedColumnName = "id")
     private SetSkillsEntity setSkills;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "initiative_id", referencedColumnName = "id", nullable = false)
     private InitiativeEntity initiative;
 
