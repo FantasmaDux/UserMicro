@@ -25,7 +25,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @Tag(name = "Управление контактной информацией", description = "API  для работы с контактной информацией пользователя")
 @SecurityRequirement(name = "bearerTokenAuth")
-@RequestMapping("/networking/v1/accountContactInfo")
+@RequestMapping("/networking/v1/account/сontactInfo")
 public class ContactInfoController {
 
     private final JwtUtil jwtUtil;
