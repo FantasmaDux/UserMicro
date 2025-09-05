@@ -41,7 +41,7 @@ public class SpecializationService {
                                 .SpecializationByInstitutionDto.builder()
                                 .id(specialization.getId())
                                 .name(specialization.getName())
-                                .countOfCourses(specialization.getCountOfCourses())
+//                                .countOfCourses(specialization.getCountOfCourses())
                                 .build())
                         .toList();
 

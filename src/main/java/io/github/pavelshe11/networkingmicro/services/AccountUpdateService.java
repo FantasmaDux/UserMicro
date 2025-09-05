@@ -163,16 +163,16 @@ public class AccountUpdateService {
             account.setConsulting((Boolean) normalizedData.get("isConsulting"));
         }
 
-        if (normalizedData.containsKey("courseNumber")) {
-            log.info("Обновление courseNumber");
-            Object courseNumberObj = normalizedData.get("courseNumber");
-            if (courseNumberObj instanceof Integer courseNum) {
-                account.setCourseNumber(courseNum.shortValue());
-            } else if (courseNumberObj instanceof String courseNumStr) {
-                short parsedShort = Short.parseShort(courseNumStr);
-                account.setCourseNumber(parsedShort);
-            }
-        }
+//        if (normalizedData.containsKey("courseNumber")) {
+//            log.info("Обновление courseNumber");
+//            Object courseNumberObj = normalizedData.get("courseNumber");
+//            if (courseNumberObj instanceof Integer courseNum) {
+//                account.setCourseNumber(courseNum.shortValue());
+//            } else if (courseNumberObj instanceof String courseNumStr) {
+//                short parsedShort = Short.parseShort(courseNumStr);
+//                account.setCourseNumber(parsedShort);
+//            }
+//        }
 
         log.info("Сохранение аккаунта {}", accountId);
         accountRepository.save(account);

@@ -25,7 +25,7 @@ public class SpecializationDataInitializer implements ApplicationRunner {
         if (!specializationExists) {
             SpecializationEntity specialization = SpecializationEntity.builder()
                     .name(specializationName)
-                    .countOfCourses(3)
+//                    .countOfCourses(3)
                     .build();
             specializationRepository.save(specialization);
         }
@@ -33,7 +33,7 @@ public class SpecializationDataInitializer implements ApplicationRunner {
         if (!specializationExists2) {
             SpecializationEntity specialization = SpecializationEntity.builder()
                     .name(specializationName2)
-                    .countOfCourses(4)
+//                    .countOfCourses(4)
                     .build();
             specializationRepository.save(specialization);
         }
@@ -41,7 +41,7 @@ public class SpecializationDataInitializer implements ApplicationRunner {
         if (!specializationExists3) {
             SpecializationEntity specialization = SpecializationEntity.builder()
                     .name(specializationName3)
-                    .countOfCourses(5)
+//                    .countOfCourses(5)
                     .build();
             specializationRepository.save(specialization);
         }

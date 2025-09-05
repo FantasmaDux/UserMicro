@@ -41,7 +41,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                     .orElseGet(() -> {
                         SpecializationEntity newSpecialization = SpecializationEntity.builder()
                                 .name(specializationName)
-                                .countOfCourses(5)
+//                                .countOfCourses(5)
                                 .build();
                         return specializationRepository.save(newSpecialization);
                     });
