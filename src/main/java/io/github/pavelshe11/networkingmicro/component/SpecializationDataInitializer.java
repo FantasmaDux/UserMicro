@@ -45,21 +45,5 @@ public class SpecializationDataInitializer implements ApplicationRunner {
                     .build();
             specializationRepository.save(specialization);
         }
-
-        if (!specializationExists2) {
-            SpecializationEntity specialization = SpecializationEntity.builder()
-                    .name(specializationName2)
-                    .countOfCourses(4)
-                    .build();
-            specializationRepository.save(specialization);
-        }
-
-        if (!specializationExists3) {
-            SpecializationEntity specialization = SpecializationEntity.builder()
-                    .name(specializationName3)
-                    .countOfCourses(5)
-                    .build();
-            specializationRepository.save(specialization);
-        }
     }
 }
