@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
+import io.github.pavelshe11.networkingmicro.store.enums.SpecializationLevelType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -33,7 +34,7 @@ public class SpecializationEntity {
 
 //    @Column(name = "specialization_level", nullable = false)
     @Column(name = "specialization_level")
-    private String specializationLevel;
+    private SpecializationLevelType specializationLevel;
 
     @Builder.Default
     @Column(name = "created_at")
