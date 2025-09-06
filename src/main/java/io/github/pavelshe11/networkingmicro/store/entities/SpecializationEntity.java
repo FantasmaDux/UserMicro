@@ -25,9 +25,6 @@ public class SpecializationEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
-//    @Column(name = "count_of_courses", nullable = false)
-//    private int countOfCourses;
-
 //    @Column(name = "specialization_code", nullable = false)
     @Column(name = "specialization_code")
     private String specializationCode;

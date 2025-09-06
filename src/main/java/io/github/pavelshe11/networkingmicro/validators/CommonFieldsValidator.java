@@ -257,4 +257,76 @@ public class CommonFieldsValidator {
             errors.add(new FieldErrorDto("bio", "Поле 'О себе' не должно превышать 100 символов"));
         }
     }
+
+    public void validateDateOfEducationStart(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (!updatedData.containsKey(fieldName)) {
+            return;
+        }
+
+        Object value = updatedData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (!(value instanceof Number)) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            return;
+        }
+
+        try {
+
+            long timestamp = ((Number) value).longValue();
+            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            LocalDate today = LocalDate.now();
+            LocalDate sixYearsAgo = today.minusYears(6);
+
+            if (date.isAfter(today) || date.isBefore(sixYearsAgo)) {
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.education.start.incorrect"));
+            }
+
+        } catch (Exception e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        }
+    }
+
+    public void validateDateOfEducationEnd(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (!updatedData.containsKey(fieldName)) {
+            return;
+        }
+
+        Object value = updatedData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (!(value instanceof Number)) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            return;
+        }
+
+        try {
+
+            long timestamp = ((Number) value).longValue();
+            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
+            LocalDate today = LocalDate.now();
+            LocalDate todayPlusOneDay = LocalDate.now().plusDays(1);
+            LocalDate sixYearsAhead = today.minusYears(6);
+
+            if (date.isBefore(todayPlusOneDay) || date.isAfter(sixYearsAhead)) {
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.education.end.incorrect"));
+            }
+
+
+        } catch (Exception e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        }
+    }
 }

@@ -85,17 +85,13 @@ public class AccountEntity {
     @Builder.Default
     private LocalDate dateOfBirth = LocalDate.now();
 
-//    @Column(name = "course_number")
-//    @Builder.Default
-//    private short courseNumber = 0;
-
     @Column(name = "date_of_education_start")
     @Builder.Default
-    private LocalDate dateOfEducationStart = LocalDate.now();
+    private LocalDate dateOfEducationStart = null;
 
     @Column(name = "date_of_education_end")
     @Builder.Default
-    private LocalDate dateOfEducationEnd = LocalDate.now();
+    private LocalDate dateOfEducationEnd = null;
 
     @Column(name = "is_accepted_privacy_policy")
     @Builder.Default

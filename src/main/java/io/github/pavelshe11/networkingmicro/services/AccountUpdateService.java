@@ -174,6 +174,44 @@ public class AccountUpdateService {
 //            }
 //        }
 
+        if (normalizedData.containsKey("dateOfEducationStart")) {
+            log.info("Обновление dateOfEducationStart");
+
+            Object dobRaw = normalizedData.get("dateOfEducationStart");
+
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
+
+                LocalDate dateOfEducationStart = Instant.ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                account.setDateOfEducationStart(dateOfEducationStart);
+            } else {
+                account.setDateOfEducationStart(null);
+            }
+        }
+
+        if (normalizedData.containsKey("dateOfEducationEnd")) {
+            log.info("Обновление dateOfEducationEnd");
+
+            Object dobRaw = normalizedData.get("dateOfEducationEnd");
+
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
+
+                LocalDate dateOfEducationEnd = Instant.ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
+                account.setDateOfEducationEnd(dateOfEducationEnd);
+            } else {
+                account.setDateOfEducationEnd(null);
+            }
+        }
+
         log.info("Сохранение аккаунта {}", accountId);
         accountRepository.save(account);
     }

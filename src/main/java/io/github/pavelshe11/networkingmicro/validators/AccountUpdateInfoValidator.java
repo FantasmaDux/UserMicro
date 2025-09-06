@@ -31,6 +31,12 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("dateOfBirth")) {
             commonFieldsValidator.validateDateOfBirth("dateOfBirth", updatedData, errors);
         }
+        if (updatedData.containsKey("dateOfEducationStart")) {
+            commonFieldsValidator.validateDateOfEducationStart("dateOfEducationStart", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfEducationEnd")) {
+            commonFieldsValidator.validateDateOfEducationEnd("dateOfEducationEnd", updatedData, errors);
+        }
         if (updatedData.containsKey("professor")) {
             commonFieldsValidator.validateBooleanField("professor", updatedData, errors);
         }
