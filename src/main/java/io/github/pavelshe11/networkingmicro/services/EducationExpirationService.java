@@ -1,7 +1,6 @@
 package io.github.pavelshe11.networkingmicro.services;
 
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
-import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
@@ -15,12 +14,12 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class CourseIncrementService {
+public class EducationExpirationService {
 
-    private final Logger log = LoggerFactory.getLogger(CourseIncrementService.class);
+    private final Logger log = LoggerFactory.getLogger(EducationExpirationService.class);
     private final AccountRepository accountRepository;
 
-    @Scheduled(cron = "${INCREMENT_COURSE_TIME}")
+    @Scheduled(cron = "${ACCOUNT_EDUCATION_END_CHECK}")
     @Transactional
     public void courseYearIncrement() {
         log.info("Вызван метод courseYearIncrement()");
