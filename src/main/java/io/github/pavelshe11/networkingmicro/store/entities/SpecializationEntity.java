@@ -14,7 +14,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "specialization")
+@Table(name = "specialization", indexes = {
+        @Index(name = "idx_specialization_name_id", columnList = "name, id")
+})
 public class SpecializationEntity {
 
     @Id
