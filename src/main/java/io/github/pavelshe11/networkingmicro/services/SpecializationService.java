@@ -42,15 +42,22 @@ public class SpecializationService {
 
         EducationalInstitutionEntity educationalInstitution = educationalInstitutionOpt.get();
 
-        List<SpecializationsByInstitutionDto.SpecializationByInstitutionDto> specializations =
+        List<SpecializationsDto> specializations =
                 educationalInstitution.getInstitutionSpecialties().stream()
                         .map(InstitutionSpecialtiesEntity::getSpecialization)
-                        .map(specialization -> SpecializationsByInstitutionDto
-                                .SpecializationByInstitutionDto.builder()
-                                .id(specialization.getId())
-                                .name(specialization.getName())
-//                                .countOfCourses(specialization.getCountOfCourses())
-                                .build())
+                        .map(specialization ->
+                        {
+                            String fullCode = specialization.getSpecializationCode();
+                            String trimmedCode = fullCode.contains(".")
+                                    ? fullCode.substring(fullCode.indexOf('.') + 1)
+                                    : fullCode;
+
+                            return SpecializationsDto.builder()
+                                    .id(specialization.getId())
+                                    .code(trimmedCode)
+                                    .name(specialization.getName())
+                                    .build();
+                        })
                         .toList();
 
         return SpecializationsByInstitutionDto.builder()

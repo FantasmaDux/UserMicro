@@ -19,24 +19,6 @@ public class SpecializationsByInstitutionDto {
     @NotNull
     @Schema(description = "Список специализаций в ВУЗе")
     @Valid
-    private List<SpecializationByInstitutionDto> specializationsByInstitution;
+    private List<SpecializationsDto> specializationsByInstitution;
 
-    @Data
-    @Builder
-    @AllArgsConstructor
-    @NoArgsConstructor
-    @Schema(description = "Структура специализации")
-    public static class SpecializationByInstitutionDto {
-        @NotNull
-        @Schema(description = "ID специализации")
-        private UUID id;
-
-        @NotNull
-        @Schema(description = "Название специализации")
-        private String name;
-
-        @NotNull
-        @Schema(description = "Количество курсов")
-        private int countOfCourses;
-    }
 }
