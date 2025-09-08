@@ -7,6 +7,7 @@ import io.github.pavelshe11.networkingmicro.services.SpecializationService;
 import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -51,9 +52,14 @@ public class SpecializationController {
     )
     @GetMapping(value = "/specializations", produces = "application/json")
     public Slice<SpecializationsDto> getSpecializations(
+            @Parameter(description = "ID ВУЗа для поиска")
             @RequestParam(required = false) UUID institutionId,
+            @Parameter(description = "Код специальности или название")
             @RequestParam(required = false) String keyword,
+            @Parameter(description = "Курсор для постраничного вывода (name и id специальности " +
+                    "последнего элемента прошлого ответа)")
             @RequestParam(required = false) String cursor,
+            @Parameter(description = "Размер вывода. По дефолту 10")
             @RequestParam(name = "size", defaultValue = "10") int pageSize) {
         return specializationService.getSpecializations(institutionId, keyword, cursor, pageSize);
     }

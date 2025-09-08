@@ -17,7 +17,7 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     @Query(value = """
             SELECT 
                 s.id,
-                substring(s.specialization_code FROM '^[0-9]+\\\\.(.+)$') AS code,
+                regexp_replace(s.specialization_code, '^[0-9]+\\\\.', '') AS code,
                 s.name
             FROM specialization s
             LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id 
