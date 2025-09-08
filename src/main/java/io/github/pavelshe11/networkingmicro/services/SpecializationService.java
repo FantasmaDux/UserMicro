@@ -3,9 +3,12 @@ package io.github.pavelshe11.networkingmicro.services;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsByInstitutionDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.InstitutionNotFoundException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.SpecializationNotFoundException;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.InstitutionSpecialtiesEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.InstitutionSpecialtiesRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -28,6 +31,7 @@ public class SpecializationService {
     Logger log = LoggerFactory.getLogger(SpecializationService.class);
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final SpecializationRepository specializationRepository;
+    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
 
     @Transactional
     public SpecializationsByInstitutionDto getSpecializationsByInstitution(UUID institutionId) {
@@ -101,5 +105,30 @@ public class SpecializationService {
 
         return new SliceImpl<>(result, PageRequest.of(0, size), hasNext);
 
+    }
+
+    public void createSpecializationInstitutionRelation(UUID educational_institution_id,
+                                                        UUID specialization_id) {
+
+        Optional<EducationalInstitutionEntity> educationalInstitution =
+                educationalInstitutionRepository.findById(educational_institution_id);
+
+        if (educationalInstitution.isEmpty()) {
+            throw new InstitutionNotFoundException();
+        }
+
+        Optional<SpecializationEntity> specialization =
+                specializationRepository.findById(specialization_id);
+
+        if (specialization.isEmpty()) {
+            throw new SpecializationNotFoundException();
+        }
+
+        InstitutionSpecialtiesEntity institutionSpecialties = InstitutionSpecialtiesEntity.builder()
+                .educationalInstitution(educationalInstitution.get())
+                .specialization(specialization.get())
+                .build();
+
+        institutionSpecialtiesRepository.save(institutionSpecialties);
     }
 }

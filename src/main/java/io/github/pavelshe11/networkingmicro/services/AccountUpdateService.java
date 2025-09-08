@@ -44,6 +44,8 @@ public class AccountUpdateService {
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
+    private final SpecializationService specializationService;
 
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
@@ -61,7 +63,8 @@ public class AccountUpdateService {
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
                                 EducationalInstitutionRepository educationalInstitutionRepository,
-                                AccountContactInfoRepository accountContactInfoRepository) {
+                                AccountContactInfoRepository accountContactInfoRepository,
+                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository, SpecializationService specializationService) {
         this.accountRepository = accountRepository;
         this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
@@ -73,6 +76,8 @@ public class AccountUpdateService {
         this.educationalInstitutionRepository = educationalInstitutionRepository;
         this.accountContactInfoRepository = accountContactInfoRepository;
         this.commonFieldsValidator = commonFieldsValidator;
+        this.institutionSpecialtiesRepository = institutionSpecialtiesRepository;
+        this.specializationService = specializationService;
     }
 
     @Transactional
@@ -145,14 +150,27 @@ public class AccountUpdateService {
         }
 
         if (normalizedData.containsKey("idSpecialization")) {
-            UUID cityId = UUID.fromString(normalizedData.get("idSpecialization").toString());
-            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(cityId);
+            UUID specializationId = UUID.fromString(normalizedData.get("idSpecialization").toString());
+            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(specializationId);
             if (specializationOpt.isEmpty()) {
                 log.error("Нет специализации с таким id");
                 throw new SpecializationNotFoundException();
             }
             SpecializationEntity specialization = specializationOpt.get();
             account.setSpecialization(specialization);
+
+            EducationalInstitutionEntity educationalInstitution =
+                    account.getEducationalInstitution();
+            boolean relationExists = institutionSpecialtiesRepository
+                    .existsByEducationalInstitutionIdAndSpecializationId(educationalInstitution.getId(),
+                            specializationId);
+
+            if (!relationExists) {
+                specializationService.createSpecializationInstitutionRelation(educationalInstitution.getId(),
+                        specializationId);
+                log.info("Создана новая связь специализация-ВУЗ: {} - {}",
+                        specializationId, educationalInstitution.getId());
+            }
         }
 
         if (normalizedData.containsKey("isProfessor")) {
@@ -162,17 +180,6 @@ public class AccountUpdateService {
         if (normalizedData.containsKey("isConsulting")) {
             account.setConsulting((Boolean) normalizedData.get("isConsulting"));
         }
-
-//        if (normalizedData.containsKey("courseNumber")) {
-//            log.info("Обновление courseNumber");
-//            Object courseNumberObj = normalizedData.get("courseNumber");
-//            if (courseNumberObj instanceof Integer courseNum) {
-//                account.setCourseNumber(courseNum.shortValue());
-//            } else if (courseNumberObj instanceof String courseNumStr) {
-//                short parsedShort = Short.parseShort(courseNumStr);
-//                account.setCourseNumber(parsedShort);
-//            }
-//        }
 
         if (normalizedData.containsKey("dateOfEducationStart")) {
             log.info("Обновление dateOfEducationStart");

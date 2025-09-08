@@ -10,4 +10,6 @@ import java.util.UUID;
 public interface InstitutionSpecialtiesRepository extends JpaRepository<InstitutionSpecialtiesEntity, UUID> {
 
     boolean existsByEducationalInstitutionAndSpecialization(EducationalInstitutionEntity institution, SpecializationEntity specialization);
+
+    boolean existsByEducationalInstitutionIdAndSpecializationId(UUID id, UUID specializationId);
 }
