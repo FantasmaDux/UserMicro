@@ -92,6 +92,7 @@ public class SpecializationDataInitializer implements ApplicationRunner {
                     if (!specializationRepository.existsByName(name)) {
                         SpecializationEntity entity = SpecializationEntity.builder()
                                 .specializationCode(code.trim())
+                                .cleanCode(extractCodeClean(code.trim()))
                                 .name(name)
                                 .specializationLevel(currentSpecializationLevel)
                                 .build();
@@ -111,5 +112,13 @@ public class SpecializationDataInitializer implements ApplicationRunner {
     // для пропуска подразделов специальностей
     private boolean isValidCode(String code) {
         return code != null && code.matches("^\\d{1,2}(\\.\\d{2}){3}$");
+    }
+
+    // отсечение раздела в коде
+    private String extractCodeClean(String code) {
+        if (code == null) return null;
+        int dotIndex = code.indexOf('.');
+        if (dotIndex == -1 || dotIndex == code.length() - 1) return code;
+        return code.substring(dotIndex + 1);
     }
 }

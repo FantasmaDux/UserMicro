@@ -70,8 +70,8 @@ public class SpecializationService {
     }
 
     public Slice<SpecializationsDto> getSpecializations(UUID institutionId,
-                                                                     String keyword,
-                                                                     String cursor, int size) {
+                                                        String keyword,
+                                                        String cursor, int size) {
         String cursorName = null;
         UUID cursorId = null;
 
@@ -82,13 +82,95 @@ public class SpecializationService {
             cursorId = UUID.fromString(parts[1]);
         }
 
-        List<Object[]> rows = specializationRepository.findSpecializationsWithKeysetPagination(
-                institutionId,
-                keyword,
-                cursorName,
-                cursorId,
-                size + 1
-        );
+        List<Object[]> rows;
+
+        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
+        boolean isCode = hasKeyword && keyword.matches(".*\\d.*");
+        boolean isName = hasKeyword && keyword.matches(".*[а-яА-Яa-zA-Z].*");
+        boolean hasInstitution = institutionId != null;
+
+        if (!isCode && !isName) {
+            rows = specializationRepository.findAllSpecializationsWithKeysetPagination(
+                    cursorName,
+                    cursorId,
+                    size + 1
+            );
+        } else if (isCode && !isName) {
+            if (hasInstitution) {
+                rows = specializationRepository.findByInstitutionWithCode(
+                        institutionId,
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+                if (rows.isEmpty()) {
+                    rows = specializationRepository.findByCodeWithoutInstitution(
+                            keyword,
+                            cursorName,
+                            cursorId,
+                            size + 1
+                    );
+                }
+            } else {
+                rows = specializationRepository.findByCodeWithoutInstitution(
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+            }
+        } else if (!isCode && isName) {
+            if (hasInstitution) {
+                rows = specializationRepository.findByInstitutionWithName(
+                        institutionId,
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+                if (rows.isEmpty()) {
+                    rows = specializationRepository.findByNameWithoutInstitution(
+                            keyword,
+                            cursorName,
+                            cursorId,
+                            size + 1
+                    );
+                }
+            } else {
+                rows = specializationRepository.findByNameWithoutInstitution(
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+            }
+        } else {
+            if (hasInstitution) {
+                rows = specializationRepository.findByInstitutionWithCodeOrName(
+                        institutionId,
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+                if (rows.isEmpty()) {
+                    rows = specializationRepository.findByCodeOrNameWithoutInstitution(
+                            keyword,
+                            cursorName,
+                            cursorId,
+                            size + 1
+                    );
+                }
+            } else {
+                rows = specializationRepository.findByCodeOrNameWithoutInstitution(
+                        keyword,
+                        cursorName,
+                        cursorId,
+                        size + 1
+                );
+            }
+        }
 
         boolean hasNext = rows.size() > size;
         if (hasNext) {

@@ -15,7 +15,8 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "specialization", indexes = {
-        @Index(name = "idx_specialization_name_id", columnList = "name, id")
+        @Index(name = "idx_specialization_name_id", columnList = "name, id"),
+        @Index(name = "idx_specialization_code_clean", columnList = "code_clean")
 })
 public class SpecializationEntity {
 
@@ -30,6 +31,9 @@ public class SpecializationEntity {
 //    @Column(name = "specialization_code", nullable = false)
     @Column(name = "specialization_code")
     private String specializationCode;
+
+    @Column(name = "clean_code")
+    private String cleanCode;
 
 //    @Column(name = "specialization_level", nullable = false)
     @Column(name = "specialization_level")

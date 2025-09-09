@@ -15,32 +15,149 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     Optional<SpecializationEntity> findByName(String specializationName);
 
     @Query(value = """
-            SELECT 
-                s.id,
-                regexp_replace(s.specialization_code, '^[0-9]+\\\\.', '') AS code,
-                s.name
-            FROM specialization s
-            LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id 
-            LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
-            WHERE (:institutionId IS NULL OR ei.id = :institutionId)
-              AND (:keyword IS NULL 
-                    OR s.name ILIKE CONCAT('%', :keyword, '%')
-                    OR s.specialization_code ILIKE CONCAT('%', :keyword, '%'))
-              AND (
-                          (
-                            :cursorName IS NULL
-                            OR (s.name > :cursorName)
-                            OR (s.name = :cursorName AND s.id > :cursorId)
-                          )
-              )
-            ORDER BY s.name, s.id
-            LIMIT :size
-            """, nativeQuery = true)
-    List<Object[]> findSpecializationsWithKeysetPagination(
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    WHERE (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findAllSpecializationsWithKeysetPagination(
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
+    LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
+    WHERE ei.id = :institutionId
+      AND s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByInstitutionWithCode(
             @Param("institutionId") UUID institutionId,
             @Param("keyword") String keyword,
             @Param("cursorName") String cursorName,
             @Param("cursorId") UUID cursorId,
             @Param("size") int size
     );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    WHERE s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByCodeWithoutInstitution(
+            @Param("keyword") String keyword,
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
+    LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
+    WHERE ei.id = :institutionId
+      AND LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByInstitutionWithName(
+            @Param("institutionId") UUID institutionId,
+            @Param("keyword") String keyword,
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByNameWithoutInstitution(
+            @Param("keyword") String keyword,
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+    LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
+    LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
+    WHERE ei.id = :institutionId
+      AND (s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+           OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByInstitutionWithCodeOrName(
+            @Param("institutionId") UUID institutionId,
+            @Param("keyword") String keyword,
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
+    @Query(value = """
+    SELECT s.id,
+           s.clean_code AS code,
+           s.name
+    FROM specialization s
+            WHERE
+  (s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+   OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+  AND (:cursorName IS NULL
+       OR s.name > :cursorName
+       OR (s.name = :cursorName AND s.id > :cursorId))
+    ORDER BY s.name, s.id
+    LIMIT :size
+    """, nativeQuery = true)
+    List<Object[]> findByCodeOrNameWithoutInstitution(
+            @Param("keyword") String keyword,
+            @Param("cursorName") String cursorName,
+            @Param("cursorId") UUID cursorId,
+            @Param("size") int size
+    );
+
 }

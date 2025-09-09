@@ -54,10 +54,12 @@ public class SpecializationController {
     public Slice<SpecializationsDto> getSpecializations(
             @Parameter(description = "ID ВУЗа для поиска")
             @RequestParam(required = false) UUID institutionId,
-            @Parameter(description = "Код специальности или название")
+            @Parameter(description = "Код специальности или название",
+            example = "08.03 или информатика")
             @RequestParam(required = false) String keyword,
-            @Parameter(description = "Курсор для постраничного вывода (name и id специальности " +
-                    "последнего элемента прошлого ответа)")
+            @Parameter(description = "Курсор для постраничного вывода (Содержит Base64 из name и id специальности " +
+                    "последнего элемента прошлого ответа).",
+            example = "0JDQvdC40YbQsNC80L7QstCwLGZjZDJjMGFmLWY5YzYtNGNhZi05MWQyLWE1N2M2ZjdkMmI2NQ==")
             @RequestParam(required = false) String cursor,
             @Parameter(description = "Размер вывода. По дефолту 10")
             @RequestParam(name = "size", defaultValue = "10") int pageSize) {
