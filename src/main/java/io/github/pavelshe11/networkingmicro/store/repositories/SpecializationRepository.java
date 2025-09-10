@@ -39,7 +39,7 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
     LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
     WHERE ei.id = :institutionId
-      AND s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+      AND s.clean_code LIKE :keyword
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
@@ -59,7 +59,7 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
            s.clean_code AS code,
            s.name
     FROM specialization s
-    WHERE s.clean_code LIKE (CONCAT('%', :keyword, '%'))
+    WHERE s.clean_code LIKE :keyword
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
@@ -81,7 +81,7 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
     LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
     WHERE ei.id = :institutionId
-      AND LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+      AND LOWER(s.name) LIKE LOWER(:keyword)
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
@@ -101,7 +101,7 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
            s.clean_code AS code,
            s.name
     FROM specialization s
-    WHERE LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%'))
+    WHERE LOWER(s.name) LIKE LOWER(:keyword)
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
@@ -123,8 +123,8 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
     LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
     WHERE ei.id = :institutionId
-      AND (s.clean_code LIKE (CONCAT('%', :keyword, '%'))
-           OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
+      AND (s.clean_code LIKE :codePattern
+           OR LOWER(s.name) LIKE LOWER(:namePattern))
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
@@ -133,7 +133,8 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     """, nativeQuery = true)
     List<Object[]> findByInstitutionWithCodeOrName(
             @Param("institutionId") UUID institutionId,
-            @Param("keyword") String keyword,
+            @Param("codePattern") String codePattern,
+            @Param("namePattern") String namePattern,
             @Param("cursorName") String cursorName,
             @Param("cursorId") UUID cursorId,
             @Param("size") int size
@@ -144,17 +145,18 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
            s.clean_code AS code,
            s.name
     FROM specialization s
-            WHERE
-  (s.clean_code LIKE (CONCAT('%', :keyword, '%'))
-   OR LOWER(s.name) LIKE LOWER(CONCAT('%', :keyword, '%')))
-  AND (:cursorName IS NULL
-       OR s.name > :cursorName
-       OR (s.name = :cursorName AND s.id > :cursorId))
+    WHERE
+      (s.clean_code LIKE :codePattern
+       OR LOWER(s.name) LIKE LOWER(:namePattern))
+      AND (:cursorName IS NULL
+           OR s.name > :cursorName
+           OR (s.name = :cursorName AND s.id > :cursorId))
     ORDER BY s.name, s.id
     LIMIT :size
     """, nativeQuery = true)
     List<Object[]> findByCodeOrNameWithoutInstitution(
-            @Param("keyword") String keyword,
+            @Param("codePattern") String codePattern,
+            @Param("namePattern") String namePattern,
             @Param("cursorName") String cursorName,
             @Param("cursorId") UUID cursorId,
             @Param("size") int size

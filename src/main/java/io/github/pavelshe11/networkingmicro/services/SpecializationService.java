@@ -23,6 +23,8 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 @Service
@@ -84,29 +86,36 @@ public class SpecializationService {
 
         List<Object[]> rows;
 
-        boolean hasKeyword = keyword != null && !keyword.trim().isEmpty();
-        boolean isCode = hasKeyword && keyword.matches(".*\\d.*");
-        boolean isName = hasKeyword && keyword.matches(".*[а-яА-Яa-zA-Z].*");
+        String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase();
+        normalizedKeyword = normalizedKeyword.replaceAll("\\s+", " ");
+        String searchPattern = "%" + normalizedKeyword.replace(" ", "%") + "%";
+
+        boolean hasDigit = normalizedKeyword.matches(".*\\d.*");
+        boolean hasLetter = normalizedKeyword.matches(".*[а-яА-Яa-zA-Z].*");
+
+        boolean isCode = hasDigit && !hasLetter;
+        boolean isName = hasLetter && !hasDigit;
+        boolean isCodeOrNameMixed = hasDigit && hasLetter;
         boolean hasInstitution = institutionId != null;
 
-        if (!isCode && !isName) {
+        if (!isCode && !isName && !hasInstitution && !isCodeOrNameMixed) {
             rows = specializationRepository.findAllSpecializationsWithKeysetPagination(
                     cursorName,
                     cursorId,
                     size + 1
             );
-        } else if (isCode && !isName) {
+        } else if (isCode && !isName && !isCodeOrNameMixed) {
             if (hasInstitution) {
                 rows = specializationRepository.findByInstitutionWithCode(
                         institutionId,
-                        keyword,
+                        searchPattern,
                         cursorName,
                         cursorId,
                         size + 1
                 );
                 if (rows.isEmpty()) {
                     rows = specializationRepository.findByCodeWithoutInstitution(
-                            keyword,
+                            searchPattern,
                             cursorName,
                             cursorId,
                             size + 1
@@ -114,24 +123,24 @@ public class SpecializationService {
                 }
             } else {
                 rows = specializationRepository.findByCodeWithoutInstitution(
-                        keyword,
+                        searchPattern,
                         cursorName,
                         cursorId,
                         size + 1
                 );
             }
-        } else if (!isCode && isName) {
+        } else if (!isCode && isName && !isCodeOrNameMixed) {
             if (hasInstitution) {
                 rows = specializationRepository.findByInstitutionWithName(
                         institutionId,
-                        keyword,
+                        searchPattern,
                         cursorName,
                         cursorId,
                         size + 1
                 );
                 if (rows.isEmpty()) {
                     rows = specializationRepository.findByNameWithoutInstitution(
-                            keyword,
+                            searchPattern,
                             cursorName,
                             cursorId,
                             size + 1
@@ -139,24 +148,39 @@ public class SpecializationService {
                 }
             } else {
                 rows = specializationRepository.findByNameWithoutInstitution(
-                        keyword,
+                        searchPattern,
                         cursorName,
                         cursorId,
                         size + 1
                 );
             }
         } else {
+            String codePart = "";
+            String namePart = normalizedKeyword;
+
+            Pattern codePatternRegex = Pattern.compile("\\d{2}\\.\\d{2}\\.\\d{2}");
+            Matcher matcher = codePatternRegex.matcher(normalizedKeyword);
+
+            if (matcher.find()) {
+                codePart = matcher.group();
+                namePart = normalizedKeyword.replace(codePart, "").trim();
+            }
+
+            String codeSearchPattern = "%" + codePart + "%";
+            String nameSearchPattern = "%" + namePart.replace(" ", "%") + "%";
             if (hasInstitution) {
                 rows = specializationRepository.findByInstitutionWithCodeOrName(
                         institutionId,
-                        keyword,
+                        codeSearchPattern,
+                        nameSearchPattern,
                         cursorName,
                         cursorId,
                         size + 1
                 );
                 if (rows.isEmpty()) {
                     rows = specializationRepository.findByCodeOrNameWithoutInstitution(
-                            keyword,
+                            codeSearchPattern,
+                            nameSearchPattern,
                             cursorName,
                             cursorId,
                             size + 1
@@ -164,7 +188,8 @@ public class SpecializationService {
                 }
             } else {
                 rows = specializationRepository.findByCodeOrNameWithoutInstitution(
-                        keyword,
+                        codeSearchPattern,
+                        nameSearchPattern,
                         cursorName,
                         cursorId,
                         size + 1

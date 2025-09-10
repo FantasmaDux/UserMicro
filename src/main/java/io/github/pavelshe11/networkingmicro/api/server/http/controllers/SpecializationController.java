@@ -55,7 +55,7 @@ public class SpecializationController {
             @Parameter(description = "ID ВУЗа для поиска")
             @RequestParam(required = false) UUID institutionId,
             @Parameter(description = "Код специальности или название",
-            example = "08.03 или информатика")
+            example = "08.03 информатика")
             @RequestParam(required = false) String keyword,
             @Parameter(description = "Курсор для постраничного вывода (Содержит Base64 из name и id специальности " +
                     "последнего элемента прошлого ответа).",
