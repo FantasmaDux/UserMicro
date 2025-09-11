@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,14 +13,9 @@ import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static io.github.pavelshe11.networkingmicro.constants.ValidationConstants.*;
 
@@ -37,22 +33,6 @@ public class CommonFieldsValidator {
 
     private boolean isRequired(String fieldName) {
         return REQUIRED_FIELDS.contains(fieldName);
-    }
-
-    protected void validateCourseNumberField(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
-        validateNumberField(fieldName, updatedData, errors);
-        Object value = updatedData.get(fieldName);
-        int courseNumber;
-
-        if (value instanceof Integer intValue) {
-            courseNumber = intValue;
-        } else {
-            return;
-        }
-
-        if (courseNumber > 6) {
-            errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
-        }
     }
 
     protected void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
@@ -282,6 +262,17 @@ public class CommonFieldsValidator {
 
         if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
             errors.add(new FieldErrorDto(fieldName, "Указано недопустимое время бездействия."));
+        }
+    }
+
+    public void validateVisibilityField(String fieldName, Map<String, Object> data, Set<FieldErrorDto> errors) {
+        if (data.containsKey(fieldName)) {
+            Object raw = data.get(fieldName);
+            try {
+                VisibilityType.valueOf(raw.toString().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                errors.add(new FieldErrorDto(fieldName, "Недопустимое значение: " + raw));
+            }
         }
     }
 }

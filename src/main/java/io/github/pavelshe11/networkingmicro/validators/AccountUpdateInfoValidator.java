@@ -37,6 +37,12 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("accountVisible")) {
             commonFieldsValidator.validateBooleanField("accountVisible", updatedData, errors);
         }
+        if (updatedData.containsKey("dateOfBirthVisible")) {
+            commonFieldsValidator.validateVisibilityField("dateOfBirthVisible", updatedData, errors);
+        }
+        if (updatedData.containsKey("cityVisible")) {
+            commonFieldsValidator.validateVisibilityField("cityVisible", updatedData, errors);
+        }
         if (updatedData.containsKey("bio")) {
             commonFieldsValidator.validateBioField("bio", updatedData, errors);
         }
