@@ -71,10 +71,10 @@ public class AccountInfoService {
             log.error("Аккаунта не существует.");
             throw new ServerAnswerException();
         }
-
-        Optional<ActivitySessionEntity> activitySessionOpt = activitySessionRepository.findById(accountId);
-
         AccountEntity account = accountOpt.get();
+
+        Optional<ActivitySessionEntity> activitySessionOpt = activitySessionRepository.findByAccount(account);
+
         ActivitySessionEntity inActivitySession = activitySessionOpt.get();
 
         String email = accountContactInfoRepository

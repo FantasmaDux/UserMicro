@@ -16,7 +16,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "specialization", indexes = {
         @Index(name = "idx_specialization_name_id", columnList = "name, id"),
-        @Index(name = "idx_specialization_code_clean", columnList = "code_clean")
+        @Index(name = "idx_specialization_code_clean", columnList = "clean_code")
 })
 public class SpecializationEntity {
 

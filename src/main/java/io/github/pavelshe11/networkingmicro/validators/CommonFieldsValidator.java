@@ -8,6 +8,7 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -38,22 +40,6 @@ public class CommonFieldsValidator {
         return REQUIRED_FIELDS.contains(fieldName);
     }
 
-    protected void validateCourseNumberField(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
-        validateNumberField(fieldName, updatedData, errors);
-        Object value = updatedData.get(fieldName);
-        int courseNumber;
-
-        if (value instanceof Integer intValue) {
-            courseNumber = intValue;
-        } else {
-            return;
-        }
-
-        if (courseNumber > 6) {
-            errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
-        }
-    }
-
     protected void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
         if (!updatedData.containsKey(fieldName)) {
             return;
@@ -65,26 +51,21 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof String)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-
-            long timestamp = ((Number) value).longValue();
-            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
+            LocalDate date = LocalDate.parse(value.toString());
             LocalDate today = LocalDate.now();
 
             if (date.isAfter(today)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
             }
 
-        } catch (Exception e) {
-            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        } catch (DateTimeParseException e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.date.format"));
         }
     }
 
@@ -285,18 +266,13 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof String)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-
-            long timestamp = ((Number) value).longValue();
-            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
+            LocalDate date = LocalDate.parse(value.toString());
             LocalDate today = LocalDate.now();
             LocalDate sixYearsAgo = today.minusYears(6);
 
@@ -304,7 +280,7 @@ public class CommonFieldsValidator {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.education.start.incorrect"));
             }
 
-        } catch (Exception e) {
+        } catch (DateTimeParseException e) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
         }
     }
@@ -320,23 +296,18 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof String)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-
-            long timestamp = ((Number) value).longValue();
-            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
+            LocalDate date = LocalDate.parse(value.toString());
             LocalDate today = LocalDate.now();
-            LocalDate todayPlusOneDay = LocalDate.now().plusDays(1);
-            LocalDate sixYearsAhead = today.minusYears(6);
+            LocalDate sixYearsAgo = today.minusYears(6);
+            LocalDate tomorrow = today.plusDays(1);
 
-            if (date.isAfter(todayPlusOneDay) || date.isBefore(sixYearsAhead)) {
+            if (date.isAfter(tomorrow) || date.isBefore(sixYearsAgo)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.education.end.incorrect"));
             }
 

@@ -25,9 +25,6 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("lastName")) {
             commonFieldsValidator.validateTextField("lastName", updatedData, errors);
         }
-        if (updatedData.containsKey("courseNumber")) {
-            commonFieldsValidator.validateCourseNumberField("courseNumber", updatedData, errors);
-        }
         if (updatedData.containsKey("dateOfBirth")) {
             commonFieldsValidator.validateDateOfBirth("dateOfBirth", updatedData, errors);
         }
