@@ -83,7 +83,7 @@ public class AccountEntity {
 
     @Column(name = "date_of_birth")
     @Builder.Default
-    private LocalDate dateOfBirth = null;
+    private LocalDate dateOfBirth = LocalDate.now();
 
     @Column(name = "date_of_education_start")
     @Builder.Default
