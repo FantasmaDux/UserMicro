@@ -9,6 +9,7 @@ import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountUpdateInfoValidator;
 import io.github.pavelshe11.networkingmicro.validators.CommonFieldsValidator;
@@ -27,7 +28,6 @@ import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -175,9 +175,34 @@ public class AccountUpdateService {
             account.setConsulting((Boolean) normalizedData.get("consulting"));
         }
 
-        if (normalizedData.containsKey("visible")) {
-            account.setVisible((Boolean) normalizedData.get("visible"));
+        if (normalizedData.containsKey("accountVisible")) {
+            account.setAccountVisible((Boolean) normalizedData.get("accountVisible"));
         }
+
+        if (normalizedData.containsKey("dateOfBirthVisibility")) {
+            Object raw = normalizedData.get("dateOfBirthVisibility");
+            try {
+                VisibilityType visibility = VisibilityType.valueOf(raw.toString().toUpperCase());
+                account.setDateOfBirthVisible(visibility);
+            } catch (IllegalArgumentException e) {
+                throw new FieldValidationException("validation.error", List.of(
+                        new FieldErrorDto("dateOfBirthVisibility", "Недопустимое значение: " + raw)
+                ));
+            }
+        }
+
+        if (normalizedData.containsKey("cityVisibility")) {
+            Object raw = normalizedData.get("cityVisibility");
+            try {
+                VisibilityType visibility = VisibilityType.valueOf(raw.toString().toUpperCase());
+                account.setCityVisible(visibility);
+            } catch (IllegalArgumentException e) {
+                throw new FieldValidationException("validation.error", List.of(
+                        new FieldErrorDto("cityVisibility", "Недопустимое значение: " + raw)
+                ));
+            }
+        }
+
 
         if (normalizedData.containsKey("inactivityTimeMs")) {
             log.info("Обновление inactivityTimeMs");

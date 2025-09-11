@@ -5,7 +5,7 @@ import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEnt
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
@@ -48,7 +48,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                     .account(account)
                     .contact(adminEmail)
                     .contactMethod(ContactMethodType.EMAIL)
-                    .visibility(ContactVisibilityType.PUBLIC)
+                    .visibility(VisibilityType.PUBLIC)
                     .modifiable(false)
                     .build();
 

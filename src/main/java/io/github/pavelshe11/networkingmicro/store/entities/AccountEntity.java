@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -70,9 +71,19 @@ public class AccountEntity {
     @Builder.Default
     private boolean admin = false;
 
-    @Column(name = "is_visible", nullable = false)
+    @Column(name = "is_account_visible", nullable = false)
     @Builder.Default
-    private boolean visible = false;
+    private boolean accountVisible = false;
+
+    @Column(name = "is_date_of_birth_visible", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private VisibilityType dateOfBirthVisible = VisibilityType.PRIVATE;
+
+    @Column(name = "is_city_visible", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private VisibilityType cityVisible = VisibilityType.PRIVATE;
 
     @Column(name = "is_consulting", nullable = false)
     @Builder.Default

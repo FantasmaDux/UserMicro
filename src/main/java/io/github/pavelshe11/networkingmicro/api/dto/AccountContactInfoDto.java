@@ -2,7 +2,7 @@ package io.github.pavelshe11.networkingmicro.api.dto;
 
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -51,7 +51,7 @@ public class AccountContactInfoDto {
                     "Возможные значения: PUBLIC, PRIVATE",
             example = "PUBLIC"
     )
-    private ContactVisibilityType visibility;
+    private VisibilityType visibility;
 
     @Schema(
             description = "Определяет, разрешено ли изменять контакт." +

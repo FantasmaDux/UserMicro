@@ -1,14 +1,12 @@
 package io.github.pavelshe11.networkingmicro.api.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
-import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
 
 @Data
 @Builder
@@ -30,7 +28,11 @@ public class AccountInfoDto {
     @Schema(description = "Является ли пользователь консультатном")
     private boolean consulting;
     @Schema(description = "Видим ли пользователь")
-    private boolean visible;
+    private boolean accountVisible;
+    @Schema(description = "Кому виден день рождения пользователя")
+    private VisibilityType dateOfBirthVisible;
+    @Schema(description = "Кому виден город пользователя")
+    private VisibilityType cityVisibile;
     @Schema(description = "День рождения пользователя", example = "2004-07-28")
     private LocalDate dateOfBirth;
     @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
