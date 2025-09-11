@@ -82,13 +82,13 @@ public class AccountController {
                                       "firstName": "test",
                                       "lastName": "test",
                                       "middleName": "test",
+                                      "bio": "Something about me",
                                       "professor": true,
                                       "consulting": true,
                                       "visible": true,
                                       "dateOfBirth": 1039899600,
                                       "idCity": "44c56ff4-7db4-411a-8d0f-c2f326ca3666",
-                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e",
-                                      "courseNumber": 3
+                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e"
                                     }
                                     """
                     )

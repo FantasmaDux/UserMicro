@@ -33,8 +33,6 @@ public class AccountInfoDto {
     private boolean visible;
     @Schema(description = "День рождения пользователя", example = "1039899600")
     private LocalDate dateOfBirth;
-    @Schema(description = "Курс пользователя")
-    private Short courseNumber;
 
     @Schema(description = "Название города пользователя")
     private String cityName;
