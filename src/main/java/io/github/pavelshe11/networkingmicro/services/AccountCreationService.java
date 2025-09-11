@@ -6,9 +6,11 @@ import io.github.pavelshe11.networking.grpc.ErrorProto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.ActivitySessionRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.github.pavelshe11.networkingmicro.util.HelperUtils;
 import io.github.pavelshe11.networkingmicro.validators.GrpcConvertor;
@@ -16,6 +18,8 @@ import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -27,6 +31,7 @@ public class AccountCreationService {
     private final AccountRepository accountRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final RegistrationValidator registrationValidator;
+    private final ActivitySessionRepository activitySessionRepository;
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
@@ -80,6 +85,13 @@ public class AccountCreationService {
             account.setEducationalInstitution(educationalInstitution);
 
             accountRepository.save(account);
+
+            ActivitySessionEntity activitySession = ActivitySessionEntity.builder()
+                    .account(account)
+                    .build();
+
+            activitySessionRepository.save(activitySession);
+
 
             AccountCreationProto.SuccessResponse success =
                     AccountCreationProto.SuccessResponse.newBuilder()
