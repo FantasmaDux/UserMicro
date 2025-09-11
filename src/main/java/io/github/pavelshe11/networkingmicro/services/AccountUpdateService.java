@@ -169,16 +169,12 @@ public class AccountUpdateService {
             }
         }
 
-        if (normalizedData.containsKey("professor")) {
-            account.setProfessor((Boolean) normalizedData.get("professor"));
+        if (normalizedData.containsKey("isProfessor")) {
+            account.setProfessor((Boolean) normalizedData.get("isProfessor"));
         }
 
-        if (normalizedData.containsKey("consulting")) {
-            account.setConsulting((Boolean) normalizedData.get("consulting"));
-        }
-
-        if (normalizedData.containsKey("visible")) {
-            account.setVisible((Boolean) normalizedData.get("visible"));
+        if (normalizedData.containsKey("isConsulting")) {
+            account.setConsulting((Boolean) normalizedData.get("isConsulting"));
         }
 
         if (normalizedData.containsKey("dateOfEducationStart")) {
