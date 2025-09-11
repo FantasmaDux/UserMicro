@@ -79,14 +79,6 @@ public class AccountUpdateService {
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
         log.info("Начало обновления аккаунта: {}, данные: {}", accountId, updatedData);
 
-        Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
-
-        Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
-        if (!validationErrors.isEmpty()) {
-            log.error("Ошибка валидации данных: {}", validationErrors);
-            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
-        }
-
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
@@ -94,6 +86,32 @@ public class AccountUpdateService {
         }
 
         AccountEntity account = accountOpt.get();
+
+        Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
+
+        if (normalizedData.containsKey("updatedAt")) {
+            log.info("Проверка updatedAt на отложенное обновление");
+            Object raw = normalizedData.get("updatedAt");
+
+            if (raw != null) {
+                long incomingTimestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                Instant incomingUpdatedAt = Instant.ofEpochMilli(incomingTimestamp);
+                Instant currentUpdatedAt = account.getUpdatedAt();
+
+                if (!incomingUpdatedAt.isAfter(currentUpdatedAt)) {
+                    return;
+                }
+            }
+        }
+
+        Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
+        if (!validationErrors.isEmpty()) {
+            log.error("Ошибка валидации данных: {}", validationErrors);
+            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
+        }
 
         if (normalizedData.containsKey("firstName")) {
             account.setFirstName((String) normalizedData.get("firstName"));
@@ -159,17 +177,6 @@ public class AccountUpdateService {
 
         if (normalizedData.containsKey("visible")) {
             account.setVisible((Boolean) normalizedData.get("visible"));
-        }
-
-        if (normalizedData.containsKey("courseNumber")) {
-            log.info("Обновление courseNumber");
-            Object courseNumberObj = normalizedData.get("courseNumber");
-            if (courseNumberObj instanceof Integer courseNum) {
-                account.setCourseNumber(courseNum.shortValue());
-            } else if (courseNumberObj instanceof String courseNumStr) {
-                short parsedShort = Short.parseShort(courseNumStr);
-                account.setCourseNumber(parsedShort);
-            }
         }
 
         if (normalizedData.containsKey("inactivityTimeMs")) {

@@ -112,6 +112,10 @@ public class AccountEntity {
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
 
+    @Builder.Default
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
+
     // For two-way communication with FK
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<AccountContactInfoEntity> accountContactInfos;
