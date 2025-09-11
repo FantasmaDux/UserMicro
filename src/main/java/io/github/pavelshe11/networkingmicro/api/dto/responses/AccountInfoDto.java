@@ -32,7 +32,7 @@ public class AccountInfoDto {
     @Schema(description = "Кому виден день рождения пользователя")
     private VisibilityType dateOfBirthVisible;
     @Schema(description = "Кому виден город пользователя")
-    private VisibilityType cityVisibile;
+    private VisibilityType cityVisible;
     @Schema(description = "День рождения пользователя", example = "2004-07-28")
     private LocalDate dateOfBirth;
     @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
