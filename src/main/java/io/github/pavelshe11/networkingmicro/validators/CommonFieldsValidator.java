@@ -320,7 +320,7 @@ public class CommonFieldsValidator {
             LocalDate todayPlusOneDay = LocalDate.now().plusDays(1);
             LocalDate sixYearsAhead = today.minusYears(6);
 
-            if (date.isBefore(todayPlusOneDay) || date.isAfter(sixYearsAhead)) {
+            if (date.isAfter(todayPlusOneDay) || date.isBefore(sixYearsAhead)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.education.end.incorrect"));
             }
 
