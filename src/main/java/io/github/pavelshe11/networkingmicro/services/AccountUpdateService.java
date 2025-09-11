@@ -49,6 +49,10 @@ public class AccountUpdateService {
 
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
+    @Value("${MAX_INACTIVITY_PERIOD}")
+    private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}")
+    private long MIN_INACTIVITY_PERIOD;
 
     public AccountUpdateService(AccountRepository accountRepository,
                                 AccountUpdateInfoValidator accountUpdateInfoValidator,
@@ -200,19 +204,6 @@ public class AccountUpdateService {
                 account.setDateOfEducationEnd(date);
             } else {
                 account.setDateOfEducationEnd(null);
-            }
-        }
-
-        if (normalizedData.containsKey("inactivityTimeMs")) {
-            log.info("Обновление inactivityTimeMs");
-            Object dobRaw = normalizedData.get("inactivityTimeMs");
-
-            if (dobRaw != null) {
-                long timestamp = dobRaw instanceof Number
-                        ? ((Number) dobRaw).longValue()
-                        : Long.parseLong(dobRaw.toString());
-
-                setInactivityPeriod(accountId, timestamp);
             }
         }
 
@@ -417,6 +408,9 @@ public class AccountUpdateService {
     }
 
     public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
+        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
+            throw new SetInactivityMonthException();
+        }
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
 

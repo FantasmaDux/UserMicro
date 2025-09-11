@@ -43,9 +43,6 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("consulting")) {
             commonFieldsValidator.validateBooleanField("consulting", updatedData, errors);
         }
-        if (updatedData.containsKey("inactivityTimeMs")) {
-            commonFieldsValidator.validateInactivityTimeMs("inactivityTimeMs", updatedData, errors);
-        }
 
         if (updatedData.containsKey("bio")) {
             commonFieldsValidator.validateBioField("bio", updatedData, errors);

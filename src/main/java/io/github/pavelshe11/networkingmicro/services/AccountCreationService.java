@@ -18,8 +18,6 @@ import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -91,7 +89,6 @@ public class AccountCreationService {
                     .build();
 
             activitySessionRepository.save(activitySession);
-
 
             AccountCreationProto.SuccessResponse success =
                     AccountCreationProto.SuccessResponse.newBuilder()
