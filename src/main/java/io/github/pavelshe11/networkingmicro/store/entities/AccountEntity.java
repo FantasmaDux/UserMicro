@@ -104,7 +104,7 @@ public class AccountEntity {
     @Enumerated(EnumType.STRING)
     private MediaType mimetype;
 
-    @Column(name = "bio", length = 100)
+    @Column(name = "bio")
     @Builder.Default
     private String bio = "";
 
