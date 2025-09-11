@@ -117,16 +117,10 @@ public class AccountUpdateService {
         if (normalizedData.containsKey("dateOfBirth")) {
             log.info("Обновление dateOfBirth");
 
-            Object dobRaw = normalizedData.get("dateOfBirth");
+            Object raw = normalizedData.get("dateOfBirth");
 
-            if (dobRaw != null) {
-                long timestamp = dobRaw instanceof Number
-                        ? ((Number) dobRaw).longValue()
-                        : Long.parseLong(dobRaw.toString());
-
-                LocalDate dateOfBirth = Instant.ofEpochMilli(timestamp)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate();
+            if (raw != null) {
+                LocalDate dateOfBirth = LocalDate.parse(raw.toString());
                 account.setDateOfBirth(dateOfBirth);
             } else {
                 account.setDateOfBirth(null);

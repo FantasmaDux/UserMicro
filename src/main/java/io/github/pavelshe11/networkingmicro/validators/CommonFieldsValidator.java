@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeParseException;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -65,26 +66,21 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof String)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-
-            long timestamp = ((Number) value).longValue();
-            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
+            LocalDate date = LocalDate.parse(value.toString());
             LocalDate today = LocalDate.now();
 
             if (date.isAfter(today)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
             }
 
-        } catch (Exception e) {
-            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        } catch (DateTimeParseException e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.date.format"));
         }
     }
 
