@@ -118,10 +118,16 @@ public class AccountUpdateService {
         if (normalizedData.containsKey("dateOfBirth")) {
             log.info("Обновление dateOfBirth");
 
-            Object raw = normalizedData.get("dateOfBirth");
+            Object dobRaw = normalizedData.get("dateOfBirth");
 
-            if (raw != null) {
-                LocalDate dateOfBirth = LocalDate.parse(raw.toString());
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
+
+                LocalDate dateOfBirth = Instant.ofEpochMilli(timestamp)
+                        .atZone(ZoneId.systemDefault())
+                        .toLocalDate();
                 account.setDateOfBirth(dateOfBirth);
             } else {
                 account.setDateOfBirth(null);
@@ -203,12 +209,12 @@ public class AccountUpdateService {
 
         if (normalizedData.containsKey("inactivityTimeMs")) {
             log.info("Обновление inactivityTimeMs");
-            Object raw = normalizedData.get("inactivityTimeMs");
+            Object dobRaw = normalizedData.get("inactivityTimeMs");
 
-            if (raw != null) {
-                long timestamp = raw instanceof Number
-                        ? ((Number) raw).longValue()
-                        : Long.parseLong(raw.toString());
+            if (dobRaw != null) {
+                long timestamp = dobRaw instanceof Number
+                        ? ((Number) dobRaw).longValue()
+                        : Long.parseLong(dobRaw.toString());
 
                 setInactivityPeriod(accountId, timestamp);
             }

@@ -8,7 +8,6 @@ import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.cglib.core.Local;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
@@ -40,6 +39,22 @@ public class CommonFieldsValidator {
         return REQUIRED_FIELDS.contains(fieldName);
     }
 
+    protected void validateCourseNumberField(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        validateNumberField(fieldName, updatedData, errors);
+        Object value = updatedData.get(fieldName);
+        int courseNumber;
+
+        if (value instanceof Integer intValue) {
+            courseNumber = intValue;
+        } else {
+            return;
+        }
+
+        if (courseNumber > 6) {
+            errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
+        }
+    }
+
     protected void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
         if (!updatedData.containsKey(fieldName)) {
             return;
@@ -51,21 +66,26 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof String)) {
+        if (!(value instanceof Number)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-            LocalDate date = LocalDate.parse(value.toString());
+
+            long timestamp = ((Number) value).longValue();
+            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
+                    .atZone(ZoneId.systemDefault())
+                    .toLocalDate();
+
             LocalDate today = LocalDate.now();
 
             if (date.isAfter(today)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
             }
 
-        } catch (DateTimeParseException e) {
-            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.date.format"));
+        } catch (Exception e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
         }
     }
 
