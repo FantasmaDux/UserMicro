@@ -42,6 +42,10 @@ public class AccountUpdateInfoValidator {
             commonFieldsValidator.validateBioField("bio", updatedData, errors);
         }
 
+        if (updatedData.containsKey("inactivityTimeMs")) {
+            commonFieldsValidator.validateInactivityTimeMs("inactivityTimeMs", updatedData, errors);
+        }
+
         return errors;
     }
 }

@@ -174,6 +174,19 @@ public class AccountUpdateService {
             }
         }
 
+        if (normalizedData.containsKey("inactivityTimeMs")) {
+            log.info("Обновление inactivityTimeMs");
+            Object raw = normalizedData.get("inactivityTimeMs");
+
+            if (raw != null) {
+                long timestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                setInactivityPeriod(accountId, timestamp);
+            }
+        }
+
         log.info("Сохранение аккаунта {}", accountId);
         accountRepository.save(account);
     }
@@ -375,9 +388,6 @@ public class AccountUpdateService {
     }
 
     public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
-        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
-            throw new SetInactivityMonthException();
-        }
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
 

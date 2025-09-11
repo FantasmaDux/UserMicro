@@ -33,6 +33,8 @@ public class AccountInfoDto {
     private boolean visible;
     @Schema(description = "День рождения пользователя", example = "1039899600")
     private LocalDate dateOfBirth;
+    @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
+    private long inactivityTimeMs;
 
     @Schema(description = "Название города пользователя")
     private String cityName;

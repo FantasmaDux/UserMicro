@@ -8,8 +8,10 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
+import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
+import io.github.pavelshe11.networkingmicro.store.repositories.ActivitySessionRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +27,7 @@ public class AccountInfoService {
     private static final Logger log = LoggerFactory.getLogger(AccountInfoService.class);
     private final AccountRepository accountRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final ActivitySessionRepository activitySessionRepository;
 
     @Transactional
     public getAccountInfoProto.GetAccountInfoResponse.Builder getAccountInfoByEmail(String email) {
@@ -71,6 +74,10 @@ public class AccountInfoService {
 
         AccountEntity account = accountOpt.get();
 
+        Optional<ActivitySessionEntity> activitySessionOpt = activitySessionRepository.findByAccount(account);
+
+        ActivitySessionEntity inActivitySession = activitySessionOpt.get();
+
         String email = accountContactInfoRepository
                 .findById(account.getMainEmailContact().getId())
                 .map(AccountContactInfoEntity::getContact)
@@ -85,8 +92,8 @@ public class AccountInfoService {
                 .professor(account.isProfessor())
                 .visible(account.isVisible())
                 .consulting(account.isConsulting())
-                .courseNumber(account.getCourseNumber() != 0 ? account.getCourseNumber() : null)
                 .dateOfBirth(account.getDateOfBirth() != null ? account.getDateOfBirth() : null)
+                .inactivityTimeMs(inActivitySession.getInactivityTimeMs())
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)

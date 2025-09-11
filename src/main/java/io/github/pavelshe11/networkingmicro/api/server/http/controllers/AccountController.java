@@ -88,7 +88,8 @@ public class AccountController {
                                       "visible": true,
                                       "dateOfBirth": 1039899600,
                                       "idCity": "44c56ff4-7db4-411a-8d0f-c2f326ca3666",
-                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e"
+                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e",
+                                      "inactivityTimeMs": 2592000000
                                     }
                                     """
                     )
@@ -201,42 +202,6 @@ public class AccountController {
         UUID accountId = jwtUtil.claimAccountId();
 
         accountUpdateService.updateAvatar(accountId, request.getAvatar());
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Настройка периода бездействия аккаунта для удаления по ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Установлен период бездействия"),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Указано недопустимое время бездействия",
-                    content = @Content(
-                            schema = @Schema(implementation = ErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "Неверное значение поля",
-                                    summary = "Указано недопустимое время бездействия",
-                                    value = """
-                                            {
-                                              "error": "Неверное значение поля",
-                                              "detailedErrors": [
-                                                {
-                                                  "field": "inactivityTimeMs",
-                                                  "message": "Указано недопустимое время бездействия."
-                                                }
-                                              ]
-                                            }
-                                            """
-                            )
-                    )
-            )
-    })
-    @CommonApiResponses
-    @PatchMapping(value = "/set-inactivity", produces = "application/json")
-    public ResponseEntity<Void> setInactivityDeletionPeriod(
-            @RequestBody AccountInactivityRequestDto request
-    ) {
-        UUID accountId = jwtUtil.claimAccountId();
-        accountUpdateService.setInactivityPeriod(accountId, request.getInactivityTimeMs());
         return ResponseEntity.ok().build();
     }
 

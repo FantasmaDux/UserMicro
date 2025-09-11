@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
@@ -28,6 +29,10 @@ public class CommonFieldsValidator {
     private final AccountRepository accountRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private static final Logger log = LoggerFactory.getLogger(CommonFieldsValidator.class);
+    @Value("${MAX_INACTIVITY_PERIOD}")
+    private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}")
+    private long MIN_INACTIVITY_PERIOD;
 
     private boolean isRequired(String fieldName) {
         return REQUIRED_FIELDS.contains(fieldName);
@@ -255,6 +260,21 @@ public class CommonFieldsValidator {
     public void validateBioField(String bio, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
         if (bio.length() > BIO_FIELD_MAX_LENGTH) {
             errors.add(new FieldErrorDto("bio", "Поле 'О себе' не должно превышать 100 символов"));
+        }
+    }
+
+    public void validateInactivityTimeMs(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        Object value = updatedData.get(fieldName);
+
+        if (!(value instanceof Number)) {
+            errors.add(new FieldErrorDto(fieldName, "Значение должно быть числом."));
+            return;
+        }
+
+        long inactivityTimeMs = ((Number) value).longValue();
+
+        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
+            errors.add(new FieldErrorDto(fieldName, "Указано недопустимое время бездействия."));
         }
     }
 }
