@@ -175,7 +175,7 @@ public class CommonFieldsValidator {
     }
 
     protected void validateBooleanField(String fieldName,
-                                      Map<String, Object> userData, Set<FieldErrorDto> errors) {
+                                        Map<String, Object> userData, Set<FieldErrorDto> errors) {
         if (!userData.containsKey(fieldName)) {
             return;
         }
