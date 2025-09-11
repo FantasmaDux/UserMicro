@@ -179,26 +179,26 @@ public class AccountUpdateService {
             account.setAccountVisible((Boolean) normalizedData.get("accountVisible"));
         }
 
-        if (normalizedData.containsKey("dateOfBirthVisibility")) {
-            Object raw = normalizedData.get("dateOfBirthVisibility");
+        if (normalizedData.containsKey("dateOfBirthVisible")) {
+            Object raw = normalizedData.get("dateOfBirthVisible");
             try {
                 VisibilityType visibility = VisibilityType.valueOf(raw.toString().toUpperCase());
                 account.setDateOfBirthVisible(visibility);
             } catch (IllegalArgumentException e) {
                 throw new FieldValidationException("validation.error", List.of(
-                        new FieldErrorDto("dateOfBirthVisibility", "Недопустимое значение: " + raw)
+                        new FieldErrorDto("dateOfBirthVisible", "Недопустимое значение: " + raw)
                 ));
             }
         }
 
-        if (normalizedData.containsKey("cityVisibility")) {
-            Object raw = normalizedData.get("cityVisibility");
+        if (normalizedData.containsKey("cityVisible")) {
+            Object raw = normalizedData.get("cityVisible");
             try {
                 VisibilityType visibility = VisibilityType.valueOf(raw.toString().toUpperCase());
                 account.setCityVisible(visibility);
             } catch (IllegalArgumentException e) {
                 throw new FieldValidationException("validation.error", List.of(
-                        new FieldErrorDto("cityVisibility", "Недопустимое значение: " + raw)
+                        new FieldErrorDto("cityVisible", "Недопустимое значение: " + raw)
                 ));
             }
         }
