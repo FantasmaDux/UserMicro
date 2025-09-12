@@ -91,7 +91,7 @@ public class AccountInfoService {
                 .email(email)
                 .professor(account.isProfessor())
                 .accountVisible(account.isAccountVisible())
-                .cityVisibile(account.getCityVisible())
+                .cityVisible(account.getCityVisible())
                 .dateOfBirthVisible(account.getDateOfBirthVisible())
                 .consulting(account.isConsulting())
                 .dateOfBirth(account.getDateOfBirth() != null ? account.getDateOfBirth() : null)
