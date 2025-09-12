@@ -202,8 +202,8 @@ public class AccountUpdateService {
             }
         }
 
+        account.setUpdatedAt(Instant.now());
         log.info("Сохранение аккаунта {}", accountId);
-        accountRepository.save(account);
     }
 
     @Transactional
