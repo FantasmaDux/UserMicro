@@ -185,7 +185,7 @@ public class AccountController {
             )
     })
     @CommonApiResponses
-    @PatchMapping(value = "/confirmEmail", produces = "application/json")
+    @PatchMapping(value = "/email/confirm", produces = "application/json")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
         UUID accountId = jwtUtil.claimAccountId();
