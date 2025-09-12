@@ -85,7 +85,7 @@ public class AccountController {
                                       "bio": "Something about me",
                                       "professor": true,
                                       "consulting": true,
-                                      "accountVisible": true,
+                                      "networking": true,
                                       "dateOfBirthVisible": "PRIVATE",
                                       "cityVisible": "PRIVATE",
                                       "dateOfBirth": "2004-07-28",

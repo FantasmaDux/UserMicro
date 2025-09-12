@@ -175,8 +175,8 @@ public class AccountUpdateService {
             account.setConsulting((Boolean) normalizedData.get("consulting"));
         }
 
-        if (normalizedData.containsKey("accountVisible")) {
-            account.setAccountVisible((Boolean) normalizedData.get("accountVisible"));
+        if (normalizedData.containsKey("networking")) {
+            account.setNetworking((Boolean) normalizedData.get("networking"));
         }
 
         if (updatedData.containsKey("dateOfBirthVisible")) {

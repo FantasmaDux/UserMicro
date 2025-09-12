@@ -90,7 +90,7 @@ public class AccountInfoService {
                 .bio(nullIfBlank(account.getBio()))
                 .email(email)
                 .professor(account.isProfessor())
-                .accountVisible(account.isAccountVisible())
+                .networking(account.isNetworking())
                 .cityVisibile(account.getCityVisible())
                 .dateOfBirthVisible(account.getDateOfBirthVisible())
                 .consulting(account.isConsulting())

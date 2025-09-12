@@ -28,7 +28,7 @@ public class AccountInfoDto {
     @Schema(description = "Является ли пользователь консультатном")
     private boolean consulting;
     @Schema(description = "Видим ли пользователь")
-    private boolean accountVisible;
+    private boolean networking;
     @Schema(description = "Кому виден день рождения пользователя")
     private VisibilityType dateOfBirthVisible;
     @Schema(description = "Кому виден город пользователя")

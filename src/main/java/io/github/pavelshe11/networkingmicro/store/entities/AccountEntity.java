@@ -71,9 +71,9 @@ public class AccountEntity {
     @Builder.Default
     private boolean admin = false;
 
-    @Column(name = "is_account_visible", nullable = false)
+    @Column(name = "is_networking", nullable = false)
     @Builder.Default
-    private boolean accountVisible = false;
+    private boolean networking = false;
 
     @Column(name = "is_date_of_birth_visible", nullable = false)
     @Enumerated(EnumType.STRING)
