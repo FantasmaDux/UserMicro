@@ -3,8 +3,8 @@ package io.github.pavelshe11.networkingmicro.services;
 import com.google.protobuf.Value;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.AccountNotFoundException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.AvatarNotFoundException;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -69,7 +69,7 @@ public class AccountInfoService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         AccountEntity account = accountOpt.get();
@@ -109,7 +109,7 @@ public class AccountInfoService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
         AccountEntity account = accountOpt.get();
 

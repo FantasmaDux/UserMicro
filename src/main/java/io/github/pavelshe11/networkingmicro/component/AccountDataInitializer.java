@@ -36,7 +36,7 @@ public class AccountDataInitializer implements ApplicationRunner {
             AccountEntity account = AccountEntity.builder()
                     .admin(true)
                     .educationalInstitution(educationalInstitution)
-                    .accountVisible(true)
+                    .networking(true)
                     .cityVisible(VisibilityType.PRIVATE)
                     .dateOfBirthVisible(VisibilityType.PRIVATE)
                     .ip("1.1.1.1")

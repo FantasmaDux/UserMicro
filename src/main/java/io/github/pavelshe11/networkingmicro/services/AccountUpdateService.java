@@ -82,7 +82,7 @@ public class AccountUpdateService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         AccountEntity account = accountOpt.get();
@@ -223,7 +223,7 @@ public class AccountUpdateService {
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
@@ -313,7 +313,7 @@ public class AccountUpdateService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         if (avatarFile == null || avatarFile.isEmpty()) {
@@ -408,7 +408,7 @@ public class AccountUpdateService {
 
         if (accountOpt.isEmpty()) {
             log.error("Аккаунт при установке периода бездействия не найден");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         AccountEntity account = accountOpt.get();
