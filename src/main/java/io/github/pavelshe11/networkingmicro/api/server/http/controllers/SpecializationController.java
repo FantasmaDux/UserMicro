@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationPageDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsByInstitutionDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsDto;
 import io.github.pavelshe11.networkingmicro.services.SpecializationService;
@@ -51,7 +52,7 @@ public class SpecializationController {
             description = "Список специализаций получен"
     )
     @GetMapping(value = "/specializations", produces = "application/json")
-    public Slice<SpecializationsDto> getSpecializations(
+    public SpecializationPageDto getSpecializations(
             @Parameter(description = "ID ВУЗа для поиска")
             @RequestParam(required = false) UUID institutionId,
             @Parameter(description = "Код специальности или название",
