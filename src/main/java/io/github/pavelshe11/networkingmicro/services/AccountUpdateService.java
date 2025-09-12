@@ -349,7 +349,7 @@ public class AccountUpdateService {
 
             AccountEntity account = accountOpt.get();
             account.setAvatar(avatarFile.getBytes());
-            account.setMimetype(mediaType);
+            account.setAvatarMimeType(mediaType);
         } catch (IOException e) {
             log.error("Тип mimeType не удалось определить " + e);
             throw new ServerAnswerException();

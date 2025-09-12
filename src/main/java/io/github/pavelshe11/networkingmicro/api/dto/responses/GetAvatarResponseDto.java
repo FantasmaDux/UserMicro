@@ -13,5 +13,5 @@ public class GetAvatarResponseDto {
     @Schema(description = "Аватар в байтах")
     private final byte[] avatar;
     @Schema(description = "Тип media")
-    private final String mimetype;
+    private final String avatarMimeType;
 }

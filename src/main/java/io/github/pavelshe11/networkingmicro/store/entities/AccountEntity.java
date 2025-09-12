@@ -111,9 +111,9 @@ public class AccountEntity {
     @Column(nullable = false)
     private String ip;
 
-    @Column(name = "mimetype")
+    @Column(name = "avatar_mimetype")
     @Enumerated(EnumType.STRING)
-    private MediaType mimetype;
+    private MediaType avatarMimeType;
 
     @Column(name = "bio")
     @Builder.Default

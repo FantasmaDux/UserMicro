@@ -2,7 +2,6 @@ package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
-import io.github.pavelshe11.networkingmicro.api.dto.requests.AccountInactivityRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
@@ -239,7 +238,7 @@ public class AccountController {
         GetAvatarResponseDto response = accountInfoService.getAvatar(accountId);
 
         return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType(response.getMimetype()))
+                .contentType(org.springframework.http.MediaType.parseMediaType(response.getAvatarMimeType()))
                 .body(response.getAvatar());
     }
 

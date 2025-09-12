@@ -119,8 +119,8 @@ public class AccountInfoService {
             throw new AvatarNotFoundException();
         }
 
-        String mimeType = account.getMimetype() != null
-                ? account.getMimetype().getMimetype()
+        String mimeType = account.getAvatarMimeType() != null
+                ? account.getAvatarMimeType().getMimetype()
                 : "application/octet-stream";
 
         return new GetAvatarResponseDto(avatar, mimeType);
