@@ -149,10 +149,10 @@ public class SpecializationService {
             namePart = normalizedKeyword.replace(codePart, "").trim();
         }
 
-        String codeSearchPattern = "%" + codePart + "%";
+        String codeSearchPattern = codePart;
         String nameSearchPattern = "%" + namePart.replace(" ", "%") + "%";
         if (hasInstitution) {
-            List<Object[]> rows = specializationRepository.findByInstitutionWithCodeOrName(
+            List<Object[]> rows = specializationRepository.findByInstitutionWithCodeAndName(
                     institutionId,
                     codeSearchPattern,
                     nameSearchPattern,
@@ -161,7 +161,7 @@ public class SpecializationService {
                     limit
             );
             if (rows.isEmpty()) {
-                return specializationRepository.findByCodeOrNameWithoutInstitution(
+                return specializationRepository.findByCodeAndNameWithoutInstitution(
                         codeSearchPattern,
                         nameSearchPattern,
                         cursorName,
@@ -171,7 +171,7 @@ public class SpecializationService {
             }
             return rows;
         } else {
-            return specializationRepository.findByCodeOrNameWithoutInstitution(
+            return specializationRepository.findByCodeAndNameWithoutInstitution(
                     codeSearchPattern,
                     nameSearchPattern,
                     cursorName,

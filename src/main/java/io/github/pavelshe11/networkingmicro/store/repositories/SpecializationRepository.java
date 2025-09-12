@@ -123,15 +123,15 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
     LEFT JOIN institution_specialties intspec ON intspec.specialization_id = s.id
     LEFT JOIN educational_institution ei ON ei.id = intspec.educational_institution_id
     WHERE ei.id = :institutionId
-      AND (s.clean_code LIKE :codePattern
-           OR LOWER(s.name) LIKE LOWER(:namePattern))
+      AND s.clean_code = :codePattern
+      AND LOWER(s.name) LIKE LOWER(:namePattern)
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
     ORDER BY s.name, s.id
     LIMIT :size
     """, nativeQuery = true)
-    List<Object[]> findByInstitutionWithCodeOrName(
+    List<Object[]> findByInstitutionWithCodeAndName(
             @Param("institutionId") UUID institutionId,
             @Param("codePattern") String codePattern,
             @Param("namePattern") String namePattern,
@@ -146,15 +146,15 @@ public interface SpecializationRepository extends JpaRepository<SpecializationEn
            s.name
     FROM specialization s
     WHERE
-      (s.clean_code LIKE :codePattern
-       OR LOWER(s.name) LIKE LOWER(:namePattern))
+      s.clean_code = :codePattern
+      AND LOWER(s.name) LIKE LOWER(:namePattern)
       AND (:cursorName IS NULL
            OR s.name > :cursorName
            OR (s.name = :cursorName AND s.id > :cursorId))
     ORDER BY s.name, s.id
     LIMIT :size
     """, nativeQuery = true)
-    List<Object[]> findByCodeOrNameWithoutInstitution(
+    List<Object[]> findByCodeAndNameWithoutInstitution(
             @Param("codePattern") String codePattern,
             @Param("namePattern") String namePattern,
             @Param("cursorName") String cursorName,
