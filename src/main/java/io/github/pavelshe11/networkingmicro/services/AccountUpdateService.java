@@ -44,6 +44,7 @@ public class AccountUpdateService {
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final AccountCleanerService accountCleanerService;
 
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
@@ -61,7 +62,7 @@ public class AccountUpdateService {
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
                                 EducationalInstitutionRepository educationalInstitutionRepository,
-                                AccountContactInfoRepository accountContactInfoRepository) {
+                                AccountContactInfoRepository accountContactInfoRepository, AccountCleanerService accountCleanerService) {
         this.accountRepository = accountRepository;
         this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
@@ -73,6 +74,7 @@ public class AccountUpdateService {
         this.educationalInstitutionRepository = educationalInstitutionRepository;
         this.accountContactInfoRepository = accountContactInfoRepository;
         this.commonFieldsValidator = commonFieldsValidator;
+        this.accountCleanerService = accountCleanerService;
     }
 
     @Transactional
@@ -426,6 +428,11 @@ public class AccountUpdateService {
         }
 
         activitySessionRepository.save(activitySession);
+        accountCleanerService.cleanInactiveAccounts(
+                accountId,
+                activitySession.getLastActivity().getTime() + inactivityTimeMs
+        );
+
     }
 
     @Transactional

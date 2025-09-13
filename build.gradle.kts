@@ -50,6 +50,8 @@ dependencies {
     implementation("org.apache.tika:tika-parsers-standard-package:3.2.2")
     implementation ("commons-validator:commons-validator:1.7")
     implementation ("com.googlecode.libphonenumber:libphonenumber:8.13.30")
+    // for quartz
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
 
     compileOnly("org.projectlombok:lombok")
     compileOnly ("org.apache.tomcat:annotations-api:6.0.53")

@@ -59,7 +59,7 @@ public class AccountEntity {
     @Builder.Default
     private String middleName = "";
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "main_email_contact", unique = true)
     private AccountContactInfoEntity mainEmailContact;
 

@@ -41,6 +41,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+  quartz:
+    job-store-type: jdbc
+    properties:
+      org.quartz.threadPool.threadCount: 5
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+
 management:
   endpoint:
     health:

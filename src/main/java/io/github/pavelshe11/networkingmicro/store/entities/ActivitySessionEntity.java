@@ -31,5 +31,6 @@ public class ActivitySessionEntity {
 
     @Column(name = "inactivity_time_ms", nullable = false)
     @Builder.Default
-    private long inactivityTimeMs = 6L * 30 * 24 * 60 * 60 * 1000;
+//    private long inactivityTimeMs = 6L * 30 * 24 * 60 * 60 * 1000;
+    private long inactivityTimeMs = 120000;
 }
