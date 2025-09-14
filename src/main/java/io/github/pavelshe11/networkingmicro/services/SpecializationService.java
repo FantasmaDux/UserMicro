@@ -4,6 +4,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationPage
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsByInstitutionDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsDto;
 import io.github.pavelshe11.networkingmicro.api.exceptions.InstitutionNotFoundException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.SpecializationNotFoundException;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.InstitutionSpecialtiesEntity;
@@ -78,10 +79,19 @@ public class SpecializationService {
         UUID cursorId = null;
 
         if (cursor != null && !cursor.isEmpty()) {
-            String decoded = new String(Base64.getDecoder().decode(cursor));
-            String[] parts = decoded.split("\\|", 2);
-            cursorName = parts[0];
-            cursorId = UUID.fromString(parts[1]);
+            try {
+
+                log.info("Получен cursor: [{}]", cursor);
+                String decoded = new String(Base64.getDecoder().decode(cursor));
+                log.info("Декодированный cursor: [{}]", decoded);
+                String[] parts = decoded.split("\\|", 2);
+                cursorName = parts[0];
+                cursorId = UUID.fromString(parts[1]);
+                log.info("Парсинг курсора прошёл успешно. cursorName: [{}], cursorId: [{}]", cursorName, cursorId);
+            } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+                log.warn("Ошибка при разборе параметра cursor: [{}]", cursor, e);
+                throw new ServerAnswerException();
+            }
         }
 
         String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase();
