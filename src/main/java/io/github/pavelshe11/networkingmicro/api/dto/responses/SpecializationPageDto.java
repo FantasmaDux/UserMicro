@@ -16,7 +16,7 @@ public class SpecializationPageDto extends PageDto<SpecializationsDto> {
 
     public static SpecializationPageDto ofByNameAndId(List<SpecializationsDto> content, int requestedSize) {
         PageDto<SpecializationsDto> page = PageDto.of(content, requestedSize, lastItem ->
-                PageDto.encodeCursor(lastItem.getName() + "," + lastItem.getId())
+                PageDto.encodeCursor(lastItem.getName() + "|" + lastItem.getId())
         );
 
         return new SpecializationPageDto(

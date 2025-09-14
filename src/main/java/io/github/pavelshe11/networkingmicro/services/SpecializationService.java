@@ -79,7 +79,7 @@ public class SpecializationService {
 
         if (cursor != null && !cursor.isEmpty()) {
             String decoded = new String(Base64.getDecoder().decode(cursor));
-            String[] parts = decoded.split(",", 2);
+            String[] parts = decoded.split("\\|", 2);
             cursorName = parts[0];
             cursorId = UUID.fromString(parts[1]);
         }
