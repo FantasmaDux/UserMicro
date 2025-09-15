@@ -3,6 +3,8 @@ package io.github.pavelshe11.networkingmicro.api.exceptions;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSource;
 import org.springframework.context.NoSuchMessageException;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -24,6 +26,7 @@ import java.util.UUID;
 @RestControllerAdvice
 public class CustomExceptionController {
     private final MessageSource messageSource;
+    private static final Logger log = LoggerFactory.getLogger(CustomExceptionController.class);
 
     private FieldErrorDto createFieldError(String field, String message, UUID objectId) {
         return objectId != null
@@ -57,13 +60,7 @@ public class CustomExceptionController {
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
     public ResponseEntity<ErrorDto> handleMethodNotSupported(HttpRequestMethodNotSupportedException ex) {
-//        String errorMessage = messageSource.getMessage(
-//                "page.not.found", null, LocaleContextHolder.getLocale()
-//        );
-//
-//        ErrorDto response = ErrorDto.builder()
-//                .error(errorMessage)
-//                .build();
+        log.error("Метод не поддерживается: ", ex);
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND).build();
@@ -71,13 +68,7 @@ public class CustomExceptionController {
 
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ErrorDto> handleNotFound(NoHandlerFoundException ex) {
-//        String errorMessage = messageSource.getMessage(
-//                "page.not.found", null, LocaleContextHolder.getLocale()
-//        );
-//
-//        ErrorDto response = ErrorDto.builder()
-//                .error(errorMessage)
-//                .build();
+        log.error("Произошла ошибка доступа к ресурсу: ", ex);
 
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND).build();
@@ -85,12 +76,7 @@ public class CustomExceptionController {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorDto> handleGeneralExceptions(Exception ex) {
-//        System.out.println(ex.getMessage());
-//        String errorMessage = messageSource.getMessage("server.inner.error", null, LocaleContextHolder.getLocale());
-//
-//        ErrorDto response = ErrorDto.builder()
-//                .error(errorMessage)
-//                .build();
+        log.error("Произошла ошибка сервера: ", ex);
 
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR).build();
@@ -141,6 +127,8 @@ public class CustomExceptionController {
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ErrorDto> handleJsonMappingException(HttpMessageNotReadableException ex) {
+        log.error("Произошла ошибка json запроса: ", ex);
+
         String errorText = resolveMessage("handle.error");
         String messageText = resolveMessage("request.invalid");
 
