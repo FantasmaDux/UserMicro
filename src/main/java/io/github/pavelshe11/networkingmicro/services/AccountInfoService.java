@@ -99,6 +99,7 @@ public class AccountInfoService {
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
+                .educationalInstitutionId(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getId() : null)
                 .build();
 
         return accountInfoDto;

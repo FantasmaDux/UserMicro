@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -44,4 +45,6 @@ public class AccountInfoDto {
     private String specializationName;
     @Schema(description = "Название домена пользователя")
     private String educationalInstitutionName;
+    @Schema(description = "ID учебного заведения")
+    private UUID educationalInstitutionId;
 }
