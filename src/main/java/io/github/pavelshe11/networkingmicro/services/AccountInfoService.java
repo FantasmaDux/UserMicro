@@ -19,7 +19,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -100,6 +103,8 @@ public class AccountInfoService {
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
                 .educationalInstitutionName(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getName() : null)
                 .educationalInstitutionId(account.getEducationalInstitution() != null ? account.getEducationalInstitution().getId() : null)
+                .specializationId(account.getSpecialization() != null ? account.getSpecialization().getId() : null)
+
                 .build();
 
         return accountInfoDto;

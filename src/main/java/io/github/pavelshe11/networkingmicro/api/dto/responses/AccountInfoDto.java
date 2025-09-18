@@ -47,4 +47,6 @@ public class AccountInfoDto {
     private String educationalInstitutionName;
     @Schema(description = "ID учебного заведения")
     private UUID educationalInstitutionId;
+    @Schema(description = "ID специализации")
+    private UUID specializationId;
 }
