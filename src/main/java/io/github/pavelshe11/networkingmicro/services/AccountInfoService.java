@@ -85,7 +85,10 @@ public class AccountInfoService {
                 .professor(account.isProfessor())
                 .visible(account.isVisible())
                 .consulting(account.isConsulting())
-                .courseNumber(account.getCourseNumber() != 0 ? account.getCourseNumber() : null)
+                .dateOfEducationStart(account.getDateOfEducationStart() != null ?
+                        account.getDateOfEducationStart() : null)
+                .dateOfEducationEnd(account.getDateOfEducationEnd() != null ?
+                        account.getDateOfEducationEnd() : null)
                 .dateOfBirth(account.getDateOfBirth() != null ? account.getDateOfBirth() : null)
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)
                 .specializationName(account.getSpecialization() != null ? account.getSpecialization().getName() : null)
