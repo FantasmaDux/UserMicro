@@ -36,6 +36,10 @@ public class AccountInfoDto {
     private VisibilityType cityVisible;
     @Schema(description = "День рождения пользователя", example = "2004-07-28")
     private LocalDate dateOfBirth;
+    @Schema(description = "День начала обучения пользователя", example = "2021-09-01")
+    private LocalDate dateOfEducationStart;
+    @Schema(description = "День конца обучения пользователя", example = "2025-09-01")
+    private LocalDate dateOfEducationEnd;
     @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
     private long inactivityTimeMs;
 

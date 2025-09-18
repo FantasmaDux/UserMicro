@@ -14,6 +14,7 @@ import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountUpdateInfoValidator;
 import io.github.pavelshe11.networkingmicro.validators.CommonFieldsValidator;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidator;
+import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.apache.tika.Tika;
 
 import java.io.IOException;
 import java.sql.Timestamp;
@@ -45,6 +45,8 @@ public class AccountUpdateService {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
     private final AccountCleanerService accountCleanerService;
+    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
+    private final SpecializationService specializationService;
 
     @Value("${MAX_AVATAR_SIZE}")
     private int MAX_AVATAR_SIZE_BYTES;
@@ -62,7 +64,10 @@ public class AccountUpdateService {
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
                                 EducationalInstitutionRepository educationalInstitutionRepository,
-                                AccountContactInfoRepository accountContactInfoRepository, AccountCleanerService accountCleanerService) {
+                                AccountContactInfoRepository accountContactInfoRepository,
+                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository,
+                                SpecializationService specializationService,
+                                AccountCleanerService accountCleanerService) {
         this.accountRepository = accountRepository;
         this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
@@ -75,6 +80,8 @@ public class AccountUpdateService {
         this.accountContactInfoRepository = accountContactInfoRepository;
         this.commonFieldsValidator = commonFieldsValidator;
         this.accountCleanerService = accountCleanerService;
+        this.institutionSpecialtiesRepository = institutionSpecialtiesRepository;
+        this.specializationService = specializationService;
     }
 
     @Transactional
@@ -159,14 +166,27 @@ public class AccountUpdateService {
         }
 
         if (normalizedData.containsKey("idSpecialization")) {
-            UUID cityId = UUID.fromString(normalizedData.get("idSpecialization").toString());
-            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(cityId);
+            UUID specializationId = UUID.fromString(normalizedData.get("idSpecialization").toString());
+            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(specializationId);
             if (specializationOpt.isEmpty()) {
                 log.error("Нет специализации с таким id");
                 throw new SpecializationNotFoundException();
             }
             SpecializationEntity specialization = specializationOpt.get();
             account.setSpecialization(specialization);
+
+            EducationalInstitutionEntity educationalInstitution =
+                    account.getEducationalInstitution();
+            boolean relationExists = institutionSpecialtiesRepository
+                    .existsByEducationalInstitutionIdAndSpecializationId(educationalInstitution.getId(),
+                            specializationId);
+
+            if (!relationExists) {
+                specializationService.createSpecializationInstitutionRelation(educationalInstitution.getId(),
+                        specializationId);
+                log.info("Создана новая связь специализация-ВУЗ: {} - {}",
+                        specializationId, educationalInstitution.getId());
+            }
         }
 
         if (normalizedData.containsKey("professor")) {
@@ -190,6 +210,31 @@ public class AccountUpdateService {
             account.setCityVisible(visibility);
         }
 
+        if (normalizedData.containsKey("dateOfEducationStart")) {
+            log.info("Обновление dateOfEducationStart");
+
+            Object raw = normalizedData.get("dateOfEducationStart");
+
+            if (raw != null) {
+                LocalDate date = LocalDate.parse(raw.toString());
+                account.setDateOfEducationStart(date);
+            } else {
+                account.setDateOfEducationStart(null);
+            }
+        }
+
+        if (normalizedData.containsKey("dateOfEducationEnd")) {
+            log.info("Обновление dateOfEducationEnd");
+
+            Object raw = normalizedData.get("dateOfEducationEnd");
+
+            if (raw != null) {
+                LocalDate date = LocalDate.parse(raw.toString());
+                account.setDateOfEducationEnd(date);
+            } else {
+                account.setDateOfEducationEnd(null);
+            }
+        }
 
         if (normalizedData.containsKey("inactivityTimeMs")) {
             log.info("Обновление inactivityTimeMs");

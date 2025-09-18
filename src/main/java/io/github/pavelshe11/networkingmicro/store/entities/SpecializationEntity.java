@@ -1,5 +1,6 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
+import io.github.pavelshe11.networkingmicro.store.enums.SpecializationLevelType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -13,7 +14,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "specialization")
+@Table(name = "specialization", indexes = {
+        @Index(name = "idx_specialization_name_id", columnList = "name, id"),
+        @Index(name = "idx_specialization_code_clean", columnList = "clean_code")
+})
 public class SpecializationEntity {
 
     @Id
@@ -24,8 +28,16 @@ public class SpecializationEntity {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Column(name = "count_of_courses", nullable = false)
-    private int countOfCourses;
+//    @Column(name = "specialization_code", nullable = false)
+    @Column(name = "specialization_code")
+    private String specializationCode;
+
+    @Column(name = "clean_code")
+    private String cleanCode;
+
+//    @Column(name = "specialization_level", nullable = false)
+    @Column(name = "specialization_level")
+    private SpecializationLevelType specializationLevel;
 
     @Builder.Default
     @Column(name = "created_at")

@@ -16,6 +16,10 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.*;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 
 import static io.github.pavelshe11.networkingmicro.constants.ValidationConstants.*;
 
@@ -273,6 +277,68 @@ public class CommonFieldsValidator {
             } catch (IllegalArgumentException e) {
                 errors.add(new FieldErrorDto(fieldName, "Недопустимое значение: " + raw));
             }
+        }
+    }
+
+    public void validateDateOfEducationStart(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (!updatedData.containsKey(fieldName)) {
+            return;
+        }
+
+        Object value = updatedData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (!(value instanceof String)) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            return;
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(value.toString());
+            LocalDate today = LocalDate.now();
+            LocalDate sixYearsAgo = today.minusYears(6);
+
+            if (date.isAfter(today) || date.isBefore(sixYearsAgo)) {
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.education.start.incorrect"));
+            }
+
+        } catch (DateTimeParseException e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        }
+    }
+
+    public void validateDateOfEducationEnd(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        if (!updatedData.containsKey(fieldName)) {
+            return;
+        }
+
+        Object value = updatedData.get(fieldName);
+
+        if (!isRequired(fieldName) && value == null) {
+            return;
+        }
+
+        if (!(value instanceof String)) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+            return;
+        }
+
+        try {
+            LocalDate date = LocalDate.parse(value.toString());
+            LocalDate today = LocalDate.now();
+            LocalDate sixYearsAgo = today.minusYears(6);
+            LocalDate tomorrow = today.plusDays(1);
+
+            if (date.isAfter(tomorrow) || date.isBefore(sixYearsAgo)) {
+                errors.add(createFieldErrorDto(fieldName, null, "date.of.education.end.incorrect"));
+            }
+
+
+        } catch (Exception e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
         }
     }
 }

@@ -97,6 +97,10 @@ public class AccountInfoService {
                 .cityVisible(account.getCityVisible())
                 .dateOfBirthVisible(account.getDateOfBirthVisible())
                 .consulting(account.isConsulting())
+                .dateOfEducationStart(account.getDateOfEducationStart() != null ?
+                        account.getDateOfEducationStart() : null)
+                .dateOfEducationEnd(account.getDateOfEducationEnd() != null ?
+                        account.getDateOfEducationEnd() : null)
                 .dateOfBirth(account.getDateOfBirth() != null ? account.getDateOfBirth() : null)
                 .inactivityTimeMs(inActivitySession.getInactivityTimeMs())
                 .cityName(account.getCity() != null ? account.getCity().getName() : null)

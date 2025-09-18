@@ -57,4 +57,9 @@ public class DataNormalisation {
             case LINK, PHONE -> trimmed;
         };
     }
+
+    public static String normalizeTextForComparison(String text) {
+        if (text == null) return null;
+        return text.trim().toLowerCase().replaceAll("\\s+", " ");
+    }
 }
