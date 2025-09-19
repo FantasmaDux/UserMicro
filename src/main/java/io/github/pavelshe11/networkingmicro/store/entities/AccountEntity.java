@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.store.entities;
 
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -58,7 +59,7 @@ public class AccountEntity {
     @Builder.Default
     private String middleName = "";
 
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "main_email_contact", unique = true)
     private AccountContactInfoEntity mainEmailContact;
 
@@ -70,9 +71,19 @@ public class AccountEntity {
     @Builder.Default
     private boolean admin = false;
 
-    @Column(name = "is_visible", nullable = false)
+    @Column(name = "is_networking", nullable = false)
     @Builder.Default
-    private boolean visible = false;
+    private boolean networking = false;
+
+    @Column(name = "is_date_of_birth_visible", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private VisibilityType dateOfBirthVisible = VisibilityType.PRIVATE;
+
+    @Column(name = "is_city_visible", nullable = false)
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private VisibilityType cityVisible = VisibilityType.PRIVATE;
 
     @Column(name = "is_consulting", nullable = false)
     @Builder.Default
@@ -83,7 +94,7 @@ public class AccountEntity {
 
     @Column(name = "date_of_birth")
     @Builder.Default
-    private LocalDate dateOfBirth = LocalDate.now();
+    private LocalDate dateOfBirth = null;
 
     @Column(name = "date_of_education_start")
     @Builder.Default
@@ -104,17 +115,21 @@ public class AccountEntity {
     @Column(nullable = false)
     private String ip;
 
-    @Column(name = "mimetype")
+    @Column(name = "avatar_mimetype")
     @Enumerated(EnumType.STRING)
-    private MediaType mimetype;
+    private MediaType avatarMimeType;
 
-    @Column(name = "bio", length = 100)
+    @Column(name = "bio")
     @Builder.Default
     private String bio = "";
 
     @Builder.Default
     @Column(name = "created_at")
     private Instant createdAt = Instant.now();
+
+    @Builder.Default
+    @Column(name = "updated_at")
+    private Instant updatedAt = Instant.now();
 
     // For two-way communication with FK
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
@@ -132,5 +147,6 @@ public class AccountEntity {
     @OneToMany(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private List<MatchWithInitiativeEntity> initiativeMatches;
 
-
+    @OneToOne(mappedBy = "account", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private ActivitySessionEntity activitySession;
 }

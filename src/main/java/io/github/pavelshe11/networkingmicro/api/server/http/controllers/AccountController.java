@@ -2,7 +2,6 @@ package io.github.pavelshe11.networkingmicro.api.server.http.controllers;
 
 import io.github.pavelshe11.networkingmicro.annotations.CommonApiResponses;
 import io.github.pavelshe11.networkingmicro.api.dto.ErrorDto;
-import io.github.pavelshe11.networkingmicro.api.dto.requests.AccountInactivityRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
@@ -82,14 +81,19 @@ public class AccountController {
                                       "firstName": "test",
                                       "lastName": "test",
                                       "middleName": "test",
+                                      "bio": "Something about me",
                                       "professor": true,
                                       "consulting": true,
-                                      "visible": true,
-                                      "dateOfBirth": 1039899600,
+                                      "networking": true,
+                                      "dateOfBirthVisible": "PRIVATE",
+                                      "cityVisible": "PRIVATE",
+                                      "dateOfBirth": "2004-07-28",
                                       "dateOfEducationStart": "2021-09-01",
                                       "dateOfEducationEnd": "2025-09-01",
                                       "idCity": "44c56ff4-7db4-411a-8d0f-c2f326ca3666",
-                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e"
+                                      "idSpecialization": " 8fb2c6e7-b0f7-48ef-89f5-3f33cc7b626e",
+                                      "inactivityTimeMs": 2592000000,
+                                      "updatedAt": 1757659200000
                                     }
                                     """
                     )
@@ -183,7 +187,7 @@ public class AccountController {
             )
     })
     @CommonApiResponses
-    @PatchMapping(value = "/confirmEmail", produces = "application/json")
+    @PatchMapping(value = "/email/confirm", produces = "application/json")
     public ResponseEntity<Void> updateEmailConfirm(
             @RequestBody EmailUpdateConfirmRequestDto request) {
         UUID accountId = jwtUtil.claimAccountId();
@@ -202,42 +206,6 @@ public class AccountController {
         UUID accountId = jwtUtil.claimAccountId();
 
         accountUpdateService.updateAvatar(accountId, request.getAvatar());
-        return ResponseEntity.ok().build();
-    }
-
-    @Operation(summary = "Настройка периода бездействия аккаунта для удаления по ID")
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Установлен период бездействия"),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "Указано недопустимое время бездействия",
-                    content = @Content(
-                            schema = @Schema(implementation = ErrorDto.class),
-                            examples = @ExampleObject(
-                                    name = "Неверное значение поля",
-                                    summary = "Указано недопустимое время бездействия",
-                                    value = """
-                                            {
-                                              "error": "Неверное значение поля",
-                                              "detailedErrors": [
-                                                {
-                                                  "field": "inactivityTimeMs",
-                                                  "message": "Указано недопустимое время бездействия."
-                                                }
-                                              ]
-                                            }
-                                            """
-                            )
-                    )
-            )
-    })
-    @CommonApiResponses
-    @PatchMapping(value = "/set-inactivity", produces = "application/json")
-    public ResponseEntity<Void> setInactivityDeletionPeriod(
-            @RequestBody AccountInactivityRequestDto request
-    ) {
-        UUID accountId = jwtUtil.claimAccountId();
-        accountUpdateService.setInactivityPeriod(accountId, request.getInactivityTimeMs());
         return ResponseEntity.ok().build();
     }
 
@@ -272,7 +240,7 @@ public class AccountController {
         GetAvatarResponseDto response = accountInfoService.getAvatar(accountId);
 
         return ResponseEntity.ok()
-                .contentType(org.springframework.http.MediaType.parseMediaType(response.getMimetype()))
+                .contentType(org.springframework.http.MediaType.parseMediaType(response.getAvatarMimeType()))
                 .body(response.getAvatar());
     }
 

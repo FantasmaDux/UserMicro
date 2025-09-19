@@ -41,6 +41,12 @@ spring:
     serialization:
       write-dates-as-timestamps: false
 
+  quartz:
+    job-store-type: jdbc
+    properties:
+      org.quartz.threadPool.threadCount: 5
+      org.quartz.jobStore.driverDelegateClass: org.quartz.impl.jdbcjobstore.PostgreSQLDelegate
+
 management:
   endpoint:
     health:
@@ -97,6 +103,7 @@ SWAGGER_LICENSE_URL: ${ENV_SWAGGER_LICENSE_URL}
 SWAGGER_DEV_SERVER: ${ENV_SWAGGER_DEV_SERVER}
 
 DEAD_ACCOUNT_CLEAN_TIME: ${ENV_DEAD_ACCOUNT_CLEAN_TIME}
+
 MAX_AVATAR_SIZE: ${ENV_MAX_AVATAR_SIZE}
 MAX_INACTIVITY_PERIOD: ${ENV_MAX_INACTIVITY_PERIOD}
 MIN_INACTIVITY_PERIOD: ${ENV_MIN_INACTIVITY_PERIOD}

@@ -18,6 +18,8 @@ import io.github.pavelshe11.networkingmicro.validators.RegistrationValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -30,6 +32,7 @@ public class AccountCreationService {
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final RegistrationValidator registrationValidator;
     private final ActivitySessionRepository activitySessionRepository;
+    private final AccountCleanerService accountCleanerService;
 
     public AccountCreationProto.CreateAccountResponse createAccount(Map<String, Value> userData) {
 
@@ -86,9 +89,15 @@ public class AccountCreationService {
 
             ActivitySessionEntity activitySession = ActivitySessionEntity.builder()
                     .account(account)
+                    .lastActivity(Timestamp.from(Instant.now()))
                     .build();
 
             activitySessionRepository.save(activitySession);
+
+            accountCleanerService.cleanInactiveAccounts(
+                    account.getId(),
+                    activitySession.getLastActivity().getTime() + activitySession.getInactivityTimeMs()
+            );
 
             AccountCreationProto.SuccessResponse success =
                     AccountCreationProto.SuccessResponse.newBuilder()

@@ -1,49 +1,47 @@
 package io.github.pavelshe11.networkingmicro.services;
 
-import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
-import io.github.pavelshe11.networkingmicro.store.repositories.ActivitySessionRepository;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.component.job.AccountCleanJob;
 import lombok.AllArgsConstructor;
+import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.sql.Timestamp;
-import java.util.Calendar;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @AllArgsConstructor
 public class AccountCleanerService {
-    private final ActivitySessionRepository activitySessionRepository;
-    private final AccountUpdateService accountUpdateService;
     private static final Logger log = LoggerFactory.getLogger(AccountCleanerService.class);
+    private final Scheduler scheduler;
 
-    @Scheduled(fixedRateString = "${DEAD_ACCOUNT_CLEAN_TIME}")
-    @Transactional
-    protected void cleanInactiveAccounts() {
-        long now = new Timestamp(System.currentTimeMillis()).getTime();
-        List<ActivitySessionEntity> sessions = activitySessionRepository.findAll();
+    public void cleanInactiveAccounts(UUID accountId, long triggerTimeMs) {
+        try {
+            JobDataMap jobDataMap = new JobDataMap();
+            jobDataMap.put("accountId", accountId.toString());
 
-        for (ActivitySessionEntity session : sessions) {
+            JobDetail jobDetail = JobBuilder.newJob(AccountCleanJob.class)
+                    .withIdentity("trigger-cleanup-" + accountId, "account-jobs")
+                    .withDescription("delete inactive account")
+                    .usingJobData(jobDataMap)
+                    .storeDurably()
+                    .build();
 
-            long inactivityTimeMs = session.getInactivityTimeMs();
-            long lastActivity = session.getLastActivity().getTime();
+            Trigger trigger = TriggerBuilder.newTrigger()
+                    .withIdentity(jobDetail.getKey().getName(), "account-jobs")
+                    .withDescription("delete inactive account trigger")
+                    .forJob(jobDetail)
+                    .startAt(new Date(triggerTimeMs))
+                    .build();
 
-            if ((lastActivity + inactivityTimeMs) < now) {
-                UUID accountId = session.getAccount().getId();
+            scheduler.addJob(jobDetail, true);
+            scheduler.scheduleJob(trigger);
 
-                try {
-                    log.info("Удален аккаунт {}", accountId);
-                    accountUpdateService.deleteAccount(accountId);
-                } catch (Exception e) {
-                    log.error("Ошибка удаления аккаунта {}", accountId);
-                }
-            }
-
+            log.info("Запланировано удаление аккаунта {} на {}", accountId, new Date(triggerTimeMs));
+        } catch (Exception e) {
+            log.error("Ошибка при планировании задачи на удаление аккаунта {}", accountId, e);
+            throw new ServerAnswerException();
         }
     }
-
 }

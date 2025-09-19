@@ -6,9 +6,9 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoAddReque
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoDeleteRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.ContactInfoUpdateListRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.ContactsListResponseDto;
+import io.github.pavelshe11.networkingmicro.api.exceptions.AccountNotFoundException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.ContactsLimitException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.FieldValidationException;
-import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
@@ -237,7 +237,7 @@ public class AccountContactInfoService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         return accountOpt.get();

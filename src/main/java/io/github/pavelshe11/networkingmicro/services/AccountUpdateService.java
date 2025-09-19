@@ -9,10 +9,12 @@ import io.github.pavelshe11.networkingmicro.component.CodeGenerator;
 import io.github.pavelshe11.networkingmicro.normalization.DataNormalisation;
 import io.github.pavelshe11.networkingmicro.store.entities.*;
 import io.github.pavelshe11.networkingmicro.store.enums.MediaType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.*;
 import io.github.pavelshe11.networkingmicro.validators.AccountUpdateInfoValidator;
 import io.github.pavelshe11.networkingmicro.validators.CommonFieldsValidator;
 import io.github.pavelshe11.networkingmicro.validators.SecurityValidator;
+import org.apache.tika.Tika;
 import org.apache.tika.mime.MimeType;
 import org.apache.tika.mime.MimeTypes;
 import org.slf4j.Logger;
@@ -21,13 +23,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.apache.tika.Tika;
 
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.*;
 
 @Service
@@ -44,6 +44,7 @@ public class AccountUpdateService {
     private final ActivitySessionRepository activitySessionRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
+    private final AccountCleanerService accountCleanerService;
     private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
     private final SpecializationService specializationService;
 
@@ -64,7 +65,9 @@ public class AccountUpdateService {
                                 ActivitySessionRepository activitySessionRepository,
                                 EducationalInstitutionRepository educationalInstitutionRepository,
                                 AccountContactInfoRepository accountContactInfoRepository,
-                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository, SpecializationService specializationService) {
+                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository,
+                                SpecializationService specializationService,
+                                AccountCleanerService accountCleanerService) {
         this.accountRepository = accountRepository;
         this.accountUpdateInfoValidator = accountUpdateInfoValidator;
         this.cityRepository = cityRepository;
@@ -76,6 +79,7 @@ public class AccountUpdateService {
         this.educationalInstitutionRepository = educationalInstitutionRepository;
         this.accountContactInfoRepository = accountContactInfoRepository;
         this.commonFieldsValidator = commonFieldsValidator;
+        this.accountCleanerService = accountCleanerService;
         this.institutionSpecialtiesRepository = institutionSpecialtiesRepository;
         this.specializationService = specializationService;
     }
@@ -84,21 +88,39 @@ public class AccountUpdateService {
     public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
         log.info("Начало обновления аккаунта: {}, данные: {}", accountId, updatedData);
 
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new AccountNotFoundException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
         Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
+
+        if (normalizedData.containsKey("updatedAt")) {
+            log.info("Проверка updatedAt на отложенное обновление");
+            Object raw = normalizedData.get("updatedAt");
+
+            if (raw != null) {
+                long incomingTimestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                Instant incomingUpdatedAt = Instant.ofEpochMilli(incomingTimestamp);
+                Instant currentUpdatedAt = account.getUpdatedAt();
+
+                if (!incomingUpdatedAt.isAfter(currentUpdatedAt)) {
+                    return;
+                }
+            }
+        }
 
         Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
         if (!validationErrors.isEmpty()) {
             log.error("Ошибка валидации данных: {}", validationErrors);
             throw new FieldValidationException("validation.error", validationErrors.stream().toList());
         }
-
-        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
-        if (accountOpt.isEmpty()) {
-            log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
-        }
-
-        AccountEntity account = accountOpt.get();
 
         if (normalizedData.containsKey("firstName")) {
             account.setFirstName((String) normalizedData.get("firstName"));
@@ -122,16 +144,10 @@ public class AccountUpdateService {
         if (normalizedData.containsKey("dateOfBirth")) {
             log.info("Обновление dateOfBirth");
 
-            Object dobRaw = normalizedData.get("dateOfBirth");
+            Object raw = normalizedData.get("dateOfBirth");
 
-            if (dobRaw != null) {
-                long timestamp = dobRaw instanceof Number
-                        ? ((Number) dobRaw).longValue()
-                        : Long.parseLong(dobRaw.toString());
-
-                LocalDate dateOfBirth = Instant.ofEpochMilli(timestamp)
-                        .atZone(ZoneId.systemDefault())
-                        .toLocalDate();
+            if (raw != null) {
+                LocalDate dateOfBirth = LocalDate.parse(raw.toString());
                 account.setDateOfBirth(dateOfBirth);
             } else {
                 account.setDateOfBirth(null);
@@ -173,12 +189,25 @@ public class AccountUpdateService {
             }
         }
 
-        if (normalizedData.containsKey("isProfessor")) {
-            account.setProfessor((Boolean) normalizedData.get("isProfessor"));
+        if (normalizedData.containsKey("professor")) {
+            account.setProfessor((Boolean) normalizedData.get("professor"));
         }
 
-        if (normalizedData.containsKey("isConsulting")) {
-            account.setConsulting((Boolean) normalizedData.get("isConsulting"));
+        if (normalizedData.containsKey("consulting")) {
+            account.setConsulting((Boolean) normalizedData.get("consulting"));
+        }
+
+        if (normalizedData.containsKey("networking")) {
+            account.setNetworking((Boolean) normalizedData.get("networking"));
+        }
+
+        if (updatedData.containsKey("dateOfBirthVisible")) {
+            VisibilityType visibility = VisibilityType.valueOf(updatedData.get("dateOfBirthVisible").toString().toUpperCase());
+            account.setDateOfBirthVisible(visibility);
+        }
+        if (updatedData.containsKey("cityVisible")) {
+            VisibilityType visibility = VisibilityType.valueOf(updatedData.get("cityVisible").toString().toUpperCase());
+            account.setCityVisible(visibility);
         }
 
         if (normalizedData.containsKey("dateOfEducationStart")) {
@@ -207,8 +236,21 @@ public class AccountUpdateService {
             }
         }
 
+        if (normalizedData.containsKey("inactivityTimeMs")) {
+            log.info("Обновление inactivityTimeMs");
+            Object raw = normalizedData.get("inactivityTimeMs");
+
+            if (raw != null) {
+                long timestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                setInactivityPeriod(accountId, timestamp);
+            }
+        }
+
+        account.setUpdatedAt(Instant.now());
         log.info("Сохранение аккаунта {}", accountId);
-        accountRepository.save(account);
     }
 
     @Transactional
@@ -228,7 +270,7 @@ public class AccountUpdateService {
 
         boolean accountExists = accountRepository.existsById(accountId);
         if (!accountExists) {
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
@@ -318,7 +360,7 @@ public class AccountUpdateService {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
         if (accountOpt.isEmpty()) {
             log.error("Аккаунта не существует.");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         if (avatarFile == null || avatarFile.isEmpty()) {
@@ -354,7 +396,7 @@ public class AccountUpdateService {
 
             AccountEntity account = accountOpt.get();
             account.setAvatar(avatarFile.getBytes());
-            account.setMimetype(mediaType);
+            account.setAvatarMimeType(mediaType);
         } catch (IOException e) {
             log.error("Тип mimeType не удалось определить " + e);
             throw new ServerAnswerException();
@@ -408,15 +450,12 @@ public class AccountUpdateService {
     }
 
     public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
-        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
-            throw new SetInactivityMonthException();
-        }
 
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
 
         if (accountOpt.isEmpty()) {
             log.error("Аккаунт при установке периода бездействия не найден");
-            throw new ServerAnswerException();
+            throw new AccountNotFoundException();
         }
 
         AccountEntity account = accountOpt.get();
@@ -434,6 +473,11 @@ public class AccountUpdateService {
         }
 
         activitySessionRepository.save(activitySession);
+        accountCleanerService.cleanInactiveAccounts(
+                accountId,
+                activitySession.getLastActivity().getTime() + inactivityTimeMs
+        );
+
     }
 
     @Transactional

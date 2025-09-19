@@ -1,20 +1,21 @@
 package io.github.pavelshe11.networkingmicro.validators;
 
 import io.github.pavelshe11.networkingmicro.api.dto.FieldErrorDto;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeParseException;
+import java.util.*;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -29,25 +30,13 @@ public class CommonFieldsValidator {
     private final AccountRepository accountRepository;
     private final EducationalInstitutionRepository educationalInstitutionRepository;
     private static final Logger log = LoggerFactory.getLogger(CommonFieldsValidator.class);
+    @Value("${MAX_INACTIVITY_PERIOD}")
+    private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}")
+    private long MIN_INACTIVITY_PERIOD;
 
     private boolean isRequired(String fieldName) {
         return REQUIRED_FIELDS.contains(fieldName);
-    }
-
-    protected void validateCourseNumberField(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
-        validateNumberField(fieldName, updatedData, errors);
-        Object value = updatedData.get(fieldName);
-        int courseNumber;
-
-        if (value instanceof Integer intValue) {
-            courseNumber = intValue;
-        } else {
-            return;
-        }
-
-        if (courseNumber > 6) {
-            errors.add(createFieldErrorDto(fieldName, null, "course.number.too.large"));
-        }
     }
 
     protected void validateDateOfBirth(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
@@ -61,26 +50,21 @@ public class CommonFieldsValidator {
             return;
         }
 
-        if (!(value instanceof Number)) {
+        if (!(value instanceof String)) {
             errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
             return;
         }
 
         try {
-
-            long timestamp = ((Number) value).longValue();
-            LocalDate date = Instant.ofEpochMilli(timestamp * 1000)
-                    .atZone(ZoneId.systemDefault())
-                    .toLocalDate();
-
+            LocalDate date = LocalDate.parse(value.toString());
             LocalDate today = LocalDate.now();
 
             if (date.isAfter(today)) {
                 errors.add(createFieldErrorDto(fieldName, null, "date.of.birth.after.today"));
             }
 
-        } catch (Exception e) {
-            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.type"));
+        } catch (DateTimeParseException e) {
+            errors.add(createFieldErrorDto(fieldName, null, "field.invalid.date.format"));
         }
     }
 
@@ -175,7 +159,7 @@ public class CommonFieldsValidator {
     }
 
     protected void validateBooleanField(String fieldName,
-                                      Map<String, Object> userData, Set<FieldErrorDto> errors) {
+                                        Map<String, Object> userData, Set<FieldErrorDto> errors) {
         if (!userData.containsKey(fieldName)) {
             return;
         }
@@ -267,6 +251,32 @@ public class CommonFieldsValidator {
 
         if (bio.length() > BIO_FIELD_MAX_LENGTH) {
             errors.add(new FieldErrorDto(fieldName, "Поле 'О себе' не должно превышать 100 символов"));
+        }
+    }
+
+    public void validateInactivityTimeMs(String fieldName, Map<String, Object> updatedData, Set<FieldErrorDto> errors) {
+        Object value = updatedData.get(fieldName);
+
+        if (!(value instanceof Number)) {
+            errors.add(new FieldErrorDto(fieldName, "Значение должно быть числом."));
+            return;
+        }
+
+        long inactivityTimeMs = ((Number) value).longValue();
+
+        if (inactivityTimeMs > MAX_INACTIVITY_PERIOD || inactivityTimeMs <= MIN_INACTIVITY_PERIOD) {
+            errors.add(new FieldErrorDto(fieldName, "Указано недопустимое время бездействия."));
+        }
+    }
+
+    public void validateVisibilityField(String fieldName, Map<String, Object> data, Set<FieldErrorDto> errors) {
+        if (data.containsKey(fieldName)) {
+            Object raw = data.get(fieldName);
+            try {
+                VisibilityType.valueOf(raw.toString().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                errors.add(new FieldErrorDto(fieldName, "Недопустимое значение: " + raw));
+            }
         }
     }
 

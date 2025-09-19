@@ -1,6 +1,7 @@
 package io.github.pavelshe11.networkingmicro.util;
 
 import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
+import io.github.pavelshe11.networkingmicro.services.AccountCleanerService;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
@@ -17,6 +18,7 @@ import java.util.UUID;
 public class ActivitySessionUpdaterUtil {
     private final ActivitySessionRepository activitySessionRepository;
     private final AccountRepository accountRepository;
+    private final AccountCleanerService accountCleanerService;
 
     public void updateLastActivitySession(UUID accountId) {
         Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
@@ -33,6 +35,10 @@ public class ActivitySessionUpdaterUtil {
             ActivitySessionEntity activitySession = sessionOpt.get();
             activitySession.setLastActivity(new Timestamp(System.currentTimeMillis()));
             activitySessionRepository.save(activitySession);
+            accountCleanerService.cleanInactiveAccounts(
+                    accountId,
+                    activitySession.getLastActivity().getTime() + activitySession.getInactivityTimeMs()
+            );
         }
 
     }

@@ -6,7 +6,7 @@ import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
@@ -48,7 +48,9 @@ public class AccountDataInitializer implements ApplicationRunner {
             AccountEntity account = AccountEntity.builder()
                     .admin(true)
                     .educationalInstitution(educationalInstitution)
-                    .visible(true)
+                    .networking(true)
+                    .cityVisible(VisibilityType.PRIVATE)
+                    .dateOfBirthVisible(VisibilityType.PRIVATE)
                     .ip("1.1.1.1")
                     .acceptedPrivacyPolicy(true)
                     .acceptedPersonalDataProcessing(true)
@@ -61,7 +63,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                     .account(account)
                     .contact(adminEmail)
                     .contactMethod(ContactMethodType.EMAIL)
-                    .visibility(ContactVisibilityType.PUBLIC)
+                    .visibility(VisibilityType.PUBLIC)
                     .modifiable(false)
                     .build();
 

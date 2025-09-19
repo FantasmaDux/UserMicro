@@ -5,7 +5,7 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-public enum ContactVisibilityType {
+public enum VisibilityType {
     PRIVATE("private"),
     PUBLIC("public");
 

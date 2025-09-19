@@ -9,4 +9,6 @@ import java.util.UUID;
 
 public interface ActivitySessionRepository extends JpaRepository<ActivitySessionEntity, UUID> {
     Optional<ActivitySessionEntity> findByAccount(AccountEntity account);
+
+    void deleteByAccount(AccountEntity account);
 }

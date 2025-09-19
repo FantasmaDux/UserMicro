@@ -2,7 +2,7 @@ package io.github.pavelshe11.networkingmicro.api.dto.requests;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import io.github.pavelshe11.networkingmicro.store.enums.ContactMethodType;
-import io.github.pavelshe11.networkingmicro.store.enums.ContactVisibilityType;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -46,5 +46,5 @@ public class ContactInfoAddRequestDto {
                     "Возможные значения: PUBLIC, PRIVATE",
             example = "PUBLIC"
     )
-    private ContactVisibilityType visibility;
+    private VisibilityType visibility;
 }

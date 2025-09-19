@@ -25,9 +25,6 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("lastName")) {
             commonFieldsValidator.validateTextField("lastName", updatedData, errors);
         }
-        if (updatedData.containsKey("courseNumber")) {
-            commonFieldsValidator.validateCourseNumberField("courseNumber", updatedData, errors);
-        }
         if (updatedData.containsKey("dateOfBirth")) {
             commonFieldsValidator.validateDateOfBirth("dateOfBirth", updatedData, errors);
         }
@@ -43,9 +40,21 @@ public class AccountUpdateInfoValidator {
         if (updatedData.containsKey("consulting")) {
             commonFieldsValidator.validateBooleanField("consulting", updatedData, errors);
         }
-
+        if (updatedData.containsKey("networking")) {
+            commonFieldsValidator.validateBooleanField("networking", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfBirthVisible")) {
+            commonFieldsValidator.validateVisibilityField("dateOfBirthVisible", updatedData, errors);
+        }
+        if (updatedData.containsKey("cityVisible")) {
+            commonFieldsValidator.validateVisibilityField("cityVisible", updatedData, errors);
+        }
         if (updatedData.containsKey("bio")) {
             commonFieldsValidator.validateBioField("bio", updatedData, errors);
+        }
+
+        if (updatedData.containsKey("inactivityTimeMs")) {
+            commonFieldsValidator.validateInactivityTimeMs("inactivityTimeMs", updatedData, errors);
         }
 
         return errors;

@@ -1,14 +1,13 @@
 package io.github.pavelshe11.networkingmicro.api.dto.responses;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import io.github.pavelshe11.networkingmicro.api.dto.AccountContactInfoDto;
-import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.VisibilityType;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDate;
-import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -30,15 +29,19 @@ public class AccountInfoDto {
     @Schema(description = "Является ли пользователь консультатном")
     private boolean consulting;
     @Schema(description = "Видим ли пользователь")
-    private boolean visible;
-    @Schema(description = "День рождения пользователя", example = "1039899600")
+    private boolean networking;
+    @Schema(description = "Кому виден день рождения пользователя")
+    private VisibilityType dateOfBirthVisible;
+    @Schema(description = "Кому виден город пользователя")
+    private VisibilityType cityVisible;
+    @Schema(description = "День рождения пользователя", example = "2004-07-28")
     private LocalDate dateOfBirth;
     @Schema(description = "День начала обучения пользователя", example = "2021-09-01")
     private LocalDate dateOfEducationStart;
     @Schema(description = "День конца обучения пользователя", example = "2025-09-01")
     private LocalDate dateOfEducationEnd;
-    @Schema(description = "Курс пользователя")
-    private Short courseNumber;
+    @Schema(description = "Время бездействия аккаунта в мс. Стандартно 180 дней", examples = "15552000000")
+    private long inactivityTimeMs;
 
     @Schema(description = "Название города пользователя")
     private String cityName;
@@ -46,4 +49,8 @@ public class AccountInfoDto {
     private String specializationName;
     @Schema(description = "Название домена пользователя")
     private String educationalInstitutionName;
+    @Schema(description = "ID учебного заведения")
+    private UUID educationalInstitutionId;
+    @Schema(description = "ID специализации")
+    private UUID specializationId;
 }

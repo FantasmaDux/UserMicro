@@ -63,6 +63,8 @@ dependencies {
     implementation ("commons-validator:commons-validator:1.7")
     // Для валидации номера телефона
     implementation ("com.googlecode.libphonenumber:libphonenumber:8.13.30")
+    // for quartz
+    implementation("org.springframework.boot:spring-boot-starter-quartz")
     // Для парсинга xlsx
     implementation("org.apache.poi:poi-ooxml:5.2.3")
 
