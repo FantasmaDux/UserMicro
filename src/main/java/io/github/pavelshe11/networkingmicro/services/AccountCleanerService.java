@@ -36,8 +36,8 @@ public class AccountCleanerService {
                     .startAt(new Date(triggerTimeMs))
                     .build();
 
-            scheduler.addJob(jobDetail, true);
-            scheduler.scheduleJob(trigger);
+            scheduler.deleteJob(jobDetail.getKey());
+            scheduler.scheduleJob(jobDetail, trigger);
 
             log.info("Запланировано удаление аккаунта {} на {}", accountId, new Date(triggerTimeMs));
         } catch (Exception e) {
