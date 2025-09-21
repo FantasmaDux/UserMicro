@@ -16,7 +16,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @Builder
 @Entity
-@Table(name = "account")
+@Table(name = "account", indexes = {
+        @Index(name = "idx_account_last_name_id", columnList = "last_name, id")
+})
 public class AccountEntity {
 
     @Id

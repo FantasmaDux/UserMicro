@@ -6,6 +6,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.requests.AvatarUpdateRequest
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateConfirmRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.requests.EmailUpdateRequestDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountPageDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateResponseDto;
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
 import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
@@ -242,6 +243,27 @@ public class AccountController {
         return ResponseEntity.ok()
                 .contentType(org.springframework.http.MediaType.parseMediaType(response.getAvatarMimeType()))
                 .body(response.getAvatar());
+    }
+
+
+    @Operation(summary = "Метод получения списка пользователей по ключевым словам ФИО")
+    @CommonApiResponses
+    @ApiResponse(
+            responseCode = "200",
+            description = "Список пользователей получен"
+    )
+    @GetMapping(value = "/accounts", produces = "application/json")
+    public AccountPageDto getAccounts(
+            @Parameter(description = "Фамилия, имя, отчество пользователя",
+                    example = "Альбертов Альберт Альбертович")
+            @RequestParam(required = false) String keyword,
+            @Parameter(description = "Курсор для постраничного вывода (Содержит Base64 из " +
+                    "последнего элемента прошлого ответа).",
+                    example = "0JDQvdC40YbQsNC80L7QstCwLGZjZDJjMGFmLWY5YzYtNGNhZi05MWQyLWE1N2M2ZjdkMmI2NQ==")
+            @RequestParam(required = false) String cursor,
+            @Parameter(description = "Размер вывода. По дефолту 10")
+            @RequestParam(name = "size", defaultValue = "10") int pageSize) {
+        return accountInfoService.getAccountsByKeyword(keyword, cursor, pageSize);
     }
 
 }
