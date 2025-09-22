@@ -11,6 +11,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.responses.EmailUpdateRespons
 import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
 import io.github.pavelshe11.networkingmicro.services.AccountInfoService;
 import io.github.pavelshe11.networkingmicro.services.AccountUpdateService;
+import io.github.pavelshe11.networkingmicro.store.enums.CursorDestinationType;
 import io.github.pavelshe11.networkingmicro.util.JwtUtil;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -261,9 +262,11 @@ public class AccountController {
                     "последнего элемента прошлого ответа).",
                     example = "0JDQvdC40YbQsNC80L7QstCwLGZjZDJjMGFmLWY5YzYtNGNhZi05MWQyLWE1N2M2ZjdkMmI2NQ==")
             @RequestParam(required = false) String cursor,
+            @Parameter(description = "Выбор элементов до указанного курсора или после (before/after)")
+            @RequestParam(required = false) CursorDestinationType cursorDestination,
             @Parameter(description = "Размер вывода. По дефолту 10")
             @RequestParam(name = "size", defaultValue = "10") int pageSize) {
-        return accountInfoService.getAccountsByKeyword(keyword, cursor, pageSize);
+        return accountInfoService.getAccountsByKeyword(keyword, cursor, pageSize, cursorDestination);
     }
 
 }

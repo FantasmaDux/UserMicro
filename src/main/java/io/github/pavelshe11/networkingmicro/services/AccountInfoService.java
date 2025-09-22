@@ -9,6 +9,7 @@ import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.CursorDestinationType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.ActivitySessionRepository;
@@ -138,7 +139,7 @@ public class AccountInfoService {
         return StringUtils.hasText(value) ? value : null;
     }
 
-    public AccountPageDto getAccountsByKeyword(String keyword, String cursor, int size) {
+    public AccountPageDto getAccountsByKeyword(String keyword, String cursor, int size, CursorDestinationType cursorDestinationType) {
         String cursorLastName = null;
         UUID cursorId = null;
 
@@ -172,7 +173,8 @@ public class AccountInfoService {
                 middleName,
                 cursorLastName,
                 cursorId,
-                size + 1
+                size + 1,
+                cursorDestinationType
         );
 
         // Запись в DTO. Порядок совпадает с select выборкой и порядком полей в DTO.
@@ -186,14 +188,20 @@ public class AccountInfoService {
                 ))
                 .collect(Collectors.toList());
 
-        return AccountPageDto.ofByFullName(content, size);
+        return AccountPageDto.ofByFullName(content, size, cursorDestinationType);
 
     }
 
     private List<Object[]> processSearch(String lastName, String firstName, String middleName, String cursorLastName,
-                                         UUID cursorId, int size) {
-        return accountRepository.findAllByFullNameWithKeysetPagination(
-                lastName, firstName, middleName, cursorLastName, cursorId, size
-        );
+                                         UUID cursorId, int size, CursorDestinationType cursorDestinationType) {
+        if (cursorDestinationType.isAfter()) {
+            return accountRepository.findAllByFullNameWithKeysetPaginationAfter(
+                    lastName, firstName, middleName, cursorLastName, cursorId, size
+            );
+        } else {
+            return accountRepository.findAllByFullNameWithKeysetPaginationBefore(
+                    lastName, firstName, middleName, cursorLastName, cursorId, size
+            );
+        }
     }
 }
