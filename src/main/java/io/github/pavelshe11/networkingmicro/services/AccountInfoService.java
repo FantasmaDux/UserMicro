@@ -139,7 +139,12 @@ public class AccountInfoService {
         return StringUtils.hasText(value) ? value : null;
     }
 
-    public AccountPageDto getAccountsByKeyword(String keyword, String cursor, int size, CursorDestinationType cursorDestinationType) {
+    public AccountPageDto getAccountsByKeyword(String keyword, String cursor, int size, CursorDestinationType cursorDestinationProvidedType) {
+
+        CursorDestinationType cursorDestinationType = Optional
+                .ofNullable(cursorDestinationProvidedType)
+                .orElse(CursorDestinationType.AFTER);
+
         String cursorLastName = null;
         UUID cursorId = null;
 
@@ -188,12 +193,13 @@ public class AccountInfoService {
                 ))
                 .collect(Collectors.toList());
 
-        return AccountPageDto.ofByFullName(content, size, cursorDestinationType);
+        return AccountPageDto.ofByFullName(content, size, cursorDestinationType, cursorLastName, cursorId);
 
     }
 
     private List<Object[]> processSearch(String lastName, String firstName, String middleName, String cursorLastName,
                                          UUID cursorId, int size, CursorDestinationType cursorDestinationType) {
+
         if (cursorDestinationType.isAfter()) {
             return accountRepository.findAllByFullNameWithKeysetPaginationAfter(
                     lastName, firstName, middleName, cursorLastName, cursorId, size

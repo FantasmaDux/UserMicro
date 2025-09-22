@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -27,19 +28,34 @@ public class PageDto<T> {
     @Schema(description = "Курсор последнего элемента текущей страницы", nullable = true)
     private String endCursor;
 
+    @Schema(description = "Есть ли предыдущая страница")
+    private boolean hasPreviousPage;
+
+    @Schema(description = "Есть ли следующая страница")
+    private boolean hasNextPage;
+
     @Schema(description = "Запрошенный размер страницы")
     private int size;
 
     public static <T> PageDto<T> of(List<T> content, int requestedSize, CursorCreator<T> cursorCreator,
-                                    CursorDestinationType cursorDestinationType) {
+                                    CursorDestinationType cursorDestinationType, String cursorName,
+                                    UUID cursorId) {
 
+        boolean isFirstPage = cursorName == null && cursorId == null;
         boolean hasExtraPage = content.size() > requestedSize;
         List<T> actualContent;
 
+        boolean hasNextPage;
+        boolean hasPreviousPage;
+
         if (cursorDestinationType.isBefore()) {
+            hasNextPage = true;
+            hasPreviousPage = hasExtraPage;
             actualContent = hasExtraPage ? content.subList(content.size() - requestedSize, content.size()) : content;
             Collections.reverse(actualContent);
         } else {
+            hasPreviousPage = !isFirstPage;
+            hasNextPage = hasExtraPage;
             actualContent = hasExtraPage ? content.subList(0, requestedSize) : content;
         }
 
@@ -59,6 +75,8 @@ public class PageDto<T> {
                 .endCursor(endCursor)
                 .startCursor(startCursor)
                 .size(requestedSize)
+                .hasPreviousPage(hasPreviousPage)
+                .hasNextPage(hasNextPage)
                 .build();
     }
 

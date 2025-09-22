@@ -77,7 +77,12 @@ public class SpecializationService {
                                                     String keyword,
                                                     String cursor,
                                                     int size,
-                                                    CursorDestinationType cursorDestinationType) {
+                                                    CursorDestinationType cursorDestinationProvidedType) {
+
+        CursorDestinationType cursorDestinationType = Optional
+                .ofNullable(cursorDestinationProvidedType)
+                .orElse(CursorDestinationType.AFTER);
+
         String cursorName = null;
         UUID cursorId = null;
 
@@ -122,7 +127,7 @@ public class SpecializationService {
                 ))
                 .collect(Collectors.toList());
 
-        return SpecializationPageDto.ofByNameAndId(content, size, cursorDestinationType);
+        return SpecializationPageDto.ofByNameAndId(content, size, cursorDestinationType, cursorName, cursorId);
     }
 
     private List<Object[]> processSearch(UUID institutionId,
