@@ -6,6 +6,7 @@ import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsByI
 import io.github.pavelshe11.networkingmicro.api.dto.responses.SpecializationsDto;
 import io.github.pavelshe11.networkingmicro.services.SpecializationService;
 import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.CursorDestinationType;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -62,8 +63,10 @@ public class SpecializationController {
                     "последнего элемента прошлого ответа).",
             example = "0JDQvdC40YbQsNC80L7QstCwLGZjZDJjMGFmLWY5YzYtNGNhZi05MWQyLWE1N2M2ZjdkMmI2NQ==")
             @RequestParam(required = false) String cursor,
+            @Parameter(description = "Выбор элементов до указанного курсора или после (before/after)")
+            @RequestParam(required = false) CursorDestinationType cursorDestination,
             @Parameter(description = "Размер вывода. По дефолту 10")
             @RequestParam(name = "size", defaultValue = "10") int pageSize) {
-        return specializationService.getSpecializations(institutionId, keyword, cursor, pageSize);
+        return specializationService.getSpecializations(institutionId, keyword, cursor, pageSize, cursorDestination);
     }
 }
