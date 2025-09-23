@@ -68,6 +68,9 @@ dependencies {
     // Для парсинга xlsx
     implementation("org.apache.poi:poi-ooxml:5.2.3")
 
+    // Для генерации фейковых данных
+    implementation ("net.datafaker:datafaker:2.5.0")
+
     compileOnly("org.projectlombok:lombok")
     compileOnly ("org.apache.tomcat:annotations-api:6.0.53")
     runtimeOnly("org.postgresql:postgresql")
