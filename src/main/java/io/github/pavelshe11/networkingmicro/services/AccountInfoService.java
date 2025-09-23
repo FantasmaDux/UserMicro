@@ -1,14 +1,15 @@
 package io.github.pavelshe11.networkingmicro.services;
 
 import com.google.protobuf.Value;
-import io.github.pavelshe11.networkingmicro.api.dto.responses.AccountInfoDto;
-import io.github.pavelshe11.networkingmicro.api.dto.responses.GetAvatarResponseDto;
+import io.github.pavelshe11.networkingmicro.api.dto.responses.*;
 import io.github.pavelshe11.networkingmicro.api.exceptions.AccountNotFoundException;
 import io.github.pavelshe11.networkingmicro.api.exceptions.AvatarNotFoundException;
+import io.github.pavelshe11.networkingmicro.api.exceptions.ServerAnswerException;
 import io.github.pavelshe11.networkingmicro.grpc.getAccountInfoProto;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountContactInfoEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.AccountEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.ActivitySessionEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.CursorDestinationType;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountContactInfoRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.AccountRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.ActivitySessionRepository;
@@ -19,10 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -138,5 +137,77 @@ public class AccountInfoService {
 
     private String nullIfBlank(String value) {
         return StringUtils.hasText(value) ? value : null;
+    }
+
+    public AccountPageDto getAccountsByKeyword(String keyword, String cursor, int size, CursorDestinationType cursorDestinationProvidedType) {
+
+        CursorDestinationType cursorDestinationType = Optional
+                .ofNullable(cursorDestinationProvidedType)
+                .orElse(CursorDestinationType.AFTER);
+
+        String cursorLastName = null;
+        UUID cursorId = null;
+
+        if (cursor != null && !cursor.isEmpty()) {
+            try {
+
+                log.info("Получен cursor: [{}]", cursor);
+                String decoded = new String(Base64.getDecoder().decode(cursor));
+                log.info("Декодированный cursor: [{}]", decoded);
+                String[] parts = decoded.split("\\|", 2);
+                cursorLastName = parts[0];
+                cursorId = UUID.fromString(parts[1]);
+                log.info("Парсинг курсора прошёл успешно. cursorLastName: [{}], cursorId: [{}]",
+                        cursorLastName, cursorId);
+            } catch (IllegalArgumentException | ArrayIndexOutOfBoundsException e) {
+                log.warn("Ошибка при разборе параметра cursor: [{}]", cursor, e);
+                throw new ServerAnswerException();
+            }
+        }
+
+        String normalizedKeyword = keyword == null ? "" : keyword.trim().toLowerCase();
+        String[] parts = normalizedKeyword.split("\\s+");
+
+        String lastName = parts.length > 0 && !parts[0].isEmpty() ? parts[0] : null;
+        String firstName = parts.length > 1 && !parts[1].isEmpty() ? parts[1] : null;
+        String middleName = parts.length > 2 && !parts[2].isEmpty() ? parts[2] : null;
+
+        List<Object[]> rows = processSearch(
+                lastName,
+                firstName,
+                middleName,
+                cursorLastName,
+                cursorId,
+                size + 1,
+                cursorDestinationType
+        );
+
+        // Запись в DTO. Порядок совпадает с select выборкой и порядком полей в DTO.
+        List<AccountShortDto> content = rows.stream()
+                .map(row -> new AccountShortDto(
+                        (UUID) row[0],
+                        (String) row[1],
+                        (String) row[2],
+                        (String) row[3],
+                        (String) row[4]
+                ))
+                .collect(Collectors.toList());
+
+        return AccountPageDto.ofByFullName(content, size, cursorDestinationType, cursorLastName, cursorId);
+
+    }
+
+    private List<Object[]> processSearch(String lastName, String firstName, String middleName, String cursorLastName,
+                                         UUID cursorId, int size, CursorDestinationType cursorDestinationType) {
+
+        if (cursorDestinationType.isAfter()) {
+            return accountRepository.findAllByFullNameWithKeysetPaginationAfter(
+                    lastName, firstName, middleName, cursorLastName, cursorId, size
+            );
+        } else {
+            return accountRepository.findAllByFullNameWithKeysetPaginationBefore(
+                    lastName, firstName, middleName, cursorLastName, cursorId, size
+            );
+        }
     }
 }

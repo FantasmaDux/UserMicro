@@ -9,6 +9,7 @@ import io.github.pavelshe11.networkingmicro.api.exceptions.SpecializationNotFoun
 import io.github.pavelshe11.networkingmicro.store.entities.EducationalInstitutionEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.InstitutionSpecialtiesEntity;
 import io.github.pavelshe11.networkingmicro.store.entities.SpecializationEntity;
+import io.github.pavelshe11.networkingmicro.store.enums.CursorDestinationType;
 import io.github.pavelshe11.networkingmicro.store.repositories.EducationalInstitutionRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.InstitutionSpecialtiesRepository;
 import io.github.pavelshe11.networkingmicro.store.repositories.SpecializationRepository;
@@ -74,7 +75,14 @@ public class SpecializationService {
 
     public SpecializationPageDto getSpecializations(UUID institutionId,
                                                     String keyword,
-                                                    String cursor, int size) {
+                                                    String cursor,
+                                                    int size,
+                                                    CursorDestinationType cursorDestinationProvidedType) {
+
+        CursorDestinationType cursorDestinationType = Optional
+                .ofNullable(cursorDestinationProvidedType)
+                .orElse(CursorDestinationType.AFTER);
+
         String cursorName = null;
         UUID cursorId = null;
 
@@ -107,7 +115,8 @@ public class SpecializationService {
                 cursorId,
                 searchType,
                 hasInstitution,
-                size + 1
+                size + 1,
+                cursorDestinationType
         );
 
         List<SpecializationsDto> content = rows.stream()
@@ -118,7 +127,7 @@ public class SpecializationService {
                 ))
                 .collect(Collectors.toList());
 
-        return SpecializationPageDto.ofByNameAndId(content, size);
+        return SpecializationPageDto.ofByNameAndId(content, size, cursorDestinationType, cursorName, cursorId);
     }
 
     private List<Object[]> processSearch(UUID institutionId,
@@ -127,27 +136,38 @@ public class SpecializationService {
                                          UUID cursorId,
                                          SearchType searchType,
                                          boolean hasInstitution,
-                                         int limit) {
+                                         int limit,
+                                         CursorDestinationType cursorDestinationType) {
         String searchPattern = "%" + normalizedKeyword.replace(" ", "%") + "%";
 
         return switch (searchType) {
-            case CODE -> processCodeSearch(institutionId, searchPattern, cursorName, cursorId, hasInstitution, limit);
-            case NAME -> processNameSearch(institutionId, searchPattern, cursorName, cursorId, hasInstitution, limit);
+            case CODE ->
+                    processCodeSearch(institutionId, searchPattern, cursorName, cursorId, hasInstitution, limit, cursorDestinationType);
+            case NAME ->
+                    processNameSearch(institutionId, searchPattern, cursorName, cursorId, hasInstitution, limit, cursorDestinationType);
             case MIXED ->
-                    processMixedSearch(institutionId, normalizedKeyword, cursorName, cursorId, hasInstitution, limit);
-            case GENERAL -> processGeneralSearch(cursorName, cursorId, limit);
+                    processMixedSearch(institutionId, normalizedKeyword, cursorName, cursorId, hasInstitution, limit, cursorDestinationType);
+            case GENERAL -> processGeneralSearch(cursorName, cursorId, limit, cursorDestinationType);
         };
     }
 
-    private List<Object[]> processGeneralSearch(String cursorName, UUID cursorId, int limit) {
-        return specializationRepository.findAllSpecializationsWithKeysetPagination(
-                cursorName,
-                cursorId,
-                limit
-        );
+    private List<Object[]> processGeneralSearch(String cursorName, UUID cursorId, int limit, CursorDestinationType cursorDestinationType) {
+        if (cursorDestinationType.isAfter()) {
+            return specializationRepository.findAllSpecializationsWithKeysetPaginationAfter(
+                    cursorName,
+                    cursorId,
+                    limit
+            );
+        } else {
+            return specializationRepository.findAllSpecializationsWithKeysetPaginationBefore(
+                    cursorName,
+                    cursorId,
+                    limit
+            );
+        }
     }
 
-    private List<Object[]> processMixedSearch(UUID institutionId, String normalizedKeyword, String cursorName, UUID cursorId, boolean hasInstitution, int limit) {
+    private List<Object[]> processMixedSearch(UUID institutionId, String normalizedKeyword, String cursorName, UUID cursorId, boolean hasInstitution, int limit, CursorDestinationType cursorDestinationType) {
         String codePart = "";
         String namePart = normalizedKeyword;
 
@@ -161,90 +181,64 @@ public class SpecializationService {
 
         String codeSearchPattern = codePart;
         String nameSearchPattern = "%" + namePart.replace(" ", "%") + "%";
+
+        boolean isAfter = cursorDestinationType.isAfter();
+
+        List<Object[]> rows;
         if (hasInstitution) {
-            List<Object[]> rows = specializationRepository.findByInstitutionWithCodeAndName(
-                    institutionId,
-                    codeSearchPattern,
-                    nameSearchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
-            if (rows.isEmpty()) {
-                return specializationRepository.findByCodeAndNameWithoutInstitution(
-                        codeSearchPattern,
-                        nameSearchPattern,
-                        cursorName,
-                        cursorId,
-                        limit
-                );
-            }
-            return rows;
-        } else {
-            return specializationRepository.findByCodeAndNameWithoutInstitution(
-                    codeSearchPattern,
-                    nameSearchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
+            rows = isAfter
+                    ? specializationRepository.findByInstitutionWithCodeAndNameAfter(
+                    institutionId, codeSearchPattern, nameSearchPattern, cursorName, cursorId, limit)
+                    : specializationRepository.findByInstitutionWithCodeAndNameBefore(
+                    institutionId, codeSearchPattern, nameSearchPattern, cursorName, cursorId, limit);
+            if (!rows.isEmpty()) return rows;
         }
+
+        return isAfter
+                ? specializationRepository.findByCodeAndNameWithoutInstitutionAfter(
+                codeSearchPattern, nameSearchPattern, cursorName, cursorId, limit)
+                : specializationRepository.findByCodeAndNameWithoutInstitutionBefore(
+                codeSearchPattern, nameSearchPattern, cursorName, cursorId, limit);
     }
 
-    private List<Object[]> processNameSearch(UUID institutionId, String searchPattern, String cursorName, UUID cursorId, boolean hasInstitution, int limit) {
+    private List<Object[]> processNameSearch(UUID institutionId, String searchPattern, String cursorName, UUID cursorId, boolean hasInstitution, int limit, CursorDestinationType cursorDestinationType) {
+        boolean isAfter = cursorDestinationType.isAfter();
+
+        List<Object[]> rows;
         if (hasInstitution) {
-            List<Object[]> rows = specializationRepository.findByInstitutionWithName(
-                    institutionId,
-                    searchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
-            if (rows.isEmpty()) {
-                return specializationRepository.findByNameWithoutInstitution(
-                        searchPattern,
-                        cursorName,
-                        cursorId,
-                        limit
-                );
-            }
-            return rows;
-        } else {
-            return specializationRepository.findByNameWithoutInstitution(
-                    searchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
+            rows = isAfter
+                    ? specializationRepository.findByInstitutionWithNameAfter(
+                    institutionId, searchPattern, cursorName, cursorId, limit)
+                    : specializationRepository.findByInstitutionWithNameBefore(
+                    institutionId, searchPattern, cursorName, cursorId, limit);
+            if (!rows.isEmpty()) return rows;
         }
+
+        return isAfter
+                ? specializationRepository.findByNameWithoutInstitutionAfter(
+                searchPattern, cursorName, cursorId, limit)
+                : specializationRepository.findByNameWithoutInstitutionBefore(
+                searchPattern, cursorName, cursorId, limit);
     }
 
-    private List<Object[]> processCodeSearch(UUID institutionId, String searchPattern, String cursorName, UUID cursorId, boolean hasInstitution, int limit) {
+    private List<Object[]> processCodeSearch(UUID institutionId, String searchPattern, String cursorName, UUID cursorId, boolean hasInstitution, int limit, CursorDestinationType cursorDestinationType) {
+        boolean isAfter = cursorDestinationType.isAfter();
+
+        List<Object[]> rows;
         if (hasInstitution) {
-            List<Object[]> rows = specializationRepository.findByInstitutionWithCode(
-                    institutionId,
-                    searchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
-            if (rows.isEmpty()) {
-                return specializationRepository.findByCodeWithoutInstitution(
-                        searchPattern,
-                        cursorName,
-                        cursorId,
-                        limit
-                );
-            }
-            return rows;
-        } else {
-            return specializationRepository.findByCodeWithoutInstitution(
-                    searchPattern,
-                    cursorName,
-                    cursorId,
-                    limit
-            );
+            rows = isAfter
+                    ? specializationRepository.findByInstitutionWithCodeAfter(
+                    institutionId, searchPattern, cursorName, cursorId, limit)
+                    : specializationRepository.findByInstitutionWithCodeBefore(
+                    institutionId, searchPattern, cursorName, cursorId, limit);
+            if (!rows.isEmpty()) return rows;
         }
+
+        return isAfter
+                ? specializationRepository.findByCodeWithoutInstitutionAfter(
+                searchPattern, cursorName, cursorId, limit)
+                : specializationRepository.findByCodeWithoutInstitutionBefore(
+                searchPattern, cursorName, cursorId, limit);
     }
 
 
