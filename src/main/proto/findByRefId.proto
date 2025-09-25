@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option java_package = "io.github.pavelshe11.networkingmicro.grpc";
+option java_outer_classname = "findByRefIdProto";
+
+service ParticipantService {
+  rpc findByRefId (existsByRefIdRequest) returns (existsByRefIdResponse) {}
+}
+
+message existsByRefIdRequest {
+  string refId = 1;
+}
+
+message existsByRefIdResponse {
+  bool existingEntity = 1;
+}
