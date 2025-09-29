@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import java.util.Random;
 
 @Component
 @RequiredArgsConstructor
+@DependsOn("specializationDataInitializer")
 public class AccountDataInitializer implements ApplicationRunner {
 
     private final AccountRepository accountRepository;
@@ -37,12 +39,19 @@ public class AccountDataInitializer implements ApplicationRunner {
 
         String adminEmail = "admin@communicator.ru";
         boolean adminExists = accountRepository.existsByMainEmailContactContact(adminEmail);
+        log.info("Admin exists: {}", adminExists);
 
         if (!adminExists) {
             try {
                 Faker faker = new Faker(new Locale("ru"));
                 Random random = new Random();
                 List<SpecializationEntity> allSpecializations = specializationRepository.findAll();
+
+                if (allSpecializations.isEmpty()) {
+                    log.error("Нет доступных специализаций.");
+                    return;
+                }
+
                 EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
                         .findByDomenName("communicator.ru").orElseThrow(() -> new ServerAnswerException());
                 if (educationalInstitution == null) {
@@ -75,6 +84,7 @@ public class AccountDataInitializer implements ApplicationRunner {
                             .build();
 
                     account = accountRepository.save(account);
+                    log.info("Создание фейкового аккаунта: {} {}", firstName, lastName);
 
                     AccountContactInfoEntity emailContact = AccountContactInfoEntity.builder()
                             .account(account)
@@ -88,12 +98,13 @@ public class AccountDataInitializer implements ApplicationRunner {
                     account.setAccountContactInfos(List.of(emailContact));
 
                     accountRepository.save(account);
-                    log.info("Создано {} фейковых аккаунтов", countOfFakers);
+                    log.info("Создан аккаунт с email: {}", email);
                 }
             } catch (Exception e) {
                 log.error("Ошибка добавления юзеров", e);
             }
         }
+
         if (!adminExists) {
             EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
                     .findByDomenName("communicator.ru").orElseThrow(() -> new ServerAnswerException());
