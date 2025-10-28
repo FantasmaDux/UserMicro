@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option java_package = "io.github.pavelshe11.networkingmicro.grpc";
+option java_package = "io.github.fantasmadux.usermicro.grpc";
 option java_outer_classname = "findByRefIdAndParticipantTypeProto";
 
 service ParticipantService {

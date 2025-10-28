@@ -61,7 +61,7 @@ management:
           - env
 
 server:
-  port: ${NETWORKING_HTTP}
+  port: ${USER_HTTP}
 
 grpc:
   server:
@@ -92,9 +92,9 @@ logging:
 
 springdoc:
   swagger-ui:
-    path: /networking/swagger-ui.html
+    path: /user/swagger-ui.html
   api-docs:
-    path: /networking/v3/api-docs
+    path: /user/v3/api-docs
 
 SWAGGER_API_VERSION: ${ENV_SWAGGER_API_VERSION}
 SWAGGER_APP_DESCRIPTION: ${ENV_SWAGGER_APP_DESCRIPTION}

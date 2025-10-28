@@ -19,9 +19,9 @@ FROM eclipse-temurin:21-jdk-alpine
 
 WORKDIR /app
 
-COPY --from=build /home/gradle/project/build/libs/*.jar networking-micro.jar
+COPY --from=build /home/gradle/project/build/libs/*.jar user-micro.jar
 
-ENTRYPOINT ["java", "-jar", "networking-micro.jar"]
+ENTRYPOINT ["java", "-jar", "user-micro.jar"]
 
 EXPOSE 8080
 EXPOSE 9090

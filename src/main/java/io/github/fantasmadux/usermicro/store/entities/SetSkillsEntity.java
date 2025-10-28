@@ -1,0 +1,38 @@
+package io.github.fantasmadux.usermicro.store.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "set_skills")
+public class SetSkillsEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, updatable = false)
+    private UUID id;
+
+    @Builder.Default
+    @Column(name = "created_at")
+    private Instant createdAt = Instant.now();
+
+    // For two-way communication with FK
+    @OneToMany(mappedBy = "setSkills", fetch = FetchType.LAZY)
+    private List<SkillSetSkillsEntity> skillSetSkills;
+
+    @OneToOne(mappedBy = "setSkills")
+    private AccountEntity account;
+
+    @OneToOne(mappedBy = "setSkills")
+    private RoleInInitiativeEntity roleInInitiative;
+
+}

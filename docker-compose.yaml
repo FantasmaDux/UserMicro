@@ -1,42 +1,42 @@
 services:
-  networking-service:
-    container_name: networking-service
+  user-service:
+    container_name: user-service
     build:
       context: ./
       dockerfile: Dockerfile
     ports:
-      - "${NETWORKING_HTTP}:${NETWORKING_HTTP}"
+      - "${USER_HTTP}:${USER_HTTP}"
     env_file:
       - ./.env
     depends_on:
-      networking-db-postgres:
+      user-db-postgres:
         condition: service_healthy
     restart: unless-stopped
     networks:
-      - networking-network
+      - user-network
 
-  networking-db-postgres:
-    container_name: networking-db-postgres
+  user-db-postgres:
+    container_name: user-db-postgres
     image: postgres:16-alpine
     ports:
       - "${POSTGRES_DB_EXTERNAL_PORT}:${POSTGRES_DB_INTERNAL_PORT}"
     env_file:
       - ./.env
     volumes:
-      - networking-db-postgres:/var/lib/postgresql/data
+      - user-db-postgres:/var/lib/postgresql/data
     healthcheck:
       test: [ "CMD-SHELL", "sh -c 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB'" ]
       interval: ${HEALTHCHECK_INTERVAL}
       timeout: ${HEALTHCHECK_TIMEOUT}
       retries: ${HEALTHCHECK_RETRIES}
     networks:
-      - networking-network
+      - user-network
 
 
 volumes:
-  networking-db-postgres:
+  user-db-postgres:
 
 
 networks:
-  networking-network:
+  user-network:
     driver: bridge

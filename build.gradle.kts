@@ -8,7 +8,7 @@ plugins {
     id("org.openapi.generator") version "7.3.0"
 }
 
-group = "io.github.pavelshe11"
+group = "io.github.fantasmadux"
 version = "0.0.1-SNAPSHOT"
 
 java {

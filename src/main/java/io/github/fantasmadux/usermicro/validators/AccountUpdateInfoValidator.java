@@ -1,0 +1,62 @@
+package io.github.fantasmadux.usermicro.validators;
+
+import io.github.fantasmadux.usermicro.api.dto.FieldErrorDto;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
+
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.Set;
+
+@Component
+@RequiredArgsConstructor
+public class AccountUpdateInfoValidator {
+    private final CommonFieldsValidator commonFieldsValidator;
+
+    public Set<FieldErrorDto> validateUpdateData(Map<String, Object> updatedData) {
+        Set<FieldErrorDto> errors = new LinkedHashSet<>();
+
+        if (updatedData.containsKey("firstName")) {
+            commonFieldsValidator.validateTextField("firstName", updatedData, errors);
+        }
+        if (updatedData.containsKey("middleName")) {
+            commonFieldsValidator.validateTextField("middleName", updatedData, errors);
+        }
+        if (updatedData.containsKey("lastName")) {
+            commonFieldsValidator.validateTextField("lastName", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfBirth")) {
+            commonFieldsValidator.validateDateOfBirth("dateOfBirth", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfEducationStart")) {
+            commonFieldsValidator.validateDateOfEducationStart("dateOfEducationStart", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfEducationEnd")) {
+            commonFieldsValidator.validateDateOfEducationEnd("dateOfEducationEnd", updatedData, errors);
+        }
+        if (updatedData.containsKey("professor")) {
+            commonFieldsValidator.validateBooleanField("professor", updatedData, errors);
+        }
+        if (updatedData.containsKey("consulting")) {
+            commonFieldsValidator.validateBooleanField("consulting", updatedData, errors);
+        }
+        if (updatedData.containsKey("networking")) {
+            commonFieldsValidator.validateBooleanField("networking", updatedData, errors);
+        }
+        if (updatedData.containsKey("dateOfBirthVisible")) {
+            commonFieldsValidator.validateVisibilityField("dateOfBirthVisible", updatedData, errors);
+        }
+        if (updatedData.containsKey("cityVisible")) {
+            commonFieldsValidator.validateVisibilityField("cityVisible", updatedData, errors);
+        }
+        if (updatedData.containsKey("bio")) {
+            commonFieldsValidator.validateBioField("bio", updatedData, errors);
+        }
+
+        if (updatedData.containsKey("inactivityTimeMs")) {
+            commonFieldsValidator.validateInactivityTimeMs("inactivityTimeMs", updatedData, errors);
+        }
+
+        return errors;
+    }
+}

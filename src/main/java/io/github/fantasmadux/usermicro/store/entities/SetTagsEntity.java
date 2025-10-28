@@ -1,0 +1,34 @@
+package io.github.fantasmadux.usermicro.store.entities;
+
+import jakarta.persistence.*;
+import lombok.*;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.UUID;
+
+@Setter
+@Getter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+@Table(name = "set_tags")
+public class SetTagsEntity {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    @Column(nullable = false, updatable = false)
+    private UUID id;
+
+    @Builder.Default
+    @Column(name = "created_at")
+    private Instant createdAt = Instant.now();
+
+    // For two-way communication with FK
+    @OneToOne(mappedBy = "setTags")
+    private InitiativeEntity initiative;
+
+    @OneToMany(mappedBy = "setTags", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private List<TagFromSetTagsEntity> tagFromSetTags;
+}

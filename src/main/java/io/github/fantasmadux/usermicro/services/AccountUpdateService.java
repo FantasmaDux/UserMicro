@@ -1,0 +1,497 @@
+package io.github.fantasmadux.usermicro.services;
+
+import io.github.fantasmadux.usermicro.api.dto.FieldErrorDto;
+import io.github.fantasmadux.usermicro.api.dto.requests.EmailUpdateConfirmRequestDto;
+import io.github.fantasmadux.usermicro.api.dto.requests.EmailUpdateRequestDto;
+import io.github.fantasmadux.usermicro.api.dto.responses.EmailUpdateResponseDto;
+import io.github.fantasmadux.usermicro.api.exceptions.*;
+import io.github.fantasmadux.usermicro.store.entities.*;
+import io.github.fantasmadux.usermicro.store.repositories.*;
+import io.github.fantasmadux.usermicro.api.exceptions.*;
+import io.github.fantasmadux.usermicro.component.CodeGenerator;
+import io.github.fantasmadux.usermicro.normalization.DataNormalisation;
+import io.github.fantasmadux.usermicro.store.entities.*;
+import io.github.fantasmadux.usermicro.store.enums.MediaType;
+import io.github.fantasmadux.usermicro.store.enums.VisibilityType;
+import io.github.fantasmadux.usermicro.store.repositories.*;
+import io.github.fantasmadux.usermicro.validators.AccountUpdateInfoValidator;
+import io.github.fantasmadux.usermicro.validators.CommonFieldsValidator;
+import io.github.fantasmadux.usermicro.validators.SecurityValidator;
+import org.apache.tika.Tika;
+import org.apache.tika.mime.MimeType;
+import org.apache.tika.mime.MimeTypes;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.util.*;
+
+@Service
+public class AccountUpdateService {
+    private final AccountRepository accountRepository;
+    private final AccountUpdateInfoValidator accountUpdateInfoValidator;
+    private final CommonFieldsValidator commonFieldsValidator;
+    private final CityRepository cityRepository;
+    private final EmailUpdateSessionRepository emailUpdateSessionRepository;
+    private final CodeGenerator codeGenerator;
+    private final SecurityValidator securityValidator;
+    private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
+    private final SpecializationRepository specializationRepository;
+    private final ActivitySessionRepository activitySessionRepository;
+    private final EducationalInstitutionRepository educationalInstitutionRepository;
+    private final AccountContactInfoRepository accountContactInfoRepository;
+    private final AccountCleanerService accountCleanerService;
+    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
+    private final SpecializationService specializationService;
+
+    @Value("${MAX_AVATAR_SIZE}")
+    private int MAX_AVATAR_SIZE_BYTES;
+    @Value("${MAX_INACTIVITY_PERIOD}")
+    private long MAX_INACTIVITY_PERIOD;
+    @Value("${MIN_INACTIVITY_PERIOD}")
+    private long MIN_INACTIVITY_PERIOD;
+
+    public AccountUpdateService(AccountRepository accountRepository,
+                                AccountUpdateInfoValidator accountUpdateInfoValidator,
+                                CommonFieldsValidator commonFieldsValidator,
+                                CityRepository cityRepository,
+                                EmailUpdateSessionRepository emailUpdateSessionRepository,
+                                CodeGenerator codeGenerator, SecurityValidator securityValidator,
+                                SpecializationRepository specializationRepository,
+                                ActivitySessionRepository activitySessionRepository,
+                                EducationalInstitutionRepository educationalInstitutionRepository,
+                                AccountContactInfoRepository accountContactInfoRepository,
+                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository,
+                                SpecializationService specializationService,
+                                AccountCleanerService accountCleanerService) {
+        this.accountRepository = accountRepository;
+        this.accountUpdateInfoValidator = accountUpdateInfoValidator;
+        this.cityRepository = cityRepository;
+        this.emailUpdateSessionRepository = emailUpdateSessionRepository;
+        this.codeGenerator = codeGenerator;
+        this.securityValidator = securityValidator;
+        this.specializationRepository = specializationRepository;
+        this.activitySessionRepository = activitySessionRepository;
+        this.educationalInstitutionRepository = educationalInstitutionRepository;
+        this.accountContactInfoRepository = accountContactInfoRepository;
+        this.commonFieldsValidator = commonFieldsValidator;
+        this.accountCleanerService = accountCleanerService;
+        this.institutionSpecialtiesRepository = institutionSpecialtiesRepository;
+        this.specializationService = specializationService;
+    }
+
+    @Transactional
+    public void updateAccount(UUID accountId, Map<String, Object> updatedData) {
+        log.info("Начало обновления аккаунта: {}, данные: {}", accountId, updatedData);
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new AccountNotFoundException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
+        Map<String, Object> normalizedData = DataNormalisation.normalizeInput(updatedData);
+
+        if (normalizedData.containsKey("updatedAt")) {
+            log.info("Проверка updatedAt на отложенное обновление");
+            Object raw = normalizedData.get("updatedAt");
+
+            if (raw != null) {
+                long incomingTimestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                Instant incomingUpdatedAt = Instant.ofEpochMilli(incomingTimestamp);
+                Instant currentUpdatedAt = account.getUpdatedAt();
+
+                if (!incomingUpdatedAt.isAfter(currentUpdatedAt)) {
+                    return;
+                }
+            }
+        }
+
+        Set<FieldErrorDto> validationErrors = accountUpdateInfoValidator.validateUpdateData(normalizedData);
+        if (!validationErrors.isEmpty()) {
+            log.error("Ошибка валидации данных: {}", validationErrors);
+            throw new FieldValidationException("validation.error", validationErrors.stream().toList());
+        }
+
+        if (normalizedData.containsKey("firstName")) {
+            account.setFirstName((String) normalizedData.get("firstName"));
+        }
+
+        if (normalizedData.containsKey("middleName")) {
+            account.setMiddleName(normalizedData.get("middleName") != null
+                    ? normalizedData.get("middleName").toString()
+                    : null);
+        }
+
+        if (normalizedData.containsKey("lastName")) {
+            account.setLastName((String) normalizedData.get("lastName"));
+        }
+
+        if (normalizedData.containsKey("bio")) {
+            Object bioValue = normalizedData.get("bio");
+            account.setBio(bioValue != null ? bioValue.toString() : null);
+        }
+
+        if (normalizedData.containsKey("dateOfBirth")) {
+            log.info("Обновление dateOfBirth");
+
+            Object raw = normalizedData.get("dateOfBirth");
+
+            if (raw != null) {
+                LocalDate dateOfBirth = LocalDate.parse(raw.toString());
+                account.setDateOfBirth(dateOfBirth);
+            } else {
+                account.setDateOfBirth(null);
+            }
+        }
+
+        if (normalizedData.containsKey("idCity")) {
+            UUID cityId = UUID.fromString(normalizedData.get("idCity").toString());
+            Optional<CityEntity> cityOpt = cityRepository.findById(cityId);
+            if (cityOpt.isEmpty()) {
+                log.error("Нет города с таким id");
+                throw new CityNotFoundException();
+            }
+            CityEntity city = cityOpt.get();
+            account.setCity(city);
+        }
+
+        if (normalizedData.containsKey("idSpecialization")) {
+            UUID specializationId = UUID.fromString(normalizedData.get("idSpecialization").toString());
+            Optional<SpecializationEntity> specializationOpt = specializationRepository.findById(specializationId);
+            if (specializationOpt.isEmpty()) {
+                log.error("Нет специализации с таким id");
+                throw new SpecializationNotFoundException();
+            }
+            SpecializationEntity specialization = specializationOpt.get();
+            account.setSpecialization(specialization);
+
+            EducationalInstitutionEntity educationalInstitution =
+                    account.getEducationalInstitution();
+            boolean relationExists = institutionSpecialtiesRepository
+                    .existsByEducationalInstitutionIdAndSpecializationId(educationalInstitution.getId(),
+                            specializationId);
+
+            if (!relationExists) {
+                specializationService.createSpecializationInstitutionRelation(educationalInstitution.getId(),
+                        specializationId);
+                log.info("Создана новая связь специализация-ВУЗ: {} - {}",
+                        specializationId, educationalInstitution.getId());
+            }
+        }
+
+        if (normalizedData.containsKey("professor")) {
+            account.setProfessor((Boolean) normalizedData.get("professor"));
+        }
+
+        if (normalizedData.containsKey("consulting")) {
+            account.setConsulting((Boolean) normalizedData.get("consulting"));
+        }
+
+        if (normalizedData.containsKey("networking")) {
+            account.setNetworking((Boolean) normalizedData.get("networking"));
+        }
+
+        if (updatedData.containsKey("dateOfBirthVisible")) {
+            VisibilityType visibility = VisibilityType.valueOf(updatedData.get("dateOfBirthVisible").toString().toUpperCase());
+            account.setDateOfBirthVisible(visibility);
+        }
+        if (updatedData.containsKey("cityVisible")) {
+            VisibilityType visibility = VisibilityType.valueOf(updatedData.get("cityVisible").toString().toUpperCase());
+            account.setCityVisible(visibility);
+        }
+
+        if (normalizedData.containsKey("dateOfEducationStart")) {
+            log.info("Обновление dateOfEducationStart");
+
+            Object raw = normalizedData.get("dateOfEducationStart");
+
+            if (raw != null) {
+                LocalDate date = LocalDate.parse(raw.toString());
+                account.setDateOfEducationStart(date);
+            } else {
+                account.setDateOfEducationStart(null);
+            }
+        }
+
+        if (normalizedData.containsKey("dateOfEducationEnd")) {
+            log.info("Обновление dateOfEducationEnd");
+
+            Object raw = normalizedData.get("dateOfEducationEnd");
+
+            if (raw != null) {
+                LocalDate date = LocalDate.parse(raw.toString());
+                account.setDateOfEducationEnd(date);
+            } else {
+                account.setDateOfEducationEnd(null);
+            }
+        }
+
+        if (normalizedData.containsKey("inactivityTimeMs")) {
+            log.info("Обновление inactivityTimeMs");
+            Object raw = normalizedData.get("inactivityTimeMs");
+
+            if (raw != null) {
+                long timestamp = raw instanceof Number
+                        ? ((Number) raw).longValue()
+                        : Long.parseLong(raw.toString());
+
+                setInactivityPeriod(accountId, timestamp);
+            }
+        }
+
+        account.setUpdatedAt(Instant.now());
+        log.info("Сохранение аккаунта {}", accountId);
+    }
+
+    @Transactional
+    public EmailUpdateResponseDto updateEmail(EmailUpdateRequestDto request, UUID accountId) {
+        Set<FieldErrorDto> validationErrors = new HashSet<>();
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
+
+        if (!validationErrors.isEmpty()) {
+            throw new FieldValidationException("email", validationErrors.stream().toList());
+        }
+
+        Optional<EmailUpdateSessionEntity> sessionOptByEmail
+                = emailUpdateSessionRepository.findByNewEmail(request.getEmail());
+
+        boolean isAccountFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
+        boolean isFake = !isAccountFree;
+
+        boolean accountExists = accountRepository.existsById(accountId);
+        if (!accountExists) {
+            throw new AccountNotFoundException();
+        }
+
+        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
+        EmailUpdateResponseDto emailUpdateResponse;
+
+        if (sessionOpt.isPresent()) {
+            emailUpdateResponse = handleExistingSession(sessionOpt.get(), request.getEmail(), accountId, isFake);
+        } else if (isAccountFree) {
+            emailUpdateResponse = handleNewSession(request.getEmail(), accountId, isFake);
+        } else {
+            emailUpdateResponse = handleNewSession(request.getEmail(), accountId, isFake);
+        }
+
+        return emailUpdateResponse;
+    }
+
+    @Transactional
+    public void confirmEmail(EmailUpdateConfirmRequestDto request, UUID accountId) {
+
+        Set<FieldErrorDto> validationErrors = new HashSet<>();
+        commonFieldsValidator.validateEmailField(request.getEmail(), validationErrors);
+
+        if (!validationErrors.isEmpty()) {
+            throw new FieldValidationException("email", validationErrors.stream().toList());
+        }
+
+        String code = securityValidator.getTrimmedCodeOrThrow(request.getCode());
+        Optional<EmailUpdateSessionEntity> sessionOpt = emailUpdateSessionRepository.findByAccountId(accountId);
+        if (sessionOpt.isEmpty()) {
+            log.error("Нет такой сессии.");
+            throw new ServerAnswerException();
+        }
+
+        EmailUpdateSessionEntity session = sessionOpt.get();
+
+        boolean isSessionFake = session.getCode().isEmpty();
+
+        if (isSessionFake) {
+            log.warn("Фейковая сессия создана.");
+            throw new InvalidCodeException();
+        }
+
+        if (!request.getEmail().equals(session.getNewEmail())) {
+            log.error("Почта для изменения не совпадает с текущей.");
+            throw new EmailEqualsException();
+        }
+
+        securityValidator.checkIfCodeIsValid(session, code);
+        securityValidator.ensureCodeIsNotExpired(session);
+
+        boolean isEmailStillFree = commonFieldsValidator.checkIfEmailFree(request.getEmail());
+        if (!isEmailStillFree) {
+            log.info("Почта уже занята.");
+            throw new InvalidCodeException();
+        }
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new InvalidCodeException();
+        }
+
+        String domain = request.getEmail().split("@")[1].toLowerCase();
+
+        Optional<EducationalInstitutionEntity> institutionOpt =
+                educationalInstitutionRepository.findByDomenName(domain);
+
+        AccountEntity account = accountOpt.get();
+
+        AccountContactInfoEntity emailContact = accountContactInfoRepository
+                .findByContact(account.getMainEmailContact().getContact())
+                .orElseThrow(ServerAnswerException::new);
+
+        emailContact.setContact(request.getEmail());
+
+        accountContactInfoRepository.save(emailContact);
+
+        account.setMainEmailContact(emailContact);
+        institutionOpt.ifPresent(account::setEducationalInstitution);
+
+        accountRepository.save(account);
+        emailUpdateSessionRepository.deleteById(accountId);
+    }
+
+    @Transactional
+    public void updateAvatar(UUID accountId, MultipartFile avatarFile) {
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунта не существует.");
+            throw new AccountNotFoundException();
+        }
+
+        if (avatarFile == null || avatarFile.isEmpty()) {
+            log.error("Аватара нет.");
+            throw new AvatarNotFoundException();
+        }
+
+        if (avatarFile.getSize() > MAX_AVATAR_SIZE_BYTES) {
+            log.error("Аватар больше 5 Мб.");
+            throw new AvatarLargeSizeException();
+        }
+
+        String mimeType;
+        try {
+            Tika tika = new Tika();
+            mimeType = tika.detect(avatarFile.getBytes());
+
+            MediaType mediaType = MediaType.fromMimeType(mimeType);
+
+            if (mediaType == null) {
+                String extension = "unknown";
+                try {
+                    MimeTypes allTypes = MimeTypes.getDefaultMimeTypes();
+                    MimeType tikaMimeType = allTypes.forName(mimeType);
+                    extension = tikaMimeType.getExtension();
+                } catch (Exception e) {
+                    log.error("Неизвестное расширение");
+                }
+
+                log.error("Недопустимый MIME-тип: {} (расширение: {})", mimeType, extension);
+                throw new InvalidMimeTypeException(extension, "avatar");
+            }
+
+            AccountEntity account = accountOpt.get();
+            account.setAvatar(avatarFile.getBytes());
+            account.setAvatarMimeType(mediaType);
+        } catch (IOException e) {
+            log.error("Тип mimeType не удалось определить " + e);
+            throw new ServerAnswerException();
+        }
+    }
+
+    private EmailUpdateResponseDto handleNewSession(String email, UUID accountId, boolean isFake) {
+
+        emailUpdateSessionRepository.deleteByAccountId(accountId);
+
+        String rawCode = isFake ? "" : codeGenerator.codeGenerate();
+
+        log.info("{}_UPDATE_EMAIL_CODE: {} NEW EMAIL: {} OLD EMAIL: {}",
+                isFake ? "FAKE" : "REAL",
+                rawCode, email,
+                accountRepository.findById(accountId).get()
+                        .getMainEmailContact().getContact());
+
+        String hashCode = isFake ? "" : codeGenerator.codeHash(rawCode);
+        long codeExpires = codeGenerator.codeExpiresGenerate();
+
+        EmailUpdateSessionEntity emailUpdateSession =
+                EmailUpdateSessionEntity.builder()
+                        .newEmail(email)
+                        .code(hashCode)
+                        .accountId(accountId)
+                        .codeExpires(new Timestamp(codeExpires))
+                        .build();
+
+        emailUpdateSessionRepository.save(emailUpdateSession);
+
+        return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), codeExpires);
+
+    }
+
+    private EmailUpdateResponseDto handleExistingSession(EmailUpdateSessionEntity session,
+                                                         String email,
+                                                         UUID accountId,
+                                                         boolean isFake) {
+        boolean isExpired = session.getCodeExpires().before(Timestamp.from(Instant.now()));
+        boolean isSameAccount = accountId.equals(session.getAccountId());
+        boolean isSameEmail = email.equals(session.getNewEmail());
+        boolean wasSessionFake = session.getCode().isEmpty();
+
+        if (isExpired || !isSameAccount || !isSameEmail || (wasSessionFake && !isFake)) {
+            emailUpdateSessionRepository.delete(session);
+            return handleNewSession(email, accountId, isFake);
+        }
+
+        return new EmailUpdateResponseDto(codeGenerator.getCodePattern(), session.getCodeExpires().getTime());
+    }
+
+    public void setInactivityPeriod(UUID accountId, long inactivityTimeMs) {
+
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+
+        if (accountOpt.isEmpty()) {
+            log.error("Аккаунт при установке периода бездействия не найден");
+            throw new AccountNotFoundException();
+        }
+
+        AccountEntity account = accountOpt.get();
+
+        ActivitySessionEntity activitySession = activitySessionRepository.findByAccount(account)
+                .orElse(ActivitySessionEntity.builder()
+                        .account(account)
+                        .lastActivity(Timestamp.from(Instant.now()))
+                        .inactivityTimeMs(inactivityTimeMs)
+                        .build()
+                );
+
+        if (activitySession.getId() != null) {
+            activitySession.setInactivityTimeMs(inactivityTimeMs);
+        }
+
+        activitySessionRepository.save(activitySession);
+        accountCleanerService.cleanInactiveAccounts(
+                accountId,
+                activitySession.getLastActivity().getTime() + inactivityTimeMs
+        );
+
+    }
+
+    @Transactional
+    public void deleteAccount(UUID accountId) {
+        Optional<AccountEntity> accountOpt = accountRepository.findById(accountId);
+
+        if (accountOpt.isEmpty()) {
+            throw new AccountDeleteException();
+        }
+
+        accountRepository.delete(accountOpt.get());
+    }
+
+}
