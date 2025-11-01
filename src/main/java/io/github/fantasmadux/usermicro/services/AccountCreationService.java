@@ -7,11 +7,9 @@ import io.github.fantasmadux.usermicro.api.dto.FieldErrorDto;
 import io.github.fantasmadux.usermicro.store.entities.AccountContactInfoEntity;
 import io.github.fantasmadux.usermicro.store.entities.AccountEntity;
 import io.github.fantasmadux.usermicro.store.entities.ActivitySessionEntity;
-import io.github.fantasmadux.usermicro.store.entities.EducationalInstitutionEntity;
 import io.github.fantasmadux.usermicro.store.enums.ContactMethodType;
 import io.github.fantasmadux.usermicro.store.repositories.AccountRepository;
 import io.github.fantasmadux.usermicro.store.repositories.ActivitySessionRepository;
-import io.github.fantasmadux.usermicro.store.repositories.EducationalInstitutionRepository;
 import io.github.fantasmadux.usermicro.util.HelperUtils;
 import io.github.fantasmadux.usermicro.validators.GrpcConvertor;
 import io.github.fantasmadux.usermicro.validators.RegistrationValidator;
@@ -29,7 +27,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AccountCreationService {
     private final AccountRepository accountRepository;
-    private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final RegistrationValidator registrationValidator;
     private final ActivitySessionRepository activitySessionRepository;
     private final AccountCleanerService accountCleanerService;
@@ -62,9 +59,6 @@ public class AccountCreationService {
             String firstName = userData.getOrDefault("firstName", Value.newBuilder().setStringValue("").build()).getStringValue();
             String lastName = userData.getOrDefault("lastName", Value.newBuilder().setStringValue("").build()).getStringValue();
             String domain = email.substring(email.indexOf("@") + 1);
-            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
-                    .findByDomenName(domain)
-                    .get();
 
             AccountEntity account = new AccountEntity();
 
@@ -83,7 +77,6 @@ public class AccountCreationService {
             account.setIp(ip);
             account.setAcceptedPrivacyPolicy(acceptedPrivacyPolicy);
             account.setAcceptedPersonalDataProcessing(acceptedPersonalDataProcessing);
-            account.setEducationalInstitution(educationalInstitution);
 
             accountRepository.save(account);
 

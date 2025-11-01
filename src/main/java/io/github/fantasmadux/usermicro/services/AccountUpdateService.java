@@ -45,10 +45,8 @@ public class AccountUpdateService {
     private static final Logger log = LoggerFactory.getLogger(AccountUpdateService.class);
     private final SpecializationRepository specializationRepository;
     private final ActivitySessionRepository activitySessionRepository;
-    private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final AccountContactInfoRepository accountContactInfoRepository;
     private final AccountCleanerService accountCleanerService;
-    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
     private final SpecializationService specializationService;
 
     @Value("${MAX_AVATAR_SIZE}")
@@ -66,9 +64,7 @@ public class AccountUpdateService {
                                 CodeGenerator codeGenerator, SecurityValidator securityValidator,
                                 SpecializationRepository specializationRepository,
                                 ActivitySessionRepository activitySessionRepository,
-                                EducationalInstitutionRepository educationalInstitutionRepository,
                                 AccountContactInfoRepository accountContactInfoRepository,
-                                InstitutionSpecialtiesRepository institutionSpecialtiesRepository,
                                 SpecializationService specializationService,
                                 AccountCleanerService accountCleanerService) {
         this.accountRepository = accountRepository;
@@ -79,11 +75,9 @@ public class AccountUpdateService {
         this.securityValidator = securityValidator;
         this.specializationRepository = specializationRepository;
         this.activitySessionRepository = activitySessionRepository;
-        this.educationalInstitutionRepository = educationalInstitutionRepository;
         this.accountContactInfoRepository = accountContactInfoRepository;
         this.commonFieldsValidator = commonFieldsValidator;
         this.accountCleanerService = accountCleanerService;
-        this.institutionSpecialtiesRepository = institutionSpecialtiesRepository;
         this.specializationService = specializationService;
     }
 
@@ -178,18 +172,6 @@ public class AccountUpdateService {
             SpecializationEntity specialization = specializationOpt.get();
             account.setSpecialization(specialization);
 
-            EducationalInstitutionEntity educationalInstitution =
-                    account.getEducationalInstitution();
-            boolean relationExists = institutionSpecialtiesRepository
-                    .existsByEducationalInstitutionIdAndSpecializationId(educationalInstitution.getId(),
-                            specializationId);
-
-            if (!relationExists) {
-                specializationService.createSpecializationInstitutionRelation(educationalInstitution.getId(),
-                        specializationId);
-                log.info("Создана новая связь специализация-ВУЗ: {} - {}",
-                        specializationId, educationalInstitution.getId());
-            }
         }
 
         if (normalizedData.containsKey("professor")) {
@@ -338,9 +320,6 @@ public class AccountUpdateService {
 
         String domain = request.getEmail().split("@")[1].toLowerCase();
 
-        Optional<EducationalInstitutionEntity> institutionOpt =
-                educationalInstitutionRepository.findByDomenName(domain);
-
         AccountEntity account = accountOpt.get();
 
         AccountContactInfoEntity emailContact = accountContactInfoRepository
@@ -352,7 +331,6 @@ public class AccountUpdateService {
         accountContactInfoRepository.save(emailContact);
 
         account.setMainEmailContact(emailContact);
-        institutionOpt.ifPresent(account::setEducationalInstitution);
 
         accountRepository.save(account);
         emailUpdateSessionRepository.deleteById(accountId);

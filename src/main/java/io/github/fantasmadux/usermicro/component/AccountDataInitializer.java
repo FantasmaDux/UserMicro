@@ -1,14 +1,11 @@
 package io.github.fantasmadux.usermicro.component;
 
-import io.github.fantasmadux.usermicro.api.exceptions.ServerAnswerException;
 import io.github.fantasmadux.usermicro.store.entities.AccountContactInfoEntity;
 import io.github.fantasmadux.usermicro.store.entities.AccountEntity;
-import io.github.fantasmadux.usermicro.store.entities.EducationalInstitutionEntity;
 import io.github.fantasmadux.usermicro.store.entities.SpecializationEntity;
 import io.github.fantasmadux.usermicro.store.enums.ContactMethodType;
 import io.github.fantasmadux.usermicro.store.enums.VisibilityType;
 import io.github.fantasmadux.usermicro.store.repositories.AccountRepository;
-import io.github.fantasmadux.usermicro.store.repositories.EducationalInstitutionRepository;
 import io.github.fantasmadux.usermicro.store.repositories.SpecializationRepository;
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
@@ -29,7 +26,6 @@ import java.util.Random;
 public class AccountDataInitializer implements ApplicationRunner {
 
     private final AccountRepository accountRepository;
-    private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final SpecializationRepository specializationRepository;
     private static final Logger log = LoggerFactory.getLogger(AccountDataInitializer.class);
 
@@ -52,11 +48,6 @@ public class AccountDataInitializer implements ApplicationRunner {
                     return;
                 }
 
-                EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
-                        .findByDomenName("communicator.ru").orElseThrow(() -> new ServerAnswerException());
-                if (educationalInstitution == null) {
-                    throw new IllegalStateException("EducationalInstitution with domenName communicator.ru not found");
-                }
 
                 int countOfFakers = 500;
                 for (int i = 0; i < countOfFakers; i++) {
@@ -73,7 +64,6 @@ public class AccountDataInitializer implements ApplicationRunner {
                             .firstName(firstName)
                             .lastName(lastName)
                             .middleName(middleName)
-                            .educationalInstitution(educationalInstitution)
                             .networking(true)
                             .cityVisible(VisibilityType.PUBLIC)
                             .dateOfBirthVisible(VisibilityType.PUBLIC)
@@ -106,11 +96,6 @@ public class AccountDataInitializer implements ApplicationRunner {
         }
 
         if (!adminExists) {
-            EducationalInstitutionEntity educationalInstitution = educationalInstitutionRepository
-                    .findByDomenName("communicator.ru").orElseThrow(() -> new ServerAnswerException());
-            if (educationalInstitution == null) {
-                throw new IllegalStateException("EducationalInstitution with domenName communicator.ru not found");
-            }
 
             String specializationName = "Физика";
             SpecializationEntity adminSpecialization = specializationRepository.findByName(specializationName)
@@ -123,7 +108,6 @@ public class AccountDataInitializer implements ApplicationRunner {
 
             AccountEntity adminAccount = AccountEntity.builder()
                     .admin(true)
-                    .educationalInstitution(educationalInstitution)
                     .networking(true)
                     .cityVisible(VisibilityType.PRIVATE)
                     .dateOfBirthVisible(VisibilityType.PRIVATE)

@@ -47,6 +47,4 @@ public class SpecializationEntity {
     @OneToMany(mappedBy = "specialization", fetch = FetchType.LAZY)
     private List<AccountEntity> accounts;
 
-    @OneToMany(mappedBy = "specialization", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    private List<InstitutionSpecialtiesEntity> institutionSpecialties;
 }

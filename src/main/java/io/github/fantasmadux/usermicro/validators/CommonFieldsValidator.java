@@ -3,7 +3,6 @@ package io.github.fantasmadux.usermicro.validators;
 import io.github.fantasmadux.usermicro.api.dto.FieldErrorDto;
 import io.github.fantasmadux.usermicro.store.enums.VisibilityType;
 import io.github.fantasmadux.usermicro.store.repositories.AccountRepository;
-import io.github.fantasmadux.usermicro.store.repositories.EducationalInstitutionRepository;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.slf4j.Logger;
@@ -27,7 +26,6 @@ import static io.github.fantasmadux.usermicro.constants.ValidationConstants.*;
 public class CommonFieldsValidator {
     private final MessageSource messageSource;
     private final AccountRepository accountRepository;
-    private final EducationalInstitutionRepository educationalInstitutionRepository;
     private static final Logger log = LoggerFactory.getLogger(CommonFieldsValidator.class);
     @Value("${MAX_INACTIVITY_PERIOD}")
     private long MAX_INACTIVITY_PERIOD;
@@ -140,23 +138,6 @@ public class CommonFieldsValidator {
         validateForbiddenSymbols(fieldName, strValue, errors);
     }
 
-    protected void validateDomainName(String email, Set<FieldErrorDto> errors) {
-
-        if (email == null || !email.contains("@")) {
-            return;
-        }
-
-        String domain = email.substring(email.indexOf("@") + 1).toLowerCase();
-
-        boolean isDomainExists = educationalInstitutionRepository.findByDomenName(domain).isPresent();
-
-        if (!isDomainExists) {
-            errors.add(createFieldErrorDto(
-                    "email", new Object[]{domain}, "institution.domain.not.registered"
-            ));
-        }
-    }
-
     protected void validateBooleanField(String fieldName,
                                         Map<String, Object> userData, Set<FieldErrorDto> errors) {
         if (!userData.containsKey(fieldName)) {
@@ -213,7 +194,6 @@ public class CommonFieldsValidator {
                     "email.format.incorrect"));
         }
 
-        validateDomainName(email, errors);
     }
 
     protected FieldErrorDto createFieldErrorDto(String field, Object[] obj, String message) {
