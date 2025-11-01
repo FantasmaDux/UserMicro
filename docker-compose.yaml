@@ -1,0 +1,42 @@
+services:
+  user-service:
+    container_name: user-service
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    ports:
+      - "${USER_HTTP}:${USER_HTTP}"
+    env_file:
+      - ./.env
+    depends_on:
+      user-db-postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - user-network
+
+  user-db-postgres:
+    container_name: user-db-postgres
+    image: postgres:16-alpine
+    ports:
+      - "${POSTGRES_DB_EXTERNAL_PORT}:${POSTGRES_DB_INTERNAL_PORT}"
+    env_file:
+      - ./.env
+    volumes:
+      - user-db-postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U $POSTGRES_USER -d $POSTGRES_DB'" ]
+      interval: ${HEALTHCHECK_INTERVAL}
+      timeout: ${HEALTHCHECK_TIMEOUT}
+      retries: ${HEALTHCHECK_RETRIES}
+    networks:
+      - user-network
+
+
+volumes:
+  user-db-postgres:
+
+
+networks:
+  user-network:
+    driver: bridge

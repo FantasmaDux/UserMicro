@@ -1,0 +1,15 @@
+package io.github.fantasmadux.usermicro.store.repositories;
+
+import io.github.fantasmadux.usermicro.store.entities.InitiativeEntity;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.UUID;
+
+public interface InitiativeRepository extends JpaRepository<InitiativeEntity, UUID> {
+    @Modifying
+    @Query("UPDATE InitiativeEntity i SET i.account.id = null WHERE i.account.id = :accountId")
+    void updateAccountToNull(@Param("accountId") UUID accountId);
+}
