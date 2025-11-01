@@ -1,23 +1,14 @@
 package io.github.fantasmadux.usermicro.services;
 
 import io.github.fantasmadux.usermicro.api.dto.responses.SpecializationPageDto;
-import io.github.fantasmadux.usermicro.api.dto.responses.SpecializationsByInstitutionDto;
 import io.github.fantasmadux.usermicro.api.dto.responses.SpecializationsDto;
-import io.github.fantasmadux.usermicro.api.exceptions.InstitutionNotFoundException;
 import io.github.fantasmadux.usermicro.api.exceptions.ServerAnswerException;
-import io.github.fantasmadux.usermicro.api.exceptions.SpecializationNotFoundException;
-import io.github.fantasmadux.usermicro.store.entities.EducationalInstitutionEntity;
-import io.github.fantasmadux.usermicro.store.entities.InstitutionSpecialtiesEntity;
-import io.github.fantasmadux.usermicro.store.entities.SpecializationEntity;
 import io.github.fantasmadux.usermicro.store.enums.CursorDestinationType;
-import io.github.fantasmadux.usermicro.store.repositories.EducationalInstitutionRepository;
-import io.github.fantasmadux.usermicro.store.repositories.InstitutionSpecialtiesRepository;
 import io.github.fantasmadux.usermicro.store.repositories.SpecializationRepository;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Base64;
 import java.util.List;
@@ -31,47 +22,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class SpecializationService {
     Logger log = LoggerFactory.getLogger(SpecializationService.class);
-    private final EducationalInstitutionRepository educationalInstitutionRepository;
     private final SpecializationRepository specializationRepository;
-    private final InstitutionSpecialtiesRepository institutionSpecialtiesRepository;
 
     private enum SearchType {CODE, NAME, MIXED, GENERAL}
-
-    @Transactional
-    public SpecializationsByInstitutionDto getSpecializationsByInstitution(UUID institutionId) {
-
-        if (!educationalInstitutionRepository.existsById(institutionId)) {
-            log.error("Институт с id {} не найден", institutionId);
-            throw new InstitutionNotFoundException();
-        }
-
-        Optional<EducationalInstitutionEntity> educationalInstitutionOpt
-                = educationalInstitutionRepository.findById(institutionId);
-
-        EducationalInstitutionEntity educationalInstitution = educationalInstitutionOpt.get();
-
-        List<SpecializationsDto> specializations =
-                educationalInstitution.getInstitutionSpecialties().stream()
-                        .map(InstitutionSpecialtiesEntity::getSpecialization)
-                        .map(specialization ->
-                        {
-                            String fullCode = specialization.getSpecializationCode();
-                            String trimmedCode = fullCode.contains(".")
-                                    ? fullCode.substring(fullCode.indexOf('.') + 1)
-                                    : fullCode;
-
-                            return SpecializationsDto.builder()
-                                    .id(specialization.getId())
-                                    .code(trimmedCode)
-                                    .name(specialization.getName())
-                                    .build();
-                        })
-                        .toList();
-
-        return SpecializationsByInstitutionDto.builder()
-                .specializationsByInstitution(specializations)
-                .build();
-    }
 
     public SpecializationPageDto getSpecializations(UUID institutionId,
                                                     String keyword,
@@ -250,30 +203,5 @@ public class SpecializationService {
         if (hasLetter && !hasDigit) return SearchType.NAME;
         if (hasDigit && hasLetter) return SearchType.MIXED;
         return SearchType.GENERAL;
-    }
-
-    public void createSpecializationInstitutionRelation(UUID educational_institution_id,
-                                                        UUID specialization_id) {
-
-        Optional<EducationalInstitutionEntity> educationalInstitution =
-                educationalInstitutionRepository.findById(educational_institution_id);
-
-        if (educationalInstitution.isEmpty()) {
-            throw new InstitutionNotFoundException();
-        }
-
-        Optional<SpecializationEntity> specialization =
-                specializationRepository.findById(specialization_id);
-
-        if (specialization.isEmpty()) {
-            throw new SpecializationNotFoundException();
-        }
-
-        InstitutionSpecialtiesEntity institutionSpecialties = InstitutionSpecialtiesEntity.builder()
-                .educationalInstitution(educationalInstitution.get())
-                .specialization(specialization.get())
-                .build();
-
-        institutionSpecialtiesRepository.save(institutionSpecialties);
     }
 }

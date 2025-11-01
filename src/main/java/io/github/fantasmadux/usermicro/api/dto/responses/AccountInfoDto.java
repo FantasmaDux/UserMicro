@@ -47,10 +47,6 @@ public class AccountInfoDto {
     private String cityName;
     @Schema(description = "Название специализации пользователя")
     private String specializationName;
-    @Schema(description = "Название домена пользователя")
-    private String educationalInstitutionName;
-    @Schema(description = "ID учебного заведения")
-    private UUID educationalInstitutionId;
     @Schema(description = "ID специализации")
     private UUID specializationId;
 }

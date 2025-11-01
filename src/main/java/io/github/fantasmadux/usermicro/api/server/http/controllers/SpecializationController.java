@@ -24,20 +24,6 @@ public class SpecializationController {
 
     private final SpecializationService specializationService;
 
-    @Operation(summary = "Метод получения специализаций университета")
-    @CommonApiResponses
-    @ApiResponse(
-            responseCode = "200",
-            description = "Список специализаций получен"
-    )
-    @GetMapping(value = "/byInstitution", produces = "application/json")
-    public SpecializationsByInstitutionDto getSpecializations(
-            @RequestParam UUID institutionId
-    ) {
-        return specializationService.getSpecializationsByInstitution(institutionId);
-    }
-
-
     @Operation(summary = "Метод получения специализаций по вузу и ключевым словам")
     @CommonApiResponses
     @ApiResponse(

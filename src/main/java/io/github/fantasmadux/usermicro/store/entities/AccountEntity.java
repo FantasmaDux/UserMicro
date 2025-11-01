@@ -31,11 +31,6 @@ public class AccountEntity {
     private CityEntity city;
 
     @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id", nullable = false)
-    @JoinColumn(name = "educational_institution_id", referencedColumnName = "id")
-    private EducationalInstitutionEntity educationalInstitution;
-
-    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "specialization_id", referencedColumnName = "id")
     private SpecializationEntity specialization;
 
